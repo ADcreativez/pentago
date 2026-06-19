@@ -2014,4 +2014,4 @@ if __name__ == '__main__':
         # Automatically unblock localhost if it got blocked previously
         BlockedIP.query.filter(BlockedIP.ip_address.in_(['127.0.0.1', '::1', 'localhost'])).delete(synchronize_session=False)
         db.session.commit()
-    app.run(debug=True, port=5001)
+    app.run(host='0.0.0.0', port=5001, debug=True)
