@@ -1,0 +1,59 @@
+{
+  "categories": {
+    "Mobile Testing": {
+      "description": "Resources for testing Android/iOS applications.",
+      "items": [
+        {
+          "consultant": "admin",
+          "notes": "What's new in 0.15.1 (2026-05-16). Three new flags for pointing ptai at real production targets without breaking the engagement rules. intensity=safe skips probes that mutate server state (no mass-assignment, no stored XSS, no race conditions). respect_rate_limits=true honors HTTP 429 and Retry-After instead of hammering through them. strict_scope=true refuses any request whose host doesn't match the engagement target, and turns off redirect-following so a 302 to attacker.com can't pull the scan off-target. All three default off - existing 0.14.x behavior is unchanged unless you opt in. There's also a working bearer auth flow now: POST your creds, ptai pulls the JWT out of a JSON path you configure, then attaches it to every probe. JWT-style APIs (Juice Shop, crAPI, most modern bug-bounty stacks) actually work. Measured: 63.24% catch rate (43/68 in-scope challenges) on OWASP Juice Shop v19.2.1 with intensity=aggressive + strict_scope=true.\n\n\n![Screenshot | center](http://127.0.0.1:5001/static/uploads/poc_654f8d3a69524a319c2044b4f38b40c1.png)",
+          "title": "Pentest Ai",
+          "url": "https://github.com/0xsteph/pentest-ai"
+        },
+        {
+          "consultant": "admin",
+          "notes": "",
+          "title": "test",
+          "url": ""
+        }
+      ]
+    },
+    "Network & Infrastructure": {
+      "description": "Tools for network discovery, sniffing, and infrastructure assessment.",
+      "items": []
+    },
+    "Pentest Tools": {
+      "description": "",
+      "items": [
+        {
+          "consultant": "admin",
+          "notes": "What's new in 0.15.1 (2026-05-16). Three new flags for pointing ptai at real production targets without breaking the engagement rules. intensity=safe skips probes that mutate server state (no mass-assignment, no stored XSS, no race conditions). respect_rate_limits=true honors HTTP 429 and Retry-After instead of hammering through them. strict_scope=true refuses any request whose host doesn't match the engagement target, and turns off redirect-following so a 302 to attacker.com can't pull the scan off-target. All three default off - existing 0.14.x behavior is unchanged unless you opt in. There's also a working bearer auth flow now: POST your creds, ptai pulls the JWT out of a JSON path you configure, then attaches it to every probe. JWT-style APIs (Juice Shop, crAPI, most modern bug-bounty stacks) actually work. Measured: 63.24% catch rate (43/68 in-scope challenges) on OWASP Juice Shop v19.2.1 with intensity=aggressive + strict_scope=true.",
+          "title": "Pentest Ai",
+          "url": "https://github.com/0xsteph/pentest-ai"
+        }
+      ]
+    },
+    "Recon & OSINT": {
+      "description": "Tools and resources for reconnaissance and open source intelligence.",
+      "items": []
+    },
+    "Reporting & Documentation": {
+      "description": "Templates, report generators, and documentation guidelines.",
+      "items": []
+    },
+    "Web Application Testing": {
+      "description": "Frameworks, scanners, and utilities for web penetration testing.",
+      "items": []
+    },
+    "Red Team Tools": {
+      "description": "",
+      "items": [
+        {
+          "title": "Bruteforce AD",
+          "notes": "Atomic Red Team™ is a library of tests mapped to the MITRE ATT&CK® framework. Security teams can use Atomic Red Team to quickly, portably, and reproducibly test their environments.",
+          "consultant": "admin",
+          "url": "https://github.com/redcanaryco/atomic-red-team"
+        }
+      ]
+    }
+  }
+}

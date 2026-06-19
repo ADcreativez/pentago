@@ -1,0 +1,906 @@
+{
+  "CIS Controls v8": {
+    "description": "CIS Critical Security Controls (CIS Controls) adalah serangkaian tindakan perlindungan prioritas yang dapat diterapkan organisasi untuk mempertahankan diri dari serangan siber.",
+    "headers": [
+      "ID Kontrol",
+      "Nama Kontrol",
+      "Deskripsi Kontrol",
+      "Pengamanan Utama (Safeguards)"
+    ],
+    "rows": [
+      [
+        "CIS 1",
+        "Inventory and Control of Enterprise Assets",
+        "Kelola secara aktif semua aset perusahaan (fisik, virtual, cloud) agar hanya aset resmi yang diberi akses.",
+        "Pelihara inventaris aset aktif; Atasi aset tidak sah setiap minggu; Gunakan pencatatan DHCP."
+      ],
+      [
+        "CIS 2",
+        "Inventory and Control of Software Assets",
+        "Kelola secara aktif semua perangkat lunak di jaringan agar hanya perangkat lunak resmi yang diinstal dan dijalankan.",
+        "Pelihara inventaris perangkat lunak resmi; Gunakan alat inventarisasi; Terapkan daftar blokir/izin aplikasi."
+      ],
+      [
+        "CIS 3",
+        "Data Protection",
+        "Kembangkan proses dan kontrol teknis untuk mengidentifikasi, mengklasifikasikan, menangani, menyimpan, dan membuang data dengan aman.",
+        "Tetapkan skema klasifikasi data; Enkripsi data sensitif saat disimpan & ditransfer; Otomatiskan pencadangan."
+      ],
+      [
+        "CIS 4",
+        "Secure Configuration of Enterprise Assets and Software",
+        "Tetapkan, terapkan, dan kelola konfigurasi keamanan aset dan perangkat lunak perusahaan secara aktif.",
+        "Tetapkan konfigurasi yang aman; Pelihara image sistem yang aman; Kunci akun dan kata sandi default."
+      ],
+      [
+        "CIS 5",
+        "Account Management",
+        "Gunakan proses dan alat untuk membuat, menetapkan, mengelola, dan mencabut kredensial dan hak istimewa akun pengguna, administrator, dan layanan.",
+        "Tetapkan inventarisasi semua akun; Gunakan kata sandi yang unik; Aktifkan Autentikasi Multi-Faktor (MFA)."
+      ],
+      [
+        "CIS 6",
+        "Access Control Management",
+        "Pastikan akses ke aset dan data perusahaan dibatasi berdasarkan peran pengguna dan prinsip need-to-know.",
+        "Tetapkan proses pemberian akses; Terapkan least privilege; Cabut akses segera setelah pemutusan hubungan kerja."
+      ],
+      [
+        "CIS 7",
+        "Continuous Vulnerability Management",
+        "Kembangkan rencana untuk menilai dan melacak kerentanan secara terus-menerus pada semua aset perusahaan.",
+        "Tetapkan proses pemindaian kerentanan; Lakukan pemindaian otomatis; Remedi kerentanan berdasarkan prioritas."
+      ],
+      [
+        "CIS 8",
+        "Audit Log Management",
+        "Kumpulkan, waspadai, tinjau, dan pertahankan log audit peristiwa yang dapat membantu mendeteksi dan memulihkan dari serangan.",
+        "Sentralisasikan penyimpanan log; Tinjau log setiap minggu; Simpan log setidaknya selama 90 hari."
+      ],
+      [
+        "CIS 9",
+        "Email and Web Browser Protections",
+        "Tingkatkan perlindungan terhadap ancaman berbasis email dan web, yang merupakan vektor masuk yang umum.",
+        "Pastikan hanya browser/klien email yang didukung; Terapkan penyaringan DNS; Terapkan autentikasi email (SPF, DKIM, DMARC)."
+      ],
+      [
+        "CIS 10",
+        "Malware Defenses",
+        "Cegah atau kendalikan penginstalan, penyebaran, dan eksekusi kode berbahaya pada aset perusahaan.",
+        "Terapkan perangkat lunak anti-malware; Aktifkan pembaruan otomatis; Gunakan manajemen anti-malware terpusat."
+      ],
+      [
+        "CIS 11",
+        "Data Recovery",
+        "Tetapkan dan pertahankan praktik pemulihan data yang memadai untuk memulihkan aset dan informasi perusahaan.",
+        "Lakukan pencadangan rutin; Enkripsi data cadangan; Simpan cadangan di luar lokasi/terisolasi; Verifikasi integritas cadangan setiap tahun."
+      ],
+      [
+        "CIS 12",
+        "Network Infrastructure Management",
+        "Tetapkan, terapkan, dan kelola perangkat jaringan secara aktif untuk mencegah penyerang mengeksploitasi layanan yang rentan.",
+        "Pelihara diagram jaringan terbaru; Konfigurasikan perangkat jaringan dengan aman; Gunakan protokol manajemen yang aman (SSH/HTTPS)."
+      ],
+      [
+        "CIS 13",
+        "Network Monitoring and Defense",
+        "Operasikan proses dan alat untuk menetapkan deteksi dini dan pertahanan terhadap ancaman berbasis jaringan.",
+        "Gunakan IDS/IPS; Kumpulkan log alur; Terapkan segmentasi jaringan; Terapkan Web Application Firewall (WAF)."
+      ],
+      [
+        "CIS 14",
+        "Security Awareness and Skills Training",
+        "Tetapkan program kesadaran keamanan untuk memengaruhi perilaku karyawan guna mengurangi risiko keamanan.",
+        "Lakukan pelatihan kesadaran keamanan; Uji karyawan dengan simulasi phishing; Latih pengembang dalam secure coding."
+      ],
+      [
+        "CIS 15",
+        "Service Provider Management",
+        "Kembangkan proses untuk mengevaluasi penyedia layanan pihak ketiga yang menyimpan data sensitif atau mengelola infrastruktur TI.",
+        "Pelihara inventaris penyedia layanan; Nilai postur keamanan penyedia layanan; Pastikan persyaratan keamanan ada dalam perjanjian SLA."
+      ],
+      [
+        "CIS 16",
+        "Application Software Security",
+        "Kelola siklus hidup keamanan perangkat lunak yang dikembangkan secara internal dan diperoleh untuk mencegah kerentanan.",
+        "Tetapkan pedoman secure coding; Lakukan tinjauan kode; Lakukan pengujian kerentanan aplikasi; Gunakan pustaka yang aman."
+      ],
+      [
+        "CIS 17",
+        "Incident Response Management",
+        "Tetapkan program (rencana respons insiden, peran, pelatihan) untuk menemukan, menampung, dan memulihkan serangan siber dengan cepat.",
+        "Tetapkan rencana respons insiden; Tetapkan peran penanganan insiden; Lakukan latihan simulasi tahunan; Pelihara daftar kontak."
+      ],
+      [
+        "CIS 18",
+        "Penetration Testing",
+        "Uji efektivitas dan ketahanan pertahanan perusahaan dengan mensimulasikan serangan dunia nyata.",
+        "Lakukan pengujian penetrasi eksternal/internal secara berkala; Remedi temuan; Tetapkan ruang lingkup dan aturan keterlibatan."
+      ]
+    ]
+  },
+  "ISSAF": {
+    "description": "Information Systems Security Assessment Framework (ISSAF) adalah kerangka kerja komprehensif yang mengatur kriteria penilaian keamanan sistem informasi berdasarkan area teknis dan operasional.",
+    "headers": [
+      "Fase",
+      "Nama Fase",
+      "Deskripsi Fokus",
+      "Langkah & Penilaian Utama"
+    ],
+    "rows": [
+      [
+        "1",
+        "Planning and Preparation",
+        "Tahap awal untuk menentukan parameter pengujian, mengidentifikasi kontak kunci, dan mendapatkan otorisasi formal.",
+        "Definisikan ruang lingkup pengujian, buat rencana pengujian formal, sepakati aturan main (Rules of Engagement), serta lengkapi aspek hukum (NDA dan LOA)."
+      ],
+      [
+        "2",
+        "Information Gathering and Reconnaissance",
+        "Mengumpulkan informasi teknis sebanyak mungkin mengenai sistem target tanpa mengeksploitasinya.",
+        "Lakukan pencarian WHOIS, pemetaan DNS, pemindaian port aktif, identifikasi sistem operasi (OS fingerprinting), serta banner grabbing untuk memetakan layanan."
+      ],
+      [
+        "3",
+        "Vulnerability Assessment",
+        "Mengidentifikasi dan mengevaluasi celah keamanan yang ada di dalam sistem berdasarkan informasi pengintaian.",
+        "Gunakan pemindai kerentanan otomatis dan lakukan verifikasi manual. Analisis hasil untuk menemukan celah keamanan, kesalahan konfigurasi, dan patch yang hilang."
+      ],
+      [
+        "4",
+        "Penetration Testing and Exploitation",
+        "Mencoba menembus pertahanan sistem dengan mengeksploitasi kerentanan yang teridentifikasi secara terkendali.",
+        "Lakukan eskalasi hak istimewa (privilege escalation), pergerakan lateral (lateral movement), pengujian kekuatan password, serta bypass mekanisme keamanan."
+      ],
+      [
+        "5",
+        "Reporting and Clean Up",
+        "Menyusun laporan hasil pengujian dan mengembalikan kondisi sistem target ke baseline semula.",
+        "Dokumentasikan semua temuan, bukti kerentanan (PoC), dan langkah remediasi. Bersihkan semua file temporary, akun uji, dan backdoor yang dipasang selama pengujian."
+      ]
+    ]
+  },
+  "MITRE ATT&CK": {
+    "description": "MITRE ATT&CK adalah basis pengetahuan yang dikurasi secara global tentang taktik dan teknik musuh/penyerang berdasarkan pengamatan di dunia nyata.",
+    "headers": [
+      "ID Taktik",
+      "Nama Taktik",
+      "Deskripsi Tujuan Penyerang",
+      "Teknik Umum / Contoh"
+    ],
+    "rows": [
+      [
+        "TA0043",
+        "Reconnaissance",
+        "Mengumpulkan informasi untuk merencanakan serangan di masa mendatang.",
+        "Pemindaian port aktif, pencarian OSINT pada media sosial, pemetaan domain publik."
+      ],
+      [
+        "TA0042",
+        "Resource Development",
+        "Membangun sumber daya untuk mendukung jalannya operasi serangan.",
+        "Membeli domain samaran, menyewa server VPS virtual, membuat malware khusus."
+      ],
+      [
+        "TA0001",
+        "Initial Access",
+        "Mencoba masuk ke dalam jaringan atau sistem target untuk pertama kali.",
+        "Phishing email, eksploitasi aplikasi publik yang rentan, penggunaan kredensial default."
+      ],
+      [
+        "TA0002",
+        "Execution",
+        "Menjalankan kode berbahaya di komputer atau sistem korban.",
+        "Menjalankan perintah PowerShell, skrip malware, atau mengeksekusi binary berbahaya."
+      ],
+      [
+        "TA0003",
+        "Persistence",
+        "Menjaga akses agar tetap aktif meskipun sistem dimulai ulang atau kredensial diubah.",
+        "Membuat tugas terjadwal (Scheduled Tasks), memodifikasi Registry Run Keys, membuat akun backdoor."
+      ],
+      [
+        "TA0004",
+        "Privilege Escalation",
+        "Berusaha mendapatkan izin akses yang lebih tinggi (seperti root/admin).",
+        "Eksploitasi kernel OS, manipulasi token akses, bypass UAC, eksploitasi SUID."
+      ],
+      [
+        "TA0005",
+        "Defense Evasion",
+        "Menghindari deteksi dari alat pertahanan keamanan seperti Antivirus atau SIEM.",
+        "Mengaburkan kode (obfuscation), mematikan sensor log, menyamar sebagai aplikasi resmi."
+      ],
+      [
+        "TA0006",
+        "Credential Access",
+        "Mencuri nama pengguna dan kata sandi di dalam sistem.",
+        "Credential dumping (e.g. LSASS), brute forcing, keylogging, pass-the-hash."
+      ],
+      [
+        "TA0007",
+        "Discovery",
+        "Mengeksplorasi sistem untuk memahami lingkungan internal dan konfigurasi target.",
+        "Mencari informasi sistem operasi, melihat daftar user aktif, memetakan jaringan lokal."
+      ],
+      [
+        "TA0008",
+        "Lateral Movement",
+        "Berpindah dari satu komputer ke komputer lain di dalam jaringan internal.",
+        "Remote Desktop (RDP), penggunaan PsExec, eksploitasi layanan internal seperti SMB."
+      ],
+      [
+        "TA0009",
+        "Collection",
+        "Mengumpulkan data sensitif yang ingin dicuri seperti dokumen atau basis data.",
+        "Mengompres file, mengambil tangkapan layar, merekam input mikrofon/audio."
+      ],
+      [
+        "TA0011",
+        "Command and Control (C2)",
+        "Berkomunikasi dengan sistem yang disusupi untuk memberikan instruksi jarak jauh.",
+        "Menggunakan protokol HTTPS terenkripsi untuk beaconing, DNS tunneling."
+      ],
+      [
+        "TA0010",
+        "Exfiltration",
+        "Mengirimkan data yang dicuri keluar dari jaringan target ke server penyerang.",
+        "Mengirimkan data lewat protokol cloud storage, transfer file FTP terenkripsi."
+      ],
+      [
+        "TA0040",
+        "Impact",
+        "Merusak, memanipulasi, atau mengganggu operasional sistem dan data target.",
+        "Mengenkripsi data dengan ransomware, menghapus harddisk (wiper), Denial of Service (DoS)."
+      ]
+    ]
+  },
+  "NIST SP 800-115": {
+    "description": "NIST Special Publication 800-115 memberikan panduan teknis untuk pengujian dan penilaian keamanan informasi.",
+    "headers": [
+      "Tahap",
+      "Nama Tahap",
+      "Tujuan",
+      "Aktivitas Utama"
+    ],
+    "rows": [
+      [
+        "1",
+        "Planning",
+        "Menetapkan persyaratan penilaian, mendapatkan persetujuan, dan mengorganisasi tim penguji.",
+        "Tentukan ruang lingkup, tujuan, dan rencana pengujian. Atasi risiko operasional, hukum, dan keselamatan. Konfirmasikan alamat IP target dan titik kontak."
+      ],
+      [
+        "2",
+        "Discovery",
+        "Mengidentifikasi rentang jaringan, host aktif, layanan yang mendengarkan, dan sistem operasi.",
+        "Jalankan penemuan host dan pemindaian port. Ambil banner layanan (banner grabbing). Lakukan enumerasi pengguna dan share folder untuk mengumpulkan metadata sistem."
+      ],
+      [
+        "3",
+        "Execution",
+        "Mengidentifikasi kerentanan, mencoba eksploitasi, dan menganalisis postur keamanan.",
+        "Lakukan pemindaian kerentanan. Lakukan validasi manual dan eksploitasi kelemahan. Lakukan pengujian pemecahan kata sandi dan eskalasi hak istimewa."
+      ],
+      [
+        "4",
+        "Post-Testing",
+        "Menganalisis temuan, menghasilkan laporan, dan memulihkan sistem ke baseline semula.",
+        "Kumpulkan data kerentanan dan tulis laporan penilaian akhir. Bersihkan file pengujian, akun, dan alat dari sistem target. Adakan pertemuan debriefing dengan pemangku kepentingan."
+      ]
+    ]
+  },
+  "OSSTMM": {
+    "description": "Open Source Security Testing Methodology Manual (OSSTMM) berfokus pada metrik keamanan operasional, analisis kepercayaan, dan pengukuran ilmiah postur keamanan.",
+    "headers": [
+      "Saluran",
+      "Nama Saluran",
+      "Ruang Lingkup Pengujian",
+      "Elemen Keamanan Utama"
+    ],
+    "rows": [
+      [
+        "1",
+        "Human Security",
+        "Mengukur kesadaran keamanan operasional dan perilaku personel terhadap rekayasa sosial (social engineering).",
+        "Verifikasi kesadaran keamanan melalui uji phishing, vishing, dan penyamaran. Evaluasi kebijakan keamanan untuk penanganan data sensitif perusahaan."
+      ],
+      [
+        "2",
+        "Physical Security",
+        "Mengevaluasi kontrol akses fisik, hambatan, dan perimeter fisik yang melindungi aset.",
+        "Nilai keamanan pintu masuk fisik, kartu akses, CCTV, kunci, dan penjaga keamanan. Uji ketahanan tailgating dan kepatuhan kebijakan clean-desk."
+      ],
+      [
+        "3",
+        "Wireless Security",
+        "Mencakup keamanan komunikasi nirkabel, jaringan, dan protokol frekuensi radio (RF).",
+        "Pindai Access Point (AP) liar. Analisis protokol enkripsi (WPA2, WPA3). Lakukan pengujian kebocoran sinyal nirkabel dan de-autentikasi."
+      ],
+      [
+        "4",
+        "Telecommunications",
+        "Mengevaluasi jalur komunikasi digital dan analog, sistem PBX, dan jaringan VoIP.",
+        "Uji konfigurasi sistem VoIP. Periksa rute lalu lintas jaringan suara dan keamanan SIP trunk. Pindai jalur komunikasi yang tidak sah."
+      ],
+      [
+        "5",
+        "Data Networks",
+        "Menilai infrastruktur, sistem, dan protokol jaringan internal serta yang menghadap ke internet.",
+        "Lakukan audit keamanan perimeter. Analisis konfigurasi firewall, router, dan daftar kontrol akses switch (ACL). Verifikasi segmentasi jaringan."
+      ]
+    ]
+  },
+  "OWASP API Security Top 10 2023": {
+    "description": "Berfokus pada 10 kerentanan teratas dalam desain, pengembangan, dan penerapan API (Application Programming Interface).",
+    "headers": [
+      "ID",
+      "Nama Kerentanan",
+      "Deskripsi",
+      "Remediasi API"
+    ],
+    "rows": [
+      [
+        "API01:2023",
+        "Broken Object Level Authorization (BOLA)",
+        "API mengekspos endpoint yang menangani pengidentifikasi objek, menciptakan permukaan serangan yang luas untuk serangan IDOR.",
+        "Terapkan pemeriksaan otorisasi pada setiap endpoint yang mengambil atau mengubah data menggunakan ID pengguna. Validasi bahwa pengguna yang masuk adalah pemilik sumber daya tersebut."
+      ],
+      [
+        "API02:2023",
+        "Broken Authentication",
+        "Mekanisme autentikasi yang lemah, memungkinkan penyerang menebak kredensial, mencuri token, atau mengeksploitasi celah dalam pemulihan kata sandi.",
+        "Terapkan protokol autentikasi yang kuat (OAuth 2.0 / OpenID Connect). Terapkan rate-limiting pada endpoint autentikasi untuk mencegah serangan brute force."
+      ],
+      [
+        "API03:2023",
+        "Broken Object Property Level Authorization",
+        "Terjadi ketika API mengizinkan pengguna mengakses atau memodifikasi properti objek yang tidak seharusnya mereka akses (Mass Assignment atau Excessive Data Exposure).",
+        "Terapkan skema validasi permintaan yang ketat (DTO) untuk menyaring parameter yang tidak sah. Kembalikan hanya properti yang diperlukan dalam respons API."
+      ],
+      [
+        "API04:2023",
+        "Unrestricted Resource Consumption",
+        "Gagal membatasi tingkat eksekusi, jumlah permintaan, CPU, memori, atau ukuran file, yang menyebabkan Denial of Service (DoS) atau biaya infrastruktur tinggi.",
+        "Terapkan rate-limiting per IP atau pengguna. Tentukan batas maksimum ukuran payload, jumlah catatan database yang diambil per halaman, dan batas waktu eksekusi."
+      ],
+      [
+        "API05:2023",
+        "Broken Function Level Authorization (BFLA)",
+        "Kebijakan kontrol akses yang lemah yang memungkinkan pengguna biasa mengeksekusi fungsi administratif atau mengakses endpoint API yang dibatasi.",
+        "Terapkan kontrol akses berbasis peran (RBAC) yang ketat pada lapisan endpoint API. Pastikan endpoint administratif sepenuhnya dibatasi untuk akun yang berwenang."
+      ],
+      [
+        "API06:2023",
+        "Unrestricted Access to Sensitive Business Flows",
+        "Mengekspos API yang mengeksekusi tindakan bisnis sensitif tanpa perlindungan terhadap bot otomatis.",
+        "Identifikasi alur bisnis yang sensitif dan terapkan mekanisme perlindungan khusus seperti CAPTCHA, device fingerprinting, dan deteksi perilaku bot."
+      ],
+      [
+        "API07:2023",
+        "Server Side Request Forgery (SSRF)",
+        "Terjadi ketika endpoint API mengambil sumber daya eksternal berdasarkan URL yang disediakan pengguna, memungkinkan serangan pada infrastruktur internal.",
+        "Batasi URL eksternal pada daftar yang diizinkan (allowlist). Blokir rentang IP loopback dan privat. Gunakan server proxy terisolasi khusus untuk integrasi keluar."
+      ],
+      [
+        "API08:2023",
+        "Security Misconfiguration",
+        "Konfigurasi yang tidak aman, metode HTTP yang diaktifkan, kurangnya header keamanan, atau log kesalahan verbose yang mengungkapkan detail sistem.",
+        "Audit infrastruktur API secara berkala. Nonaktifkan metode HTTP yang tidak digunakan. Batasi kebijakan CORS dan cegah detail stack trace dikembalikan ke klien."
+      ],
+      [
+        "API09:2023",
+        "Improper Assets Management",
+        "Mengekspos API versi lama atau endpoint yang tidak terdokumentasi (shadow API) yang tidak memiliki patch keamanan terbaru.",
+        "Pelihara katalog terbaru dari semua versi API. Hentikan dan matikan endpoint API lama. Dokumentasikan semua API publik dan internal secara jelas."
+      ],
+      [
+        "API10:2023",
+        "Unsafe Consumption of APIs",
+        "Mempercayai data yang diterima dari API pihak ketiga tanpa validasi, pemeriksaan keamanan, atau konfigurasi yang tepat.",
+        "Validasi dan sanitasi semua data yang diterima dari integrasi eksternal. Terapkan verifikasi TLS/SSL dan rate limits pada setiap panggilan eksternal."
+      ]
+    ]
+  },
+  "OWASP Mobile Top 10": {
+    "description": "OWASP Mobile Top 10 memberikan daftar risiko keamanan paling kritis yang memengaruhi aplikasi seluler (Android & iOS).",
+    "headers": [
+      "ID",
+      "Nama Kerentanan",
+      "Deskripsi",
+      "Strategi Mitigasi"
+    ],
+    "rows": [
+      [
+        "M01",
+        "Improper Credential Usage",
+        "Penggunaan kredensial, kunci API, atau token yang di-hardcode secara langsung di dalam biner atau kode sumber.",
+        "Hindari menyimpan kunci API atau kredensial dalam kode sumber. Gunakan keystore yang aman (Android Keystore / iOS Keychain) atau ambil konfigurasi secara dinamis dari server yang aman."
+      ],
+      [
+        "M02",
+        "Inadequate Supply Chain Security",
+        "Risiko yang timbul dari pustaka pihak ketiga, SDK, atau template yang rentan, atau lingkungan build yang disusupi.",
+        "Lakukan audit keamanan berkala pada semua dependensi pihak ketiga. Kunci versi pustaka dan gunakan alat pemantauan dependensi."
+      ],
+      [
+        "M03",
+        "Insecure Data Storage",
+        "Data sensitif (kata sandi, token, PII) disimpan dalam teks biasa di penyimpanan lokal perangkat, database SQLite, atau preferensi bersama.",
+        "Gunakan opsi penyimpanan terenkripsi seperti SQLCipher, Android EncryptedSharedPreferences, atau iOS Keychain. Hindari menyimpan data sensitif secara lokal jika tidak diperlukan."
+      ],
+      [
+        "M04",
+        "Insufficient Input/Output Validation",
+        "Kurangnya sanitasi input yang tepat yang menyebabkan kerentanan injeksi, XSS di WebViews, atau buffer overflow pada kode native.",
+        "Validasi dan sanitasi semua input dari sumber eksternal (WebViews, Deep Links, IPC, penyimpanan lokal). Hindari mengeksekusi JavaScript mentah di WebViews kecuali diperlukan."
+      ],
+      [
+        "M05",
+        "Improper Communication Security",
+        "Mengirimkan data sensitif melalui HTTP yang tidak terenkripsi, gagal memvalidasi sertifikat SSL/TLS, atau mengabaikan verifikasi nama host.",
+        "Terapkan HTTPS/TLS untuk semua komunikasi jaringan. Terapkan SSL Pinning untuk mencegah serangan Man-in-the-Middle (MitM). Nonaktifkan lalu lintas HTTP yang tidak aman."
+      ],
+      [
+        "M06",
+        "Inadequate Privacy Controls",
+        "Paparan data pribadi pengguna (PII) yang tidak disengaja melalui caching layar latar belakang, cache keyboard, log, atau izin aplikasi yang berlebihan.",
+        "Kaburkan layar saat aplikasi beralih ke latar belakang. Tandai kolom input sensitif dengan bendera teks aman untuk mencegah caching keyboard dan logging."
+      ],
+      [
+        "M07",
+        "Insufficient Binary Protections",
+        "Kurangnya obfuscation kode, deteksi modifikasi, atau deteksi root/jailbreak, memungkinkan rekayasa balik dan pengemasan ulang aplikasi.",
+        "Terapkan ProGuard/R8 (Android) atau alat obfuscation serupa. Terapkan deteksi root/jailbreak saat runtime dan pemeriksaan integritas biner."
+      ],
+      [
+        "M08",
+        "Security Decisions Via Untrusted Inputs",
+        "Menggunakan mekanisme IPC yang tidak aman, deep link, atau input pengguna untuk membuat keputusan otorisasi keamanan yang penting.",
+        "Verifikasi sumber dan parameter deep link sebelum mengeksekusi tindakan. Wajibkan autentikasi ulang pengguna untuk alur bisnis yang sensitif."
+      ],
+      [
+        "M09",
+        "Insecure Data Deserialization",
+        "Mendeserialisasi objek data yang tidak tepercaya dari input jaringan atau lokal, memungkinkan eksekusi kode acak atau denial of service.",
+        "Hindari format serialisasi native. Gunakan format serialisasi alternatif yang lebih aman seperti JSON/XML dengan validasi skema yang ketat."
+      ],
+      [
+        "M10",
+        "Insufficient Session Management",
+        "Token sesi yang lemah, kurangnya batas waktu sesi (timeout), atau menggunakan pengidentifikasi persisten yang tidak aman untuk melacak sesi.",
+        "Gunakan token sesi acak yang ditandatangani server (misalnya JWT). Terapkan kedaluwarsa sesi di sisi server dan hapus data sesi secara lokal setelah keluar."
+      ]
+    ]
+  },
+  "OWASP Web Top 10 2021": {
+    "description": "OWASP Top 10 adalah dokumen kesadaran standar untuk pengembang dan keamanan aplikasi web. Ini mewakili konsensus luas mengenai risiko keamanan paling kritis untuk aplikasi web.",
+    "headers": [
+      "ID",
+      "Nama Kerentanan",
+      "Deskripsi",
+      "Remediasi & Fokus Utama"
+    ],
+    "rows": [
+      [
+        "A01:2021",
+        "Broken Access Control",
+        "Kontrol akses menerapkan kebijakan sehingga pengguna tidak dapat bertindak di luar izin yang dimaksudkan. Kegagalan biasanya menyebabkan pengungkapan, modifikasi, atau penghancuran data yang tidak sah.",
+        "Terapkan kontrol akses pada kode sisi server yang tepercaya. Tolak secara default (deny by default) kecuali untuk sumber daya publik. Implementasikan mekanisme kontrol akses sekali dan gunakan kembali di seluruh aplikasi."
+      ],
+      [
+        "A02:2021",
+        "Cryptographic Failures",
+        "Berfokus pada kegagalan yang berkaitan dengan kriptografi yang sering kali menyebabkan paparan data sensitif atau kompromi sistem.",
+        "Enkripsi semua data sensitif saat transit (TLS) dan saat disimpan (AES-GCM, bcrypt/argon2 untuk hashing kata sandi). Gunakan algoritma kriptografi yang kuat, standar, dan mutakhir."
+      ],
+      [
+        "A03:2021",
+        "Injection",
+        "Data yang dimasukkan pengguna tidak divalidasi atau disanitasi oleh aplikasi. Injeksi SQL, NoSQL, perintah OS, ORM, dan LDAP terjadi ketika data tidak tepercaya dikirim ke interpreter.",
+        "Pisahkan data dari perintah dan kueri. Gunakan kueri berparameter/prepared statements. Terapkan validasi input menggunakan daftar yang diizinkan (allowlists)."
+      ],
+      [
+        "A04:2021",
+        "Insecure Design",
+        "Berfokus pada risiko yang terkait dengan kelemahan desain. Desain yang tidak aman tidak dapat diperbaiki oleh implementasi yang sempurna, karena kontrol keamanan tidak pernah direncanakan untuk bertahan dari serangan tertentu.",
+        "Gunakan pemodelan ancaman (threat modeling) selama fase desain. Gunakan pola desain yang aman, arsitektur referensi, dan pustaka siap pakai."
+      ],
+      [
+        "A05:2021",
+        "Security Misconfiguration",
+        "Terjadi ketika pengaturan keamanan tidak ditentukan, diimplementasikan, atau dipelihara dengan benar. Ini termasuk akun/kata sandi default, pesan kesalahan verbose, dan port terbuka.",
+        "Terapkan hardening pada proses build dan deployment. Nonaktifkan pengaturan default, akun demo, dan layanan yang tidak digunakan. Kirim header keamanan (CSP, HSTS, X-Frame-Options) ke klien."
+      ],
+      [
+        "A06:2021",
+        "Vulnerable and Outdated Components",
+        "Terjadi ketika komponen (pustaka, framework, dependensi) digunakan dengan kerentanan yang diketahui atau tidak lagi didukung.",
+        "Gunakan inventaris aktif untuk semua dependensi (SBOM). Pindai kerentanan secara teratur. Hapus dependensi yang tidak digunakan dan segera terapkan patch."
+      ],
+      [
+        "A07:2021",
+        "Identification and Authentication Failures",
+        "Mencakup kerentanan yang terkait dengan identitas pengguna, autentikasi, dan manajemen sesi.",
+        "Terapkan Autentikasi Multi-Faktor (MFA). Gunakan kebijakan kata sandi yang kuat. Pastikan ID sesi acak, aman (HttpOnly, Secure, SameSite), dan dihancurkan setelah logout."
+      ],
+      [
+        "A08:2021",
+        "Software and Data Integrity Failures",
+        "Berkaitan dengan kode dan infrastruktur yang tidak melindungi dari pelanggaran integritas, seperti deserialisasi yang tidak aman atau pipeline CI/CD yang tidak aman.",
+        "Gunakan tanda tangan digital/hash untuk memverifikasi integritas pembaruan perangkat lunak, patch, dan dependensi. Jangan deserialisasi input pengguna yang tidak tepercaya tanpa validasi."
+      ],
+      [
+        "A09:2021",
+        "Security Logging and Monitoring Failures",
+        "Kegagalan dalam logging, deteksi, pemantauan, dan respons aktif, memungkinkan penyerang mempertahankan persistensi dan merusak data.",
+        "Catat semua kegagalan login, kontrol akses, dan validasi sisi server. Pastikan log disimpan dengan aman dan dipantau untuk aktivitas mencurigakan (SIEM)."
+      ],
+      [
+        "A10:2021",
+        "Server-Side Request Forgery (SSRF)",
+        "Terjadi ketika aplikasi web mengambil sumber daya jarak jauh tanpa memvalidasi URL yang disediakan pengguna, memungkinkan penyerang memaksa aplikasi mengirim permintaan manipulatif.",
+        "Validasi dan sanitasi semua URL input. Terapkan daftar blokir/izin alamat IP. Batasi lalu lintas keluar hanya ke port dan host yang diperlukan."
+      ]
+    ]
+  },
+  "PTES": {
+    "description": "Penetration Testing Execution Standard (PTES) mendefinisikan pendekatan terstruktur dan komprehensif untuk melakukan penetration testing berkualitas tinggi.",
+    "headers": [
+      "Tahap",
+      "Nama Tahap",
+      "Tujuan Utama",
+      "Poin & Tugas Standar"
+    ],
+    "rows": [
+      [
+        "1",
+        "Pre-engagement Interactions",
+        "Menetapkan ruang lingkup, aturan keterlibatan, dan perjanjian hukum sebelum memulai pengujian apa pun.",
+        "Tentukan batas ruang lingkup (IP, domain, API). Tanda tangani NDA dan surat otorisasi formal. Selaraskan saluran komunikasi, kontak darurat, dan penjadwalan."
+      ],
+      [
+        "2",
+        "Intelligence Gathering",
+        "Melakukan pengintaian untuk menemukan host, rentang jaringan, port terbuka, dan teknologi yang masuk dalam ruang lingkup.",
+        "Lakukan OSINT (pengintaian pasif). Lakukan enumerasi DNS, pemindaian port, penemuan sub-domain, dan banner grabbing. Petakan topologi jaringan eksternal dan internal."
+      ],
+      [
+        "3",
+        "Threat Modeling",
+        "Mengidentifikasi aset, agen ancaman, dan merancang skenario serangan berdasarkan intelijen yang dikumpulkan.",
+        "Analisis arsitektur sistem dan diagram alur. Petakan vektor serangan potensial. Identifikasi proses bisnis dan target yang kritis."
+      ],
+      [
+        "4",
+        "Vulnerability Analysis",
+        "Mengidentifikasi kelemahan keamanan, kesalahan konfigurasi, dan kerentanan pada sistem target.",
+        "Lakukan pemindaian kerentanan otomatis (Nessus, OpenVAS). Lakukan validasi manual untuk menghilangkan false positive. Teliti exploit yang diketahui untuk layanan yang teridentifikasi."
+      ],
+      [
+        "5",
+        "Exploitation",
+        "Mendapatkan akses tidak sah ke sistem atau sumber daya dengan melewati kontrol keamanan dan mengeksploitasi kerentanan.",
+        "Luncurkan exploit yang terverifikasi terhadap target yang rentan. Hindari pemantauan keamanan (IDS/IPS, WAF, AV) secara aman. Dokumentasikan langkah-langkah eksploitasi dan hasilnya."
+      ],
+      [
+        "6",
+        "Post Exploitation",
+        "Menentukan nilai mesin yang disusupi dan mempertahankan kendali untuk pergerakan lateral lebih lanjut.",
+        "Lakukan eskalasi hak istimewa lokal (privilege escalation). Lakukan pengintaian internal dan pivoting jaringan. Identifikasi dan kumpulkan bukti target (Proof of Concept, dump database)."
+      ],
+      [
+        "7",
+        "Reporting",
+        "Mendokumentasikan temuan, metodologi, peringkat risiko, dan panduan remediasi terperinci untuk klien.",
+        "Tulis ringkasan eksekutif untuk manajemen. Uraikan temuan terperinci dengan skor CVSS. Sediakan panduan reproduksi langkah-demi-langkah dan langkah remediasi."
+      ]
+    ]
+  },
+  "UU PDP (Indonesia)": {
+    "description": "Undang-Undang Pelindungan Data Pribadi (UU No. 27 Tahun 2022) menetapkan aturan hukum terkait pemrosesan, pelindungan, hak subjek, dan kewajiban pengendali data pribadi di Indonesia.",
+    "headers": [
+      "Kategori",
+      "Ketentuan / Pasal",
+      "Deskripsi Kewajiban atau Hak",
+      "Rekomendasi Kepatuhan Teknis"
+    ],
+    "rows": [
+      [
+        "Hak Subjek Data",
+        "Pasal 5",
+        "Hak Subjek Data Pribadi untuk mendapatkan kejelasan identitas, dasar kepentingan hukum, tujuan permintaan dan penggunaan Data Pribadi, dan akuntabilitas pihak yang meminta Data Pribadi.",
+        "Sediakan halaman atau dokumen kebijakan privasi (Privacy Policy) yang mudah diakses dan dipahami sebelum pengguna mendaftar."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 6",
+        "Hak Subjek Data Pribadi untuk melengkapi, memperbarui, dan/atau memperbaiki kesalahan dan/atau ketidakakuratan Data Pribadi miliknya.",
+        "Sediakan fitur profil pengguna yang memungkinkan Subjek Data memperbarui data pribadi seperti nama, email, nomor telepon secara mandiri."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 7",
+        "Hak Subjek Data Pribadi untuk mendapatkan akses dan memperoleh salinan Data Pribadi miliknya sesuai dengan ketentuan peraturan perundang-undangan.",
+        "Implementasikan fitur 'Unduh Data Saya' (Download My Data) yang memproses ekspor seluruh riwayat data pribadi ke format terstruktur (JSON/CSV)."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 8",
+        "Hak Subjek Data Pribadi untuk mengakhiri pemrosesan, menghapus, dan/atau memusnahkan Data Pribadi miliknya.",
+        "Sediakan opsi tombol 'Hapus Akun' (Delete Account) yang memicu penghapusan data secara permanen atau penyamaran (anonymization) di database."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 9",
+        "Hak Subjek Data Pribadi untuk menarik kembali persetujuan pemrosesan Data Pribadi miliknya yang telah diberikan kepada Pengendali Data Pribadi.",
+        "Sediakan menu pengaturan privasi (Privacy Settings) agar pengguna dapat dengan mudah mencentang ulang persetujuan opsional (opt-out) kapan saja."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 10",
+        "Hak Subjek Data Pribadi untuk mengajukan keberatan atas tindakan pengambilan keputusan yang hanya didasarkan pada pemrosesan otomatis, termasuk pemprofilan (profiling).",
+        "Sediakan opsi bagi pengguna untuk meminta peninjauan manual oleh staf manusia atas keputusan otomatis yang signifikan (misal: penilaian kelayakan kredit otomatis)."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 11",
+        "Hak Subjek Data Pribadi untuk menunda atau membatasi pemrosesan Data Pribadi secara proporsional dengan tujuan pemrosesan Data Pribadi.",
+        "Implementasikan kontrol penangguhan akun (suspend/freeze account) sementara tanpa menghapus data, sehingga pemrosesan data dihentikan sementara."
+      ],
+      [
+        "Hak Subjek Data",
+        "Pasal 13",
+        "Hak Subjek Data Pribadi untuk mendapatkan dan menggunakan Data Pribadi miliknya dari Pengendali Data Pribadi dalam bentuk format yang biasa digunakan atau dapat dibaca oleh mesin (data portability).",
+        "Gunakan standar API terbuka (REST API) atau format file standar (JSON/XML) untuk memudahkan transfer data antar layanan."
+      ],
+      [
+        "Persetujuan & Pemrosesan",
+        "Pasal 16 ayat (1)",
+        "Pemrosesan Data Pribadi dilakukan berdasarkan dasar hukum (legal basis) yang sah, meliputi: persetujuan tertulis/terekam, pemenuhan kewajiban kontrak, kewajiban hukum, atau kepentingan yang sah.",
+        "Dokumentasikan dengan jelas dasar hukum setiap aktivitas pemrosesan data pribadi dalam catatan internal perusahaan."
+      ],
+      [
+        "Persetujuan & Pemrosesan",
+        "Pasal 20",
+        "Pengendali Data Pribadi wajib menunjukkan bukti persetujuan (consent) yang telah diberikan oleh Subjek Data Pribadi.",
+        "Simpan log persetujuan pengguna (consent log) secara aman di database, mencakup timestamp, versi kebijakan privasi, IP address, dan tindakan persetujuan."
+      ],
+      [
+        "Kewajiban Pengendali",
+        "Pasal 24 & 27",
+        "Pengendali Data Pribadi wajib menjaga kerahasiaan Data Pribadi dan mencegah Data Pribadi diakses secara tidak sah.",
+        "Terapkan enkripsi data saat disimpan (at rest) menggunakan AES-256 dan saat ditransfer (in transit) menggunakan TLS 1.3, serta batasi akses port database."
+      ],
+      [
+        "Kewajiban Pengendali",
+        "Pasal 28",
+        "Pengendali Data Pribadi wajib membuat dan memelihara catatan seluruh kegiatan pemrosesan Data Pribadi (record of processing activities).",
+        "Gunakan sistem audit logging otomatis (seperti SIEM) untuk mencatat semua akses baca (SELECT), tulis (INSERT/UPDATE), dan hapus (DELETE) pada data pribadi."
+      ],
+      [
+        "Kewajiban Pengendali",
+        "Pasal 31",
+        "Pengendali Data Pribadi wajib melakukan penilaian dampak pelindungan Data Pribadi (Data Protection Impact Assessment / DPIA) untuk pemrosesan yang berisiko tinggi.",
+        "Lakukan penilaian DPIA sebelum merilis fitur baru yang melibatkan data sensitif berskala besar, pemantauan sistematis, atau teknologi baru."
+      ],
+      [
+        "Kewajiban Pengendali",
+        "Pasal 35",
+        "Pengendali Data Pribadi wajib melindungi Data Pribadi dari pemrosesan yang tidak sah dengan menerapkan langkah keamanan teknis dan organisasi.",
+        "Terapkan pembatasan hak akses berbasis peran (RBAC) yang ketat dan lakukan tinjauan berkala serta pelatihan keamanan (security awareness) untuk karyawan."
+      ],
+      [
+        "Kewajiban Pengendali",
+        "Pasal 46",
+        "Pengendali Data Pribadi wajib memberitahukan secara tertulis dalam waktu paling lambat 3x24 jam kepada Subjek Data Pribadi dan lembaga pengawas jika terjadi kegagalan pelindungan (data breach).",
+        "Buat prosedur respons insiden (Incident Response Plan) yang mendetail tentang alur deteksi kebocoran, investigasi forensik, dan template notifikasi resmi."
+      ],
+      [
+        "Pejabat DPO",
+        "Pasal 53",
+        "Pengendali Data Pribadi wajib menunjuk pejabat atau petugas yang melaksanakan fungsi pelindungan Data Pribadi (Data Protection Officer / DPO) berdasarkan kriteria tertentu.",
+        "Tunjuk dan daftarkan petugas DPO independen yang memiliki sertifikasi profesional di bidang privasi data untuk memantau kepatuhan internal."
+      ],
+      [
+        "Transfer Data",
+        "Pasal 55 & 56",
+        "Pengendali Data Pribadi wajib memastikan negara penerima transfer Data Pribadi ke luar wilayah Indonesia memiliki tingkat pelindungan setara atau lebih tinggi.",
+        "Gunakan klausul kontrak standar (Standard Contractual Clauses / SCC) dan lakukan asesmen transfer data sebelum mengirim data pribadi ke luar negeri."
+      ],
+      [
+        "Sanksi Pidana",
+        "Pasal 67 & 68",
+        "Sanksi pidana denda dan penjara bagi pihak yang secara sengaja memperoleh, mengumpulkan, atau mengungkapkan Data Pribadi yang bukan miliknya secara melawan hukum.",
+        "Implementasikan pencegahan kebocoran data (DLP - Data Loss Prevention) untuk memonitor transfer file keluar dan blokir penggunaan media penyimpanan eksternal tidak sah."
+      ]
+    ]
+  },
+  "ISO 27001": {
+    "description": "ISO/IEC 27001 adalah standar internasional untuk manajemen keamanan informasi (ISMS) yang menetapkan persyaratan untuk menetapkan, menerapkan, memelihara, dan terus meningkatkan keamanan informasi.",
+    "headers": [
+      "Kategori",
+      "ID Kontrol",
+      "Deskripsi Kontrol",
+      "Rekomendasi Implementasi Teknis"
+    ],
+    "rows": [
+      [
+        "Organisasional",
+        "A.5.15",
+        "Kontrol akses ke aset informasi harus dibatasi berdasarkan kebutuhan bisnis dan persyaratan keamanan informasi (least privilege).",
+        "Terapkan autentikasi terpusat (SSO) dan batasi hak akses ke server produksi hanya untuk personel resmi."
+      ],
+      [
+        "Teknologi",
+        "A.8.20",
+        "Jaringan harus diamankan dan dikendalikan untuk melindungi informasi dalam sistem dan aplikasi.",
+        "Terapkan segmentasi jaringan (VLAN), pasang firewall generasi baru (NGFW), dan gunakan IDS/IPS untuk memonitor lalu lintas mencurigakan."
+      ],
+      [
+        "Teknologi",
+        "A.8.24",
+        "Penggunaan kriptografi harus didesain dan diimplementasikan secara tepat untuk melindungi kerahasiaan dan integritas data.",
+        "Gunakan enkripsi AES-256 untuk data yang disimpan (data at rest) dan protokol TLS 1.3 untuk data dalam pengiriman (data in transit)."
+      ],
+      [
+        "Teknologi",
+        "A.8.12",
+        "Langkah-langkah pencegahan kebocoran data (DLP) harus diterapkan pada sistem yang memproses atau menyimpan informasi sensitif.",
+        "Konfigurasikan solusi DLP di tingkat endpoint dan jaringan untuk mencegah transfer data rahasia ke eksternal secara tidak sah."
+      ],
+      [
+        "Teknologi",
+        "A.8.16",
+        "Aktivitas sistem, pengguna, dan peristiwa keamanan harus dicatat (logging) dan dipantau secara berkala.",
+        "Aktifkan logging komprehensif pada OS, database, dan aplikasi, lalu kirimkan log tersebut ke server SIEM pusat secara real-time."
+      ],
+      [
+        "Teknologi",
+        "A.8.8",
+        "Informasi tentang kerentanan teknis harus diperoleh secara tepat waktu, dan tindakan korektif yang tepat harus diambil (vulnerability management).",
+        "Lakukan penetration testing berkala minimal setahun sekali dan vulnerability scanning bulanan serta segera terapkan patch keamanan kritis."
+      ]
+    ]
+  },
+  "PCI DSS": {
+    "description": "PCI DSS (Payment Card Industry Data Security Standard) adalah standar keamanan global untuk melindungi data pemegang kartu kredit/debit.",
+    "headers": [
+      "Kategori",
+      "Persyaratan",
+      "Deskripsi Persyaratan",
+      "Langkah Kepatuhan Teknis"
+    ],
+    "rows": [
+      [
+        "Keamanan Jaringan",
+        "Persyaratan 1",
+        "Memasang dan memelihara kontrol keamanan jaringan (firewall/router) untuk melindungi sistem yang memproses data pemegang kartu.",
+        "Terapkan konfigurasi firewall yang ketat, batasi lalu lintas masuk/keluar ke Cardholder Data Environment (CDE), dan larang akses publik langsung ke database."
+      ],
+      [
+        "Pelindungan Data",
+        "Persyaratan 3",
+        "Melindungi data pemegang kartu yang disimpan (PAN - Primary Account Number harus dienkripsi).",
+        "Enkripsi nomor kartu kredit yang disimpan menggunakan kriptografi kuat (AES-256) dan buat manajemen kunci enkripsi yang aman sesuai standar."
+      ],
+      [
+        "Pelindungan Data",
+        "Persyaratan 4",
+        "Melindungi data pemegang kartu dengan kriptografi kuat selama transmisi melalui jaringan publik terbuka.",
+        "Gunakan protokol transfer aman seperti HTTPS dengan TLS 1.2/1.3 atau SFTP untuk semua transfer data kartu kredit di jaringan publik."
+      ],
+      [
+        "Vulnerability Management",
+        "Persyaratan 6",
+        "Mengembangkan dan memelihara sistem dan aplikasi yang aman (secure software development).",
+        "Latih developer dalam secure coding (OWASP), lakukan tinjauan kode sebelum rilis, dan terapkan patch keamanan dalam waktu 30 hari sejak rilis vendor."
+      ],
+      [
+        "Kontrol Akses",
+        "Persyaratan 8",
+        "Mengidentifikasi pengguna dan mengautentikasi akses ke komponen sistem.",
+        "Wajibkan ID unik untuk setiap pengguna, terapkan kebijakan password yang kuat, dan aktifkan Autentikasi Multi-Faktor (MFA) untuk semua akses administratif ke CDE."
+      ],
+      [
+        "Monitoring & Testing",
+        "Persyaratan 10",
+        "Melacak dan memantau semua akses ke sumber daya jaringan dan data pemegang kartu.",
+        "Gunakan pencatatan log (audit trail) otomatis yang mencakup semua aktivitas user dengan hak istimewa tinggi, simpan log minimal 1 tahun, dan tinjau log secara harian."
+      ],
+      [
+        "Monitoring & Testing",
+        "Persyaratan 11",
+        "Menguji keamanan sistem dan jaringan secara teratur.",
+        "Lakukan penetration testing internal & eksternal secara tahunan dan jalankan pemindaian kerentanan eksternal (ASV scanning) setiap triwulan."
+      ]
+    ]
+  },
+  "HIPAA": {
+    "description": "HIPAA (Health Insurance Portability and Accountability Act) Security Rule menetapkan standar nasional untuk melindungi informasi kesehatan elektronik pribadi (ePHI).",
+    "headers": [
+      "Kategori",
+      "Ketentuan",
+      "Deskripsi Standar",
+      "Implementasi Keamanan Teknis"
+    ],
+    "rows": [
+      [
+        "Keamanan Teknis",
+        "164.312(a)(1)",
+        "Kontrol Akses: Membatasi akses ePHI hanya untuk pengguna atau perangkat lunak yang memiliki hak akses resmi.",
+        "Terapkan ID login unik untuk setiap pengguna, log-out otomatis setelah periode tidak aktif, dan enkripsi ePHI di perangkat penyimpanan lokal."
+      ],
+      [
+        "Keamanan Teknis",
+        "164.312(b)",
+        "Kontrol Audit: Menerapkan mekanisme untuk mencatat dan memeriksa aktivitas dalam sistem yang berisi atau menggunakan ePHI.",
+        "Aktifkan logging audit yang merekam waktu akses, identitas pengguna, dan jenis modifikasi data pada sistem rekam medis elektronik."
+      ],
+      [
+        "Keamanan Teknis",
+        "164.312(c)(1)",
+        "Kontrol Integritas: Menerapkan kebijakan dan prosedur untuk melindungi ePHI dari alterasi atau penghancuran yang tidak sah.",
+        "Gunakan mekanisme verifikasi integritas data seperti checksum kriptografis (SHA-256) untuk mendeteksi perubahan ilegal pada file ePHI."
+      ],
+      [
+        "Keamanan Teknis",
+        "164.312(d)",
+        "Autentikasi: Menerapkan prosedur untuk memverifikasi bahwa orang atau entitas yang mencari akses ke ePHI adalah yang sebenarnya.",
+        "Terapkan autentikasi multi-faktor (MFA) dan verifikasi biometrik atau kartu akses pintar untuk staf medis di terminal utama."
+      ],
+      [
+        "Keamanan Teknis",
+        "164.312(e)(1)",
+        "Keamanan Transmisi: Mencegah akses tidak sah ke ePHI yang dikirim melalui jaringan komunikasi elektronik.",
+        "Gunakan enkripsi ujung-ke-ujung (end-to-end encryption) seperti TLS untuk email atau transfer data pasien antar fasilitas medis."
+      ]
+    ]
+  },
+  "GDPR": {
+    "description": "GDPR (General Data Protection Regulation) adalah regulasi privasi data Uni Eropa yang memberikan perlindungan ketat bagi data pribadi warga Uni Eropa.",
+    "headers": [
+      "Kategori",
+      "Ketentuan / Pasal",
+      "Deskripsi Kewajiban atau Hak",
+      "Rekomendasi Kepatuhan Teknis"
+    ],
+    "rows": [
+      [
+        "Prinsip Dasar",
+        "Article 5",
+        "Pemrosesan data pribadi harus memenuhi prinsip akuntabilitas, pembatasan tujuan, minimisasi data, dan akurasi data.",
+        "Rancang sistem dengan prinsip 'Privacy by Design'. Jangan kumpulkan data pribadi yang tidak relevan dengan tujuan layanan utama."
+      ],
+      [
+        "Dasar Hukum",
+        "Article 6",
+        "Pemrosesan data pribadi hanya sah jika didasarkan pada salah satu legal basis (persetujuan, kontrak, kepatuhan hukum, dll).",
+        "Sediakan formulir persetujuan (consent form) yang aktif (opt-in) dengan kotak centang kosong (jangan dicentang sebelumnya)."
+      ],
+      [
+        "Hak Subjek Data",
+        "Article 15",
+        "Hak subjek data untuk memperoleh konfirmasi dan salinan data pribadi yang diproses oleh pengendali data.",
+        "Buat portal bagi pengguna untuk melihat secara instan dan mengunduh seluruh informasi profil dan riwayat transaksinya dalam format JSON."
+      ],
+      [
+        "Hak Subjek Data",
+        "Article 17",
+        "Hak subjek data untuk meminta penghapusan data pribadinya tanpa penundaan ('Right to be Forgotten').",
+        "Bangun sistem purging database otomatis yang menghapus semua data pribadi pengguna terkait secara menyeluruh saat akun ditutup."
+      ],
+      [
+        "Keamanan Data",
+        "Article 32",
+        "Pengendali data wajib menerapkan keamanan teknis yang memadai termasuk enkripsi dan pseudonimisasi data pribadi.",
+        "Terapkan teknik tokenisasi untuk mengganti pengidentifikasi langsung (seperti email atau nomor KTP) dengan token acak di database analisis."
+      ],
+      [
+        "Notifikasi Kebocoran",
+        "Article 33",
+        "Kewajiban melaporkan kegagalan pelindungan data pribadi (data breach) kepada otoritas pengawas dalam waktu 72 jam.",
+        "Siapkan sistem peringatan dini (incident alerting system) untuk mendeteksi anomali akses database dan instruksikan tim tanggap insiden."
+      ]
+    ]
+  }
+}
