@@ -203,7 +203,7 @@ def security_firewall():
 
     # Whitelist localhost
     ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
-    if ip_address in ('127.0.0.1', '::1', 'localhost'):
+    if ip_address in ('127.0.0.1', '::1', 'localhost', '192.168.1.1'):
         return
 
     # 1. Check if IP is blocked
