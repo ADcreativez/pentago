@@ -381,6 +381,14 @@ class Project(db.Model):
     pentest_activity = db.Column(db.String(50), default='Not Started')
     retest_activity = db.Column(db.String(50), default='Not Started')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    report_date = db.Column(db.String(50))
+    report_author = db.Column(db.String(150))
+    change_reference = db.Column(EncryptedText)
+    client_approver_name = db.Column(EncryptedText)
+    cover_logo = db.Column(db.String(500))
+    client_logo = db.Column(db.String(500))
+    header_text = db.Column(db.String(250))
+    footer_text = db.Column(db.String(250))
     findings = db.relationship('Finding', backref='project', lazy=True, cascade="all, delete-orphan")
 
     def get_metrics(self):
@@ -458,7 +466,15 @@ class Project(db.Model):
             'active_findings': metrics['active_findings'],
             'risk_score': metrics['risk_score'],
             'max_severity': metrics['max_severity'],
-            'severity_counts': metrics['severity_counts']
+            'severity_counts': metrics['severity_counts'],
+            'report_date': self.report_date,
+            'report_author': self.report_author,
+            'change_reference': self.change_reference,
+            'client_approver_name': self.client_approver_name,
+            'cover_logo': self.cover_logo,
+            'client_logo': self.client_logo,
+            'header_text': self.header_text,
+            'footer_text': self.footer_text
         }
 
 class Finding(db.Model):
@@ -576,12 +592,52 @@ with app.app_context():
     db.create_all()
     from sqlalchemy import text
     try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN cover_logo VARCHAR(500)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN client_logo VARCHAR(500)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN header_text VARCHAR(250)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN footer_text VARCHAR(250)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
         db.session.execute(text("ALTER TABLE project ADD COLUMN project_manager_id INTEGER REFERENCES consultant(id)"))
         db.session.commit()
     except Exception:
         db.session.rollback()
     try:
         db.session.execute(text("ALTER TABLE project ADD COLUMN sales_id INTEGER REFERENCES consultant(id)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN report_date VARCHAR(50)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN report_author VARCHAR(150)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN change_reference TEXT"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN client_approver_name TEXT"))
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -1319,7 +1375,15 @@ def api_projects():
             access_info=data.get('access_info', ''),
             location_type=data.get('location_type', 'Remote'),
             used_tools=data.get('used_tools', ''),
-            threat_model=data.get('threat_model', '')
+            threat_model=data.get('threat_model', ''),
+            report_date=data.get('report_date', ''),
+            report_author=data.get('report_author', ''),
+            change_reference=data.get('change_reference', ''),
+            client_approver_name=data.get('client_approver_name', ''),
+            cover_logo=data.get('cover_logo', ''),
+            client_logo=data.get('client_logo', ''),
+            header_text=data.get('header_text', ''),
+            footer_text=data.get('footer_text', '')
         )
         db.session.add(project)
         db.session.commit()
@@ -1364,6 +1428,14 @@ def api_project(project_id):
         project.threat_model = data.get('threat_model', project.threat_model)
         project.pentest_activity = data.get('pentest_activity', project.pentest_activity)
         project.retest_activity = data.get('retest_activity', project.retest_activity)
+        project.report_date = data.get('report_date', project.report_date)
+        project.report_author = data.get('report_author', project.report_author)
+        project.change_reference = data.get('change_reference', project.change_reference)
+        project.client_approver_name = data.get('client_approver_name', project.client_approver_name)
+        project.cover_logo = data.get('cover_logo', project.cover_logo)
+        project.client_logo = data.get('client_logo', project.client_logo)
+        project.header_text = data.get('header_text', project.header_text)
+        project.footer_text = data.get('footer_text', project.footer_text)
         db.session.commit()
         log_audit('UPDATE_PROJECT', f"Updated project: {project.name}")
         return jsonify(project.to_dict())

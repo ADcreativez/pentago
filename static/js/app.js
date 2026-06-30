@@ -41,6 +41,7 @@ const TABS = [
     { id: 'companies', label: 'Clients', icon: '🏢', adminOnly: false },
     { id: 'projects', label: 'Projects', icon: '📋', adminOnly: false },
     { id: 'findings', label: 'Findings', icon: '🔍', adminOnly: false },
+    { id: 'report-templates', label: 'Report Templates', icon: '📄', adminOnly: false },
     { id: 'testing-guide', label: 'Testing Guide', icon: '📖', adminOnly: false },
     { id: 'framework', label: 'Framework', icon: '📋', adminOnly: false },
     { id: 'reference', label: 'Reference', icon: '📚', adminOnly: false },
@@ -503,6 +504,9 @@ function switchTab(tab) {
     } else if (tab === 'consultants') {
         document.getElementById('consultants-view').style.display = 'block';
         loadConsultants();
+    } else if (tab === 'report-templates') {
+        document.getElementById('report-templates-view').style.display = 'block';
+        loadReportTemplates();
     } else if (tab === 'testing-guide') {
         loadTestingGuide();
     } else if (tab === 'framework') {
@@ -1175,6 +1179,7 @@ async function openProjectModal() {
     await populateConsultantSelect('project-retester');
     await populateConsultantSelect('project-pm', null, 'PMs');
     await populateConsultantSelect('project-sales', null, 'Sales');
+    await populateReportTemplatesSelect();
     document.getElementById('project-modal').classList.add('active');
 }
 
@@ -1258,6 +1263,8 @@ async function editProject(id, focusField = null) {
     await populateConsultantSelect('project-retester', p.retest_consultant_id);
     await populateConsultantSelect('project-pm', p.project_manager_id, 'PMs');
     await populateConsultantSelect('project-sales', p.sales_id, 'Sales');
+    await populateReportTemplatesSelect();
+    document.getElementById('project-template-select').value = p.report_template_id || '';
     
     // Disable assignment/company fields if not Admin or Team Leader
     const isLeadOrAdmin = isTeamLeaderOrAdmin();
@@ -1534,12 +1541,139 @@ async function viewProject(projectId) {
 
     // Render SysReptor-Style preview cards
     const reportsContainer = document.getElementById('sysreptor-report-cards-container');
-    reportsContainer.innerHTML = '';
+
+// ==== INJECT PREVIEW CHAPTERS (Halaman Sampul, Daftar Isi, Bab 1, Bab 2, Bab 3) ====
+    const defaultStructure = [
+        { id: 'sec-1', title: 'Bab 1: Ringkasan Eksekutif (Executive Summary)', subsections: [
+            { id: 'sub-1-1', title: '1.1 Latar Belakang' },
+            { id: 'sub-1-2', title: '1.2 Tujuan' },
+            { id: 'sub-1-3', title: '1.3 Ruang Lingkup' },
+            { id: 'sub-1-4', title: '1.4 Batasan Pekerjaan' }
+        ]},
+        { id: 'sec-2', title: 'Bab 2: Metodologi (Methodology)', subsections: [
+            { id: 'sub-2-1', title: '2.1 Fase Metodologi' }
+        ]}
+    ];
+
+        let techReport = [];
+    try {
+        if (p.technical_report) techReport = JSON.parse(p.technical_report);
+    } catch(e) {}
+    if (!Array.isArray(techReport) || techReport.length === 0) techReport = defaultStructure;
+
+    // Ensure Bab 3 is present
+    const hasBab3 = techReport.some(sec => sec.title.includes('Bab 3'));
+    if (!hasBab3) {
+        techReport.push({
+            id: 'sec-3',
+            title: 'Bab 3: Laporan Teknis (Findings)',
+            subsections: [
+                { id: 'sub-3-1', title: '3.1 Intelligence Gathering' },
+                { id: 'sub-3-2', title: '3.2 Vulnerability Assessment' },
+                { id: 'sub-3-3', title: '3.3 Penetration Testing (Exploitation)' }
+            ]
+        });
+    }
+
+    // Attach to window so save function can access it
+    window.currentTechReport = techReport;
+
+    let chaptersHTML = `
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: var(--text-primary);">Editor Laporan (Word Processor)</h3>
+            ${canEditProject(p) ? `<button class="btn btn-primary" onclick="saveAllEditors()" style="font-size:0.9rem; padding: 0.5rem 1rem; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(15, 98, 254, 0.3);">💾 Save All Changes</button>` : ''}
+        </div>
+        
+        <div class="sysreptor-report-card" style="margin-bottom: 2rem;">
+            <div class="sysreptor-report-title"><span>Halaman Sampul (Cover Page)</span></div>
+            <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; text-align: left;">
+                ${canEditProject(p) ? `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Header Text</label>
+                        <input type="text" id="header-text-input" class="form-control" value="${p.header_text || ''}" placeholder="e.g. Confidential Report">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Footer Text</label>
+                        <input type="text" id="footer-text-input" class="form-control" value="${p.footer_text || ''}" placeholder="e.g. Pentago Security">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Cover Logo</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="file" id="cover-logo-file" class="form-control" accept="image/*" onchange="handleLogoUpload(this, 'cover-logo-input', 'cover-logo-preview')" style="font-size: 0.8rem;">
+                            <input type="hidden" id="cover-logo-input" value="${p.cover_logo || ''}">
+                            <img id="cover-logo-preview" src="${p.cover_logo || ''}" style="max-height:35px; max-width:100px; display:${p.cover_logo ? 'block' : 'none'}; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px; padding:2px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Client Logo</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="file" id="client-logo-file" class="form-control" accept="image/*" onchange="handleLogoUpload(this, 'client-logo-input', 'client-logo-preview')" style="font-size: 0.8rem;">
+                            <input type="hidden" id="client-logo-input" value="${p.client_logo || ''}">
+                            <img id="client-logo-preview" src="${p.client_logo || ''}" style="max-height:35px; max-width:100px; display:${p.client_logo ? 'block' : 'none'}; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px; padding:2px;">
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                    <p><strong>Header:</strong> ${p.header_text || '-'}</p>
+                    <p><strong>Footer:</strong> ${p.footer_text || '-'}</p>
+                    <p><strong>Cover Logo:</strong> ${p.cover_logo || '-'}</p>
+                    <p><strong>Client Logo:</strong> ${p.client_logo || '-'}</p>
+                </div>
+                `}
+            </div>
+        </div>
+        <div class="sysreptor-report-card" style="margin-bottom: 2rem;">
+            <div class="sysreptor-report-title"><span>Daftar Isi (Table of Contents)</span></div>
+            <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px;">
+                <ul id="toc-container" style="color: var(--text-primary); margin-left: 1.5rem; font-family: monospace; line-height: 1.6;">
+                    ${(function() {
+                        let html = '';
+                        if (window.currentTechReport) {
+                            window.currentTechReport.forEach((sec, idx) => {
+                                html += `<li><strong>${idx + 1}. ${sec.title.replace(/Bab \d+: /, '')}</strong></li>`;
+                                if (sec.subsections && sec.subsections.length > 0) {
+                                    html += `<ul style="margin-left: 1.5rem;">`;
+                                    sec.subsections.forEach((sub, subIdx) => {
+                                        html += `<li>${idx + 1}.${subIdx + 1} ${sub.title.replace(/\d+\.\d+ /, '')}</li>`;
+                                    });
+                                    html += `</ul>`;
+                                }
+                            });
+                        }
+                        if (findings.length > 0) {
+                            html += `<ul style="margin-left: 1.5rem; margin-top: 0.5rem;">`;
+                            findings.forEach((f, fIdx) => {
+                                html += `<li>- ${f.title}</li>`;
+                            });
+                            html += `</ul>`;
+                        }
+                        return html;
+                    })()}
+                </ul>
+            </div>
+        </div>
+    `;
+
+    chaptersHTML += `<div id="workspace-chapters-container"></div>`;
+
+    reportsContainer.innerHTML = chaptersHTML;
     
+    try {
+        if (window.renderWorkspaceChapters) {
+            window.renderWorkspaceChapters();
+        }
+    } catch (err_render) {
+        console.error("Error in renderWorkspaceChapters:", err_render);
+        alert("Error loading chapters: " + err_render.message);
+    }
+
     let imageCounter = 0;
     
     if (findings.length === 0) {
-        reportsContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px;">No findings added yet. Add a finding to preview report workspace.</div>';
+        const fc = document.getElementById('findings-table-container');
+        if (fc) fc.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px;">No findings added yet. Add a finding to preview report workspace.</div>';
     } else {
         let reportsHTML = '';
         findings.forEach((f, idx) => {
@@ -1587,7 +1721,9 @@ async function viewProject(projectId) {
                 </div>
             `;
         });
-        reportsContainer.innerHTML = reportsHTML;
+        const fc = document.getElementById('findings-table-container');
+        if (fc) fc.innerHTML = reportsHTML;
+        else reportsContainer.innerHTML += reportsHTML;
     }
 
     // Render Project Summary and Appendix cards if they exist
@@ -1647,8 +1783,34 @@ async function viewProject(projectId) {
         if (btnAddFinding) btnAddFinding.style.display = 'none';
     }
 
+
+    // Render Document Control
+    const revContainer = document.getElementById('revision-rows-container');
+    const appContainer = document.getElementById('approval-rows-container');
+    if (revContainer) revContainer.innerHTML = '';
+    if (appContainer) appContainer.innerHTML = '';
+    
+    let revisions = [];
+    try { revisions = JSON.parse(p.change_reference || '[]'); } catch(e) {}
+    if (revisions.length === 0) {
+        addRevisionRow(); // add one empty by default
+    } else {
+        revisions.forEach(r => addRevisionRow(r.author, r.date, r.version, r.reference));
+    }
+
+    let approvals = [];
+    try { approvals = JSON.parse(p.client_approver_name || '[]'); } catch(e) {}
+    if (approvals.length === 0) {
+        addApprovalRow('', p.company_name || '', 'Approved');
+    } else {
+        approvals.forEach(a => addApprovalRow(a.name, a.company, a.status));
+    }
+
     document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
     document.getElementById('project-detail-view').style.display = 'block';
+    setTimeout(() => {
+        if (typeof window.initWorkspaceEditors === 'function') window.initWorkspaceEditors();
+    }, 300);
 }
 
 async function updateProjectActivity(field, value) {
@@ -3440,6 +3602,7 @@ function switchConfigSubTab(subtab) {
     document.getElementById('config-users-section').style.display = 'none';
     document.getElementById('config-logs-section').style.display = 'none';
     document.getElementById('config-blocklist-section').style.display = 'none';
+    const verSec = document.getElementById('config-versions-section'); if(verSec) verSec.style.display = 'none';
     
     if (subtab === 'users') {
         document.getElementById('tab-users-btn').classList.add('active');
@@ -3449,6 +3612,12 @@ function switchConfigSubTab(subtab) {
         document.getElementById('tab-logs-btn').classList.add('active');
         document.getElementById('config-logs-section').style.display = 'block';
         loadAuditLogs();
+    } else if (subtab === 'versions') {
+        const btn = document.getElementById('tab-versions-btn');
+        if (btn) btn.classList.add('active');
+        const sec = document.getElementById('config-versions-section');
+        if (sec) sec.style.display = 'block';
+        if (typeof loadGitLogs === 'function') loadGitLogs();
     } else if (subtab === 'blocklist') {
         document.getElementById('tab-blocklist-btn').classList.add('active');
         document.getElementById('config-blocklist-section').style.display = 'block';
@@ -7088,3 +7257,755 @@ async function disableMfa() {
 }
 
 
+
+
+// openReportPreview - renders and opens preview window
+async function openReportPreview(lang = 'id') {
+    if (!currentProjectId) {
+        alert("Pilih proyek terlebih dahulu!");
+        return;
+    }
+    try {
+        const resProj = await fetch(`/api/projects/${currentProjectId}`);
+        const p = await resProj.json();
+        
+        const resFindings = await fetch(`/api/findings?project_id=${currentProjectId}`);
+        const findings = await resFindings.json();
+        findings.sort((a, b) => b.cvss_score - a.cvss_score);
+
+        let spacingMode = 1.4;
+        const spacingSelector = document.getElementById('report-spacing-selector');
+        if (spacingSelector) {
+            spacingMode = parseFloat(spacingSelector.value) || 1.4;
+        }
+
+        const previewHtml = _buildPreviewDocument(p, findings, null, [], lang, false, spacingMode);
+        const w = window.open();
+        w.document.write(previewHtml);
+        w.document.close();
+    } catch(err) {
+        console.error('Error inside openReportPreview:', err);
+        alert("Gagal membangun dokumen pratinjau: " + err.message);
+    }
+}
+
+
+// ==========================================
+// Document Control (Revision & Approvals)
+// ==========================================
+
+function addRevisionRow(author = '', date = '', version = 'v1.0', reference = 'Initial Draft') {
+    const container = document.getElementById('revision-rows-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.style = 'display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center;';
+    div.setAttribute('data-revision-row', '');
+    if (!author && typeof currentUser !== 'undefined' && currentUser) {
+        author = currentUser.username;
+    }
+    if (!date) {
+        date = new Date().toLocaleDateString('id-ID');
+    }
+    div.innerHTML = `
+        <input name="rev_author" class="form-control" placeholder="Author" value="${author}" style="font-size:0.85rem;flex:2;">
+        <input name="rev_date" class="form-control" placeholder="Date" value="${date}" style="font-size:0.85rem;flex:2;">
+        <input name="rev_version" class="form-control" placeholder="Version" value="${version}" style="font-size:0.85rem;flex:1.5;">
+        <input name="rev_reference" class="form-control" placeholder="Change Reference" value="${reference}" style="font-size:0.85rem;flex:4;">
+        <button type="button" class="btn btn-action-delete" onclick="this.parentElement.remove()" style="padding:0;width:28px;height:28px;">&times;</button>
+    `;
+    container.appendChild(div);
+}
+
+function addApprovalRow(name = '', company = '', status = 'Approved') {
+    const container = document.getElementById('approval-rows-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.style = 'display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center;';
+    div.setAttribute('data-approval-row', '');
+    div.innerHTML = `
+        <input name="app_name" class="form-control" placeholder="Name" value="${name}" style="font-size:0.85rem;flex:3;">
+        <input name="app_company" class="form-control" placeholder="Company" value="${company}" style="font-size:0.85rem;flex:3;">
+        <input name="app_status" class="form-control" placeholder="Status" value="${status}" style="font-size:0.85rem;flex:3;">
+        <button type="button" class="btn btn-action-delete" onclick="this.parentElement.remove()" style="padding:0;width:28px;height:28px;">&times;</button>
+    `;
+    container.appendChild(div);
+}
+
+async function saveDocumentControl() {
+    if (!currentProjectId) return;
+    
+    const revisions = [];
+    document.querySelectorAll('#revision-rows-container [data-revision-row]').forEach(row => {
+        revisions.push({
+            author: row.querySelector('input[name="rev_author"]').value,
+            date: row.querySelector('input[name="rev_date"]').value,
+            version: row.querySelector('input[name="rev_version"]').value,
+            reference: row.querySelector('input[name="rev_reference"]').value
+        });
+    });
+
+    const approvals = [];
+    document.querySelectorAll('#approval-rows-container [data-approval-row]').forEach(row => {
+        approvals.push({
+            name: row.querySelector('input[name="app_name"]').value,
+            company: row.querySelector('input[name="app_company"]').value,
+            status: row.querySelector('input[name="app_status"]').value
+        });
+    });
+
+    try {
+        const payload = {
+            change_reference: JSON.stringify(revisions),
+            client_approver_name: JSON.stringify(approvals)
+        };
+        const res = await fetch(`/api/projects/${currentProjectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            alert('Document Control saved successfully!');
+            // Update the currentProject locally so we don't lose it if we re-render without fetching
+            if (currentProject) {
+                currentProject.change_reference = payload.change_reference;
+                currentProject.client_approver_name = payload.client_approver_name;
+            }
+        } else {
+            alert('Failed to save Document Control');
+        }
+    } catch(e) {
+        console.error(e);
+        alert('Error saving Document Control: ' + e.message);
+    }
+}
+
+
+
+// ==========================================
+// System Changelog Logic
+// ==========================================
+
+async function loadGitLogs() {
+    const tbody = document.getElementById('git-log-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading logs...</td></tr>';
+    try {
+        const res = await fetch('/api/admin/changelogs');
+        const data = await res.json();
+        tbody.innerHTML = '';
+        if (data && data.length > 0) {
+            data.forEach((log, index) => {
+                const actionHtml = `<button class="btn btn-action-delete" onclick="deleteChangelog(${log.id})" style="padding:0;width:28px;height:28px;" title="Delete Log">&times;</button>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-family:monospace;font-weight:600;">v${log.version}</td>
+                        <td>${log.date}</td>
+                        <td>${log.description}</td>
+                        <td>${actionHtml}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada catatan log pembaruan.</td></tr>';
+        }
+    } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:red;">Failed to load logs.</td></tr>';
+    }
+}
+
+async function saveChangelog() {
+    const verInput = document.getElementById('changelog-version-input');
+    const descInput = document.getElementById('changelog-desc-input');
+    const version = verInput.value.trim();
+    const description = descInput.value.trim();
+    
+    if (!version || !description) {
+        alert('Harap isi versi dan deskripsi pembaruan.');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/admin/changelogs', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ version, description })
+        });
+        if (res.ok) {
+            verInput.value = '';
+            descInput.value = '';
+            loadGitLogs();
+        } else {
+            alert('Gagal menyimpan log.');
+        }
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+async function deleteChangelog(id) {
+    if (!confirm('Hapus log pencatatan ini?')) return;
+    try {
+        const res = await fetch(`/api/admin/changelogs/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadGitLogs();
+        } else {
+            alert('Gagal menghapus log.');
+        }
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+
+
+// ==========================================
+// Workspace Chapter Editor Logic (Always-On WordPress Style)
+// ==========================================
+window.chapterEditors = {};
+
+window.handleLogoUpload = function(inputEl, hiddenInputId, previewImgId) {
+    if (inputEl.files && inputEl.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(hiddenInputId).value = e.target.result;
+            const preview = document.getElementById(previewImgId);
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(inputEl.files[0]);
+    }
+};
+
+window.saveAllEditors = async function() {
+    if (!currentProjectId || !window.currentTechReport) return;
+    
+    // Iterate and grab content from each initialized Quill editor
+    window.currentTechReport.forEach(sec => {
+        // Save Chapter content
+        const qSec = window.chapterEditors['editor-' + sec.id];
+        if (qSec) {
+            const htmlContent = qSec.root.innerHTML === '<p><br></p>' ? '' : qSec.root.innerHTML;
+            sec.content = htmlContent;
+        }
+        // Save Sub-chapter content
+        if (sec.subsections) {
+            sec.subsections.forEach(sub => {
+                const q = window.chapterEditors['editor-' + sub.id];
+                if (q) {
+                    const htmlContent = q.root.innerHTML === '<p><br></p>' ? '' : q.root.innerHTML;
+                    sub.content = htmlContent;
+                }
+            });
+        }
+    });
+    
+    const payload = {
+        technical_report: JSON.stringify(window.currentTechReport)
+    };
+    
+    const coverLogoEl = document.getElementById('cover-logo-input');
+    if (coverLogoEl) {
+        payload.cover_logo = coverLogoEl.value;
+        payload.client_logo = document.getElementById('client-logo-input').value;
+        payload.header_text = document.getElementById('header-text-input').value;
+        payload.footer_text = document.getElementById('footer-text-input').value;
+    }
+    
+    try {
+        const res = await fetch(`/api/projects/${currentProjectId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            alert('Semua perubahan berhasil disimpan!');
+            viewProject(currentProjectId);
+        } else {
+            alert('Gagal menyimpan Laporan.');
+        }
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+};
+
+window.initWorkspaceEditors = function() {
+    if (!window.currentTechReport) return;
+    
+    // WordPress-style full toolbar options
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],                         // text direction
+        [{ 'align': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video', 'formula'],
+        ['clean']                                         // remove formatting button
+    ];
+
+    window.currentTechReport.forEach(sec => {
+        // Initialize editor for the chapter itself
+        const secEditorId = 'editor-' + sec.id;
+        const secContainer = document.getElementById(secEditorId);
+        if (secContainer && !window.chapterEditors[secEditorId]) {
+            window.chapterEditors[secEditorId] = new Quill('#' + secEditorId, {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                }
+            });
+            if (sec.content) {
+                window.chapterEditors[secEditorId].root.innerHTML = sec.content;
+            }
+        }
+        
+        // Initialize editors for sub-chapters
+        if (sec.subsections) {
+            sec.subsections.forEach(sub => {
+                const editorId = 'editor-' + sub.id;
+                const container = document.getElementById(editorId);
+                if (container && !window.chapterEditors[editorId]) {
+                    window.chapterEditors[editorId] = new Quill('#' + editorId, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: toolbarOptions
+                        }
+                    });
+                    if (sub.content) {
+                        window.chapterEditors[editorId].root.innerHTML = sub.content;
+                    }
+                }
+            });
+        }
+    });
+};
+
+
+// ==========================================
+// REPORT TEMPLATE CRUD LISTING
+// ==========================================
+
+let currentEditingTemplateId = null;
+
+async function populateReportTemplatesSelect() {
+    const select = document.getElementById('report-template');
+    const projectSelect = document.getElementById('project-template-select');
+    let htmlStr = '<option value="">-- No Template --</option>';
+    try {
+        const res = await fetch('/api/report_templates');
+        const templates = await res.json();
+        templates.forEach(t => {
+            htmlStr += `<option value="${t.id}">${t.name} (${t.template_type})</option>`;
+        });
+        if (select) select.innerHTML = htmlStr;
+        if (projectSelect) projectSelect.innerHTML = htmlStr;
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function loadReportTemplates() {
+    const tbody = document.getElementById('report-template-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading templates...</td></tr>';
+    try {
+        const res = await fetch('/api/report_templates');
+        const templates = await res.json();
+        tbody.innerHTML = '';
+        if (templates.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);">No report templates found. Click "New Template" to add one.</td></tr>';
+            return;
+        }
+        templates.forEach(t => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-weight: 500; color: var(--text-primary);">${t.name}</td>
+                    <td style="text-transform: capitalize;">${t.template_type}</td>
+                    <td><span class="badge badge-status" style="background:#f1f5f9;color:#334155;">${t.classification}</span></td>
+                    <td>${t.footer_text || '-'}</td>
+                    <td>
+                        <div style="display:flex;gap:0.4rem;align-items:center;">
+                                                        <button class="btn btn-action-view" onclick="previewReportTemplate(${t.id})" title="Preview Template Report" style="color: var(--accent-blue); background: rgba(15, 98, 254, 0.1);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                            <button class="btn btn-action-edit" onclick="openReportTemplateModal(${t.id})"  title="Edit Template Info & Outline">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button class="btn btn-action-delete" onclick="deleteReportTemplate(${t.id})" title="Delete Template">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch(e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--severity-critical);">Failed to load templates.</td></tr>';
+    }
+}
+
+let templateStructure = [];
+const defaultTemplateStructure = [
+    { id: 'sec-1', title: 'Bab 1: Ringkasan Eksekutif (Executive Summary)', subsections: [
+        { id: 'sub-1-1', title: '1.1 Latar Belakang' },
+        { id: 'sub-1-2', title: '1.2 Tujuan' },
+        { id: 'sub-1-3', title: '1.3 Ruang Lingkup' },
+        { id: 'sub-1-4', title: '1.4 Batasan Pekerjaan' }
+    ]},
+    { id: 'sec-2', title: 'Bab 2: Metodologi (Methodology)', subsections: [
+        { id: 'sub-2-1', title: '2.1 Fase Metodologi' }
+    ]}
+];
+
+async function openReportTemplateModal(id = null) {
+    const modal = document.getElementById('report-template-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    
+    const form = document.getElementById('report-template-form');
+    form.reset();
+    document.getElementById('report-template-id').value = '';
+    
+    if (id) {
+        document.getElementById('report-template-modal-title').innerText = 'Edit Report Template';
+        try {
+            const res = await fetch(`/api/report_templates/${id}`);
+            const t = await res.json();
+            document.getElementById('report-template-id').value = t.id;
+            document.getElementById('rt-name').value = t.name;
+            document.getElementById('rt-type').value = t.template_type;
+            document.getElementById('rt-classification').value = t.classification;
+            document.getElementById('rt-footer').value = t.footer_text || '';
+            
+            try {
+                templateStructure = JSON.parse(t.structure || '[]');
+            } catch(e) {
+                templateStructure = defaultTemplateStructure;
+            }
+            if (!templateStructure || templateStructure.length === 0) templateStructure = defaultTemplateStructure;
+            renderRtStructureEditor();
+        } catch(e) {
+            console.error(e);
+        }
+    } else {
+        document.getElementById('report-template-modal-title').innerText = 'Add Report Template';
+        document.getElementById('rt-classification').value = "Confidential";
+        document.getElementById('rt-footer').value = "PentaGO Security Assessment Report";
+        templateStructure = JSON.parse(JSON.stringify(defaultTemplateStructure));
+        renderRtStructureEditor();
+    }
+}
+
+function closeReportTemplateModal() {
+    const modal = document.getElementById('report-template-modal');
+    if (modal) modal.classList.remove('active');
+}
+
+function renderRtStructureEditor() {
+    const container = document.getElementById('rt-outline-editor');
+    if (!container) return;
+    
+    let html = '';
+    templateStructure.forEach((sec, sIdx) => {
+        html += `
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                <input type="text" class="form-control" value="${sec.title}" onchange="rtUpdateSectionTitle(${sIdx}, this.value)" style="font-weight: 600; font-size: 0.95rem; width: 80%;">
+                <button type="button" class="btn btn-action-delete" onclick="rtDeleteSection(${sIdx})">Delete Chapter</button>
+            </div>
+            <div style="padding-left: 1.5rem; margin-top: 1rem;">
+        `;
+        
+        if (sec.subsections) {
+            sec.subsections.forEach((sub, subIdx) => {
+                html += `
+                <div style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <span style="color:var(--text-secondary);">↳</span>
+                    <input type="text" class="form-control" value="${sub.title}" onchange="rtUpdateSubsectionTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; flex: 1;">
+                    <button type="button" class="btn-helper" style="color:var(--severity-critical); border-color:var(--severity-critical); padding: 0.25rem 0.5rem; font-size:0.75rem;" onclick="rtDeleteSubsection(${sIdx}, ${subIdx})">x</button>
+                </div>
+                `;
+            });
+        }
+        
+        html += `
+                <button type="button" class="btn-helper" onclick="rtAddSubsection(${sIdx})" style="font-size:0.75rem; padding:0.25rem 0.5rem; margin-top: 0.5rem;">+ Add Sub-chapter</button>
+            </div>
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function rtAddSection() {
+    const newId = 'sec-' + Date.now();
+    templateStructure.push({ id: newId, title: 'New Chapter', subsections: [] });
+    renderRtStructureEditor();
+}
+
+function rtUpdateSectionTitle(sIdx, val) {
+    templateStructure[sIdx].title = val;
+}
+
+function rtDeleteSection(sIdx) {
+    if(confirm("Delete this chapter?")) {
+        templateStructure.splice(sIdx, 1);
+        renderRtStructureEditor();
+    }
+}
+
+function rtAddSubsection(sIdx) {
+    const newId = 'sub-' + Date.now();
+    if(!templateStructure[sIdx].subsections) templateStructure[sIdx].subsections = [];
+    templateStructure[sIdx].subsections.push({ id: newId, title: 'New Sub-chapter' });
+    renderRtStructureEditor();
+}
+
+function rtUpdateSubsectionTitle(sIdx, subIdx, val) {
+    templateStructure[sIdx].subsections[subIdx].title = val;
+}
+
+function rtDeleteSubsection(sIdx, subIdx) {
+    if(confirm("Delete this sub-chapter?")) {
+        templateStructure[sIdx].subsections.splice(subIdx, 1);
+        renderRtStructureEditor();
+    }
+}
+
+async function saveReportTemplate(event) {
+    if (event) event.preventDefault();
+    const id = document.getElementById('report-template-id').value;
+    const payload = {
+        name: document.getElementById('rt-name').value.trim(),
+        template_type: document.getElementById('rt-type').value,
+        classification: document.getElementById('rt-classification').value,
+        footer_text: document.getElementById('rt-footer').value,
+        structure: JSON.stringify(templateStructure)
+    };
+    
+    try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/api/report_templates/${id}` : '/api/report_templates';
+        
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            closeReportTemplateModal();
+            loadReportTemplates();
+            populateReportTemplatesSelect();
+            alert("Report template saved successfully!");
+        } else {
+            const data = await res.json();
+            alert("Error: " + data.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Failed to save report template.");
+    }
+}
+
+async function deleteReportTemplate(id) {
+    if (!confirm("Are you sure you want to delete this template?")) return;
+    try {
+        const res = await fetch(`/api/report_templates/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadReportTemplates();
+            populateReportTemplatesSelect();
+        } else {
+            alert("Failed to delete template.");
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+
+async function previewReportTemplate(id) {
+    try {
+        const res = await fetch(`/api/report_templates/${id}`);
+        if (!res.ok) {
+            alert("Failed to load template data.");
+            return;
+        }
+        const t = await res.json();
+        
+        let structure = [];
+        try {
+            structure = JSON.parse(t.structure || '[]');
+        } catch(e){}
+
+        // Populate dummy content for the structure so it's not empty
+        structure.forEach(ch => {
+            ch.content_html = `<p style="text-align:center;color:#94a3b8;font-style:italic;margin-top:2rem;">[ Content for ${ch.title} will be written in the Project Workspace ]</p>`;
+            if (ch.subchapters) {
+                ch.subchapters.forEach(sub => {
+                    sub.content_html = `<p style="text-align:center;color:#94a3b8;font-style:italic;margin-top:1rem;">[ Content for ${sub.title} will be written in the Project Workspace ]</p>`;
+                });
+            }
+        });
+
+        // Construct a dummy project
+        const dummyProject = {
+            id: 9999,
+            name: '[Project Name Placeholder]',
+            company_name: '[Client Company Name]',
+            start_date: new Date().toISOString().split('T')[0],
+            end_date: new Date().toISOString().split('T')[0],
+            members: [{fullname: 'Template Previewer', role: 'Lead Pentester'}],
+            report_spk_number: '-',
+            report_version: '1.0.0',
+            summary_html: '<p style="text-align:center;color:#94a3b8;">[ Summary Content Goes Here ]</p>',
+            appendix_html: '<p style="text-align:center;color:#94a3b8;">[ Appendix Content Goes Here ]</p>',
+            doc_control_revs: [{ author: 'System', date: new Date().toLocaleDateString(), version: '1.0', reference: 'Template Preview' }],
+            doc_control_approvals: [{ name: 'Manager Name', role: 'Project Manager', date: '', signature: '' }],
+            tools_used: ['Nmap', 'Burp Suite Pro']
+        };
+
+        const tpl = {
+            classification: t.classification,
+            footer_text: t.footer_text,
+            default_title: t.template_type ? t.template_type.toUpperCase() + ' REPORT' : 'SECURITY ASSESSMENT REPORT'
+        };
+
+        // Call the exact same preview builder used by the real report
+        const previewHtml = _buildPreviewDocument(dummyProject, [], tpl, structure, 'id', false, 1.4);
+        
+        const previewWin = window.open('', '_blank');
+        previewWin.document.write(previewHtml);
+        previewWin.document.close();
+        
+    } catch (e) {
+        console.error(e);
+        alert("Error generating template preview.");
+    }
+}
+
+
+window.renderWorkspaceChapters = function() {
+    const container = document.getElementById('workspace-chapters-container');
+    if (!container) return;
+    
+    // Save current quill contents first before re-rendering
+    if (window.chapterEditors) {
+        window.currentTechReport.forEach(sec => {
+            const qSec = window.chapterEditors['editor-' + sec.id];
+            if (qSec) sec.content = qSec.root.innerHTML === '<p><br></p>' ? '' : qSec.root.innerHTML;
+            if (sec.subsections) {
+                sec.subsections.forEach(sub => {
+                    const qSub = window.chapterEditors['editor-' + sub.id];
+                    if (qSub) sub.content = qSub.root.innerHTML === '<p><br></p>' ? '' : qSub.root.innerHTML;
+                });
+            }
+        });
+    }
+
+    let html = '';
+    window.currentTechReport.forEach((sec, sIdx) => {
+        html += `
+        <div class="sysreptor-report-card" style="margin-bottom: 2rem; border-color: #3b82f6;">
+            <div class="sysreptor-report-title" style="display:flex; justify-content:space-between; align-items:center; background: #eff6ff; color: #1e3a8a;">
+                <div style="flex:1; display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" class="form-control" value="${sec.title}" onchange="wsUpdateChapterTitle(${sIdx}, this.value)" style="font-size: 1.1rem; font-weight:bold; color: #1e3a8a; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
+                </div>
+                ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteChapter(${sIdx})">Delete Chapter</button>` : ''}
+            </div>
+            <div class="card-edit-content" style="padding: 1rem; background: #fafafa; border: 1px solid var(--border-color); border-top: none; border-bottom: none;">
+                ${canEditProject(currentProject) ? `<div id="editor-${sec.id}" class="wp-editor" style="height: 250px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sec.content || '', {val:0})}</div>`}
+            </div>
+            
+            <!-- Subchapters Container Inside Chapter Card -->
+            <div style="padding: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-top: 1px dashed #cbd5e1; border-radius: 0 0 8px 8px;">
+                <h4 style="font-size:0.9rem; color:var(--text-secondary); margin-top:0; margin-bottom:1rem;">Sub-chapters</h4>
+        `;
+        
+        if (sec.subsections) {
+            sec.subsections.forEach((sub, subIdx) => {
+                html += `
+                <div style="margin-bottom: 1.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 1rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0;">
+                        <div style="flex:1; display:flex; gap:0.5rem; align-items:center;">
+                            <span style="color:#64748b;">↳</span>
+                            <input type="text" class="form-control" value="${sub.title}" onchange="wsUpdateSubchapterTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.95rem; font-weight:600; color: #334155; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
+                        </div>
+                        ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteSubchapter(${sIdx}, ${subIdx})">Delete Sub</button>` : ''}
+                    </div>
+                    <div style="padding: 0.5rem;">
+                        ${canEditProject(currentProject) ? `<div id="editor-${sub.id}" class="wp-editor" style="height: 200px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sub.content || '', {val:0})}</div>`}
+                    </div>
+                    ${sub.id === 'sub-3-3' || sub.title.includes('3.3 Penetration') ? `
+                        <div style="margin: 1rem 0.5rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom: 1rem; padding: 0.5rem 1rem; background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                <span style="color:#64748b;">↳</span>
+                                <span style="font-size: 0.95rem; font-weight:600; color: #334155;">3.3.1.1 Rincian Temuan (Findings)</span>
+                            </div>
+                            <div id="findings-table-container"></div>
+                        </div>
+                    ` : ''}
+                </div>
+                `;
+            });
+        }
+        
+        if (canEditProject(currentProject)) {
+            html += `<button class="btn-helper" onclick="wsAddSubchapter(${sIdx})" style="font-size:0.8rem; padding: 0.3rem 0.6rem;">+ Add Sub-chapter</button>`;
+        }
+        
+        html += `
+            </div>
+        </div>
+        `;
+    });
+    
+    if (canEditProject(currentProject)) {
+        html += `<div style="text-align:center; margin-top:1rem; margin-bottom:2rem;"><button class="btn btn-secondary" onclick="wsAddChapter()">+ Add New Chapter</button></div>`;
+    }
+    
+    container.innerHTML = html;
+    
+    window.chapterEditors = {};
+    window.initWorkspaceEditors();
+};
+
+window.wsAddChapter = function() {
+    window.currentTechReport.push({ id: 'sec-' + Date.now(), title: 'New Chapter', subsections: [] });
+    window.renderWorkspaceChapters();
+};
+
+window.wsDeleteChapter = function(sIdx) {
+    if (confirm('Delete this entire chapter and its sub-chapters?')) {
+        window.currentTechReport.splice(sIdx, 1);
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsAddSubchapter = function(sIdx) {
+    if (!window.currentTechReport[sIdx].subsections) window.currentTechReport[sIdx].subsections = [];
+    window.currentTechReport[sIdx].subsections.push({ id: 'sub-' + Date.now(), title: 'New Sub-chapter' });
+    window.renderWorkspaceChapters();
+};
+
+window.wsDeleteSubchapter = function(sIdx, subIdx) {
+    if (confirm('Delete this sub-chapter?')) {
+        window.currentTechReport[sIdx].subsections.splice(subIdx, 1);
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsUpdateChapterTitle = function(sIdx, val) {
+    window.currentTechReport[sIdx].title = val;
+};
+
+window.wsUpdateSubchapterTitle = function(sIdx, subIdx, val) {
+    window.currentTechReport[sIdx].subsections[subIdx].title = val;
+};

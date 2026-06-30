@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Quill Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -553,8 +555,19 @@
                 </div>
 
                 <!-- SysReptor-Style Detailed Reports Display -->
-                <div class="header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                                <div class="header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="font-family: var(--font-title); font-size: 1.4rem; font-weight: 700;">Pentest Report Workspace Preview</h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select id="report-spacing-selector" style="padding: 0.3rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-sans); background: #ffffff; color: var(--text-primary);">
+                            <option value="1.0">Spasi 1.0 (Rapat)</option>
+                            <option value="1.2">Spasi 1.2 (Normal)</option>
+                            <option value="1.4" selected>Spasi 1.4 (Ideal)</option>
+                            <option value="1.6">Spasi 1.6 (Renggang)</option>
+                            <option value="1.8">Spasi 1.8 (Sangat Renggang)</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="openReportPreview('id')" style="font-weight: 600;">📄 Preview ID</button>
+                        <button class="btn btn-secondary" onclick="openReportPreview('en')" style="font-weight: 600;">📄 Preview EN</button>
+                    </div>
                 </div>
                 
                 <div id="sysreptor-report-cards-container">
@@ -589,7 +602,38 @@
                         <!-- Rendered Markdown -->
                     </div>
                 </div>
-                
+
+                <div id="project-doc-control-card" class="sysreptor-report-card" style="margin-top: 2rem;">
+                    <div class="sysreptor-report-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Document Control (Revision & Approvals)</span>
+                        <button class="btn btn-secondary" onclick="saveDocumentControl()" style="font-size:0.78rem;padding:0.25rem 0.65rem;height:28px; display:inline-flex; align-items:center;">💾 Save</button>
+                    </div>
+                    <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                            <!-- Revision History -->
+                            <div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;">Revision History</h4>
+                                    <button class="btn btn-primary" onclick="addRevisionRow()" style="font-size:0.75rem;padding:0.2rem 0.5rem;height:24px;">+ Add Revision</button>
+                                </div>
+                                <div id="revision-rows-container">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+                            <!-- Approvals -->
+                            <div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;">Approvals</h4>
+                                    <button class="btn btn-primary" onclick="addApprovalRow()" style="font-size:0.75rem;padding:0.2rem 0.5rem;height:24px;">+ Add Approval</button>
+                                </div>
+                                <div id="approval-rows-container">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="project-appendix-preview-card" class="sysreptor-report-card" style="margin-top: 2rem; display: none;">
                     <div class="sysreptor-report-title">
                         <span>Appendix (Catatan Pengetesan)</span>
@@ -741,6 +785,7 @@
                     <button class="config-tab-btn active" id="tab-users-btn" onclick="switchConfigSubTab('users')" style="background: none; border: none; border-bottom: 3px solid var(--accent-blue); padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--accent-blue); transition: all 0.2s;">User Management</button>
                     <button class="config-tab-btn" id="tab-logs-btn" onclick="switchConfigSubTab('logs')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Audit Logs</button>
                     <button class="config-tab-btn" id="tab-blocklist-btn" onclick="switchConfigSubTab('blocklist')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">IP Blocklist</button>
+                    <button class="config-tab-btn" id="tab-versions-btn" onclick="switchConfigSubTab('versions')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Change Log</button>
                 </div>
                 
                 <div id="config-users-section" class="config-sub-section">
@@ -822,9 +867,74 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- App Versions / System Changelog Sub-section -->
+                <div id="config-versions-section" class="config-sub-section" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">System Changelog (App Update History)</h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="changelog-version-input" placeholder="e.g. 1.0.1" style="width: 100px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-sans); font-size: 0.9rem;">
+                            <input type="text" id="changelog-desc-input" placeholder="Update description..." style="width: 350px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-sans); font-size: 0.9rem;">
+                            <button class="btn btn-primary" onclick="saveChangelog()" style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; border-radius: 6px; height: 38px; cursor: pointer;">
+                                Add Log Record
+                            </button>
+                        </div>
+                    </div>
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; color: #1e3a8a; font-size: 0.9rem; line-height: 1.5;">
+                        <strong>Informasi:</strong> Catatan ini hanya sebagai log/history pembaruan fitur aplikasi. Tidak ada aksi sistematis (seperti restore) yang terjadi saat Anda menyimpan log di sini.
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Version</th>
+                                    <th style="width: 150px;">Date</th>
+                                    <th>Feature Updates / Description</th>
+                                    <th style="width: 80px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="git-log-tbody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
             
-            <!-- Testing Guide View -->
+            <!-- Report Templates View -->
+        <div id="report-templates-view" class="view-section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2 class="section-title">Report Templates</h2>
+                    <p class="section-subtitle">Manage standard outlines and structures for your reports.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openReportTemplateModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    New Template
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TEMPLATE NAME</th>
+                            <th>TYPE</th>
+                            <th>CLASSIFICATION</th>
+                            <th>FOOTER TEXT</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-template-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Testing Guide View -->
+
+        <!-- Testing Guide View -->
             <div id="testing-guide-view" class="view-section" style="display: none;">
                 <div class="header">
                     <h2>Testing Guide Database</h2>
@@ -1290,6 +1400,13 @@
                 <div class="form-group">
                     <label for="project-scope">Scope</label>
                     <textarea id="project-scope" class="form-control" rows="2" placeholder="e.g. https://target.com, 192.168.1.0/24"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Load Report Template (Optional)</label>
+                    <select id="project-template-select" class="form-control">
+                        <option value="">-- No Template --</option>
+                    </select>
+                    <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;">Selecting a template will populate the Project Workspace with predefined chapters and structures.</p>
                 </div>
                 <div class="form-group">
                     <label for="project-out-of-scope">Out of Scope</label>
@@ -2154,6 +2271,62 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
     <script src="{{ url_for('static', filename='js/cwe-db.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/preview_builder.js') }}"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<!-- Report Template Modal -->
+    <div id="report-template-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="report-template-modal-title" style="margin: 0; font-family: var(--font-title); font-size: 1.25rem; color: var(--text-primary);">Add Report Template</h3>
+                <button class="close-btn" onclick="closeReportTemplateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="report-template-form" onsubmit="saveReportTemplate(event)">
+                    <input type="hidden" id="report-template-id">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Template Name</label>
+                            <input type="text" id="rt-name" class="form-control" required placeholder="e.g. Standard Web Assessment">
+                        </div>
+                        <div class="form-group">
+                            <label>Template Type</label>
+                            <input type="text" id="rt-type" class="form-control" value="Vulnerability Assessment">
+                        </div>
+                        <div class="form-group">
+                            <label>Classification</label>
+                            <input type="text" id="rt-classification" class="form-control" value="Confidential">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Footer Text</label>
+                            <input type="text" id="rt-footer" class="form-control" value="PentaGO Security Assessment Report">
+                        </div>
+                    </div>
+                    
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 2rem 0;">
+                    
+                    <h4 style="font-family: var(--font-title); font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-primary);">Document Outline (Chapters & Sub-chapters)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Susun kerangka Bab dan Sub-Bab untuk template ini. Nantinya akan diubah menjadi Editor saat template di-load ke Project Workspace.</p>
+                    
+                    <div id="rt-outline-editor" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+                        <!-- JS akan merender kotak drag-and-drop outline di sini -->
+                    </div>
+                    
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="rtAddSection()" style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Add New Chapter
+                        </button>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeReportTemplateModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Template</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
