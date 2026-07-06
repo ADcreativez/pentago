@@ -389,6 +389,7 @@ class Project(db.Model):
     client_logo = db.Column(db.String(500))
     header_text = db.Column(db.String(250))
     footer_text = db.Column(db.String(250))
+    technical_report = db.Column(db.Text)
     findings = db.relationship('Finding', backref='project', lazy=True, cascade="all, delete-orphan")
 
     def get_metrics(self):
@@ -474,7 +475,8 @@ class Project(db.Model):
             'cover_logo': self.cover_logo,
             'client_logo': self.client_logo,
             'header_text': self.header_text,
-            'footer_text': self.footer_text
+            'footer_text': self.footer_text,
+            'technical_report': self.technical_report
         }
 
 class Finding(db.Model):
@@ -1436,6 +1438,7 @@ def api_project(project_id):
         project.client_logo = data.get('client_logo', project.client_logo)
         project.header_text = data.get('header_text', project.header_text)
         project.footer_text = data.get('footer_text', project.footer_text)
+        project.technical_report = data.get('technical_report', project.technical_report)
         db.session.commit()
         log_audit('UPDATE_PROJECT', f"Updated project: {project.name}")
         return jsonify(project.to_dict())

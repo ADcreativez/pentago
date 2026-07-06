@@ -1468,3 +1468,68 @@ input:disabled {
     justify-content: center;
 }
 
+/* Style for .tbl class to match preview tables */
+.tbl {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1rem 0 !important;
+    font-size: 9pt !important;
+}
+.tbl th {
+    background: #1e3a5f !important;
+    color: #fff !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    font-weight: 700 !important;
+    border: 1px solid #1e3a5f !important;
+}
+.tbl td {
+    padding: 10px 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    vertical-align: middle !important;
+}
+.tbl tr:nth-child(even) td {
+    background: #f8fafc !important;
+}
+
+
+/* Styling tables inside Quill editor to look premium like the preview */
+.ql-editor table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1.5rem 0 !important;
+    font-size: 0.9rem !important;
+    font-family: var(--font-sans) !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.ql-editor table th,
+.ql-editor table tr:first-child td,
+.ql-editor table tr:first-child th {
+    background-color: #1e3a5f !important;
+    color: #ffffff !important;
+    padding: 12px 16px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    border: 1px solid #cbd5e1 !important;
+    text-align: left !important;
+}
+
+.ql-editor table td {
+    padding: 12px 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+    vertical-align: middle !important;
+}
+
+.ql-editor table tr:nth-child(even) td {
+    background-color: #f8fafc !important;
+}
+
+.ql-editor table tr:first-child td {
+    background-color: #1e3a5f !important;
+    color: #ffffff !important;
+}
+
+
+

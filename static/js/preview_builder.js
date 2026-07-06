@@ -13,6 +13,28 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         : new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
     const yearStr  = new Date().getFullYear();
 
+    let workspaceDocs = {};
+    try {
+        if (p.technical_report) {
+            const parsed = JSON.parse(p.technical_report);
+            if (Array.isArray(parsed)) {
+                parsed.forEach(sec => {
+                    if (sec.subsections) {
+                        sec.subsections.forEach(sub => {
+                            workspaceDocs[sub.id] = sub.content || '';
+                        });
+                    }
+                });
+            } else if (parsed && Array.isArray(parsed.subsections)) {
+                parsed.subsections.forEach(sub => {
+                    workspaceDocs[sub.id] = sub.content || '';
+                });
+            }
+        }
+    } catch(e) {
+        console.error("Error parsing technical_report in preview_builder:", e);
+    }
+
     // Translation helper dict
     const tr = (text) => {
         if (!text) return '';
@@ -652,9 +674,10 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     </div>
 
     <h3 class="ssh">${tr("1.1. Latar Belakang")}</h3>
-    <div class="tb">${renderContent(bgText) || renderContent(p.description)}</div>
+    <div class="tb">${workspaceDocs['sub-1-1'] !== undefined ? renderContent(workspaceDocs['sub-1-1']) : (renderContent(bgText) || renderContent(p.description))}</div>
 
     <h3 class="ssh">${tr("1.2. Ruang Lingkup")}</h3>
+    ${workspaceDocs['sub-1-2'] !== undefined ? renderContent(workspaceDocs['sub-1-2']) : `
     <table class="tbl">
         <thead><tr><th>${tr("No.")}</th><th>${lang === 'en' ? 'Device / Application' : 'Perangkat / Aplikasi'}</th><th>URL/IP</th><th>Detail</th><th>${lang === 'en' ? 'Methodology' : 'Metodologi'}</th></tr></thead>
         <tbody>
@@ -666,13 +689,13 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 <td>${p.methodology || 'Black box'}</td>
             </tr>
         </tbody>
-    </table>
+    </table>`}
 
     <h3 class="ssh">${tr("1.3. Skenario Penetration Testing")}</h3>
-    <div class="tb">${renderContent(p.access_info || (lang === 'en' ? 'Pentester performs scanning related to OS, port, and open vulnerabilities as an internet user, application user, and also as an admin.' : 'Pentester melakukan scanning terkait informasi OS, port, dan celah yang terbuka sebagai pengguna internet, pengguna aplikasi, juga sebagai admin aplikasi.'))}</div>
+    <div class="tb">${workspaceDocs['sub-1-3'] !== undefined ? renderContent(workspaceDocs['sub-1-3']) : renderContent(p.access_info || (lang === 'en' ? 'Pentester performs scanning related to OS, port, and open vulnerabilities as an internet user, application user, and also as an admin.' : 'Pentester melakukan scanning terkait informasi OS, port, dan celah yang terbuka sebagai pengguna internet, pengguna aplikasi, juga sebagai admin aplikasi.'))}</div>
 
     <h3 class="ssh">${tr("1.4. Batasan Pekerjaan")}</h3>
-    <div class="tb">${renderContent(p.out_of_scope || (lang === 'en' ? 'Delivery of services described in the scope of work does not cover the following:\n- Vulnerability Assessment & Penetration Testing of systems outside the systems listed in this document.\n- Operational or disaster issues not caused by I3.' : 'Pengantaran jasa yang dijelaskan pada ruang lingkup pekerjaan tidak mencakupi hal-hal berikut ini:\n- Vulnerability Assessment & Penetration Testing terhadap sistem di luar sistem yang tercantum di dokumen ini.\n- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.'))}</div>
+    <div class="tb">${workspaceDocs['sub-1-4'] !== undefined ? renderContent(workspaceDocs['sub-1-4']) : renderContent(p.out_of_scope || (lang === 'en' ? 'Delivery of services described in the scope of work does not cover the following:\n- Vulnerability Assessment & Penetration Testing of systems outside the systems listed in this document.\n- Operational or disaster issues not caused by I3.' : 'Pengantaran jasa yang dijelaskan pada ruang lingkup pekerjaan tidak mencakupi hal-hal berikut ini:\n- Vulnerability Assessment & Penetration Testing terhadap sistem di luar sistem yang tercantum di dokumen ini.\n- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.'))}</div>
     `;
     flowItems.push({
         type: 'general',
@@ -712,7 +735,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
 
     const timelineHtml = `
     <h3 class="ssh">${tr("1.5. Timeline Kegiatan")}</h3>
-    <div class="tb">${renderContent(p.report_date || (lang === 'en' ? `Vulnerability Assessment and Penetration Testing activities were conducted on: ${p.start_date || todayStr}.` : `Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada: ${p.start_date || todayStr}.`))}</div>
+    <div class="tb">${workspaceDocs['sub-1-5'] !== undefined ? renderContent(workspaceDocs['sub-1-5']) : renderContent(p.report_date || (lang === 'en' ? `Vulnerability Assessment and Penetration Testing activities were conducted on: ${p.start_date || todayStr}.` : `Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada: ${p.start_date || todayStr}.`))}</div>
     `;
     flowItems.push({
         type: 'general',
@@ -720,50 +743,59 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         html: timelineHtml
     });
 
-    if (owaspTableHTML) {
+    const owaspChecklistHtml = workspaceDocs['sub-1-6'] !== undefined ? `<h3 class="ssh">${tr("1.6. OWASP TOP 10 Checklist")}</h3>${renderContent(workspaceDocs['sub-1-6'])}` : owaspTableHTML;
+    if (owaspChecklistHtml) {
         flowItems.push({
             type: 'general',
-            height: estimateHtmlHeight(owaspTableHTML),
-            html: owaspTableHTML
+            height: estimateHtmlHeight(owaspChecklistHtml),
+            html: owaspChecklistHtml
         });
     }
 
     const chartTitleHtml = `<h3 class="ssh">${tr("1.7. Ringkasan Temuan Celah Keamanan")}</h3>`;
-    if (findingsChartHtml) {
+    if (workspaceDocs['sub-1-7'] !== undefined) {
+        const customFindingsHtml = chartTitleHtml + (findingsChartHtml || '') + renderContent(workspaceDocs['sub-1-7']);
         flowItems.push({
             type: 'general',
-            height: estimateHtmlHeight(chartTitleHtml + findingsChartHtml),
-            html: chartTitleHtml + findingsChartHtml
+            height: estimateHtmlHeight(customFindingsHtml) + 50,
+            html: customFindingsHtml
         });
     } else {
-        flowItems.push({
-            type: 'general',
-            height: estimateHtmlHeight(chartTitleHtml),
-            html: chartTitleHtml
-        });
-    }
+        if (findingsChartHtml) {
+            flowItems.push({
+                type: 'general',
+                height: estimateHtmlHeight(chartTitleHtml + findingsChartHtml),
+                html: chartTitleHtml + findingsChartHtml
+            });
+        } else {
+            flowItems.push({
+                type: 'general',
+                height: estimateHtmlHeight(chartTitleHtml),
+                html: chartTitleHtml
+            });
+        }
 
-    if (findings && findings.length > 0) {
-        const chunkSize = 15;
-        for (let i = 0; i < findings.length; i += chunkSize) {
-            const chunkFindings = findings.slice(i, i + chunkSize);
-            const isLastChunk = (i + chunkSize >= findings.length);
-            
-            let tableChunkHtml = `
-            <table class="tbl">
-                <thead><tr><th>${tr("No.")}</th><th>${tr("Temuan")}</th><th>${tr("Nilai CVSS")}</th><th>${tr("Klasifikasi Risiko")}</th><th>${tr("Status")}</th></tr></thead>
-                <tbody>
-                ${chunkFindings.map((f, idx) => `
-                <tr>
-                    <td style="text-align:center;">${i + idx + 1}</td>
-                    <td><strong>${f.title}</strong></td>
-                    <td style="text-align:center;font-weight:700;color:${sevColor[f.severity]||'#475569'};">${(f.cvss_score||0).toFixed(1)}</td>
-                    <td><span class="svb" style="background:${sevBg[f.severity]||'#f8fafc'};color:${sevColor[f.severity]||'#475569'};">${f.severity?.toUpperCase()}</span></td>
-                    <td style="color:${(f.status==='Open'||f.finding_status==='Open')?'#dc2626':'#16a34a'};font-weight:700;">${tr(f.status||f.finding_status||'OPEN')}</td>
-                </tr>`).join('')}
-                </tbody>
-            </table>
-            `;
+        if (findings && findings.length > 0) {
+            const chunkSize = 15;
+            for (let i = 0; i < findings.length; i += chunkSize) {
+                const chunkFindings = findings.slice(i, i + chunkSize);
+                const isLastChunk = (i + chunkSize >= findings.length);
+                
+                let tableChunkHtml = `
+                <table class="tbl">
+                    <thead><tr><th>${tr("No.")}</th><th>${tr("Temuan")}</th><th>${tr("Nilai CVSS")}</th><th>${tr("Klasifikasi Risiko")}</th><th>${tr("Status")}</th></tr></thead>
+                    <tbody>
+                    ${chunkFindings.map((f, idx) => `
+                    <tr>
+                        <td style="text-align:center;">${i + idx + 1}</td>
+                        <td><strong>${f.title}</strong></td>
+                        <td style="text-align:center;font-weight:700;color:${sevColor[f.severity]||'#475569'};">${(f.cvss_score||0).toFixed(1)}</td>
+                        <td><span class="svb" style="background:${sevBg[f.severity]||'#f8fafc'};color:${sevColor[f.severity]||'#475569'};">${f.severity?.toUpperCase()}</span></td>
+                        <td style="color:${(f.status==='Open'||f.finding_status==='Open')?'#dc2626':'#16a34a'};font-weight:700;">${tr(f.status||f.finding_status||'OPEN')}</td>
+                    </tr>`).join('')}
+                    </tbody>
+                </table>
+                `;
             
             if (isLastChunk) {
                 tableChunkHtml += `
@@ -848,6 +880,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     </div>
 
     <h3 class="ssh">${tr("2.1. Risk Assessment")}</h3>
+    ${workspaceDocs['sub-2-1'] !== undefined ? renderContent(workspaceDocs['sub-2-1']) : `
     <table class="tbl">
         <thead><tr><th>CVSS Score</th><th>${tr("Severity")}</th><th>${tr("Definition")}</th></tr></thead>
         <tbody>
@@ -859,11 +892,12 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 </tr>
             `).join('')}
         </tbody>
-    </table>
+    </table>`}
     `;
 
     const methodologyHtml2 = `
     <h3 class="ssh">${tr("2.2. Penetration Testing Tools")}</h3>
+    ${workspaceDocs['sub-2-2'] !== undefined ? renderContent(workspaceDocs['sub-2-2']) : `
     <table class="tbl">
         <thead><tr><th>${lang === 'en' ? 'Information Gathering' : 'Information Gathering'}</th><th>${lang === 'en' ? 'Assessment' : 'Assessment'}</th><th>${lang === 'en' ? 'Exploit/Tools' : 'Exploit/Tools'}</th></tr></thead>
         <tbody>
@@ -891,7 +925,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 </td>
             </tr>
         </tbody>
-    </table>
+    </table>`}
     `;
     flowItems.push({
         type: 'general',
@@ -934,13 +968,30 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         ? 'The technical report is divided into 3 main parts: Intelligence Gathering, Vulnerability Assessment, and Penetration Testing (Exploitation) which explain each security vulnerability found.'
         : 'Laporan teknis terbagi menjadi 3 bagian utama yaitu: Intelligence Gathering, Vulnerability Assessment dan Penetration Testing (Exploitation) yang menjelaskan setiap kerentanan keamanan yang ditemukan.';
 
-    const activeSubs = (Array.isArray(techReport.subsections) && techReport.subsections.length > 0)
-        ? techReport.subsections
-        : defaultSubs;
+    let activeSubs = defaultSubs;
+    let introText = defaultTechnicalIntro;
+    
+    try {
+        if (p.technical_report) {
+            const parsed = JSON.parse(p.technical_report);
+            if (Array.isArray(parsed)) {
+                const ch3 = parsed.find(sec => sec.id === 'sec-3' || sec.title.toLowerCase().includes('laporan teknis') || sec.title.toLowerCase().includes('findings'));
+                if (ch3) {
+                    if (ch3.content) introText = ch3.content;
+                    if (Array.isArray(ch3.subsections) && ch3.subsections.length > 0) {
+                        activeSubs = ch3.subsections;
+                    }
+                }
+            } else if (parsed && Array.isArray(parsed.subsections)) {
+                activeSubs = parsed.subsections;
+                if (parsed.intro) introText = parsed.intro;
+            }
+        }
+    } catch(e) {
+        console.error("Error parsing techReport in Chapter 3:", e);
+    }
 
-    const introHtml = techReport.intro
-        ? `<div class="tb">${renderContent(techReport.intro)}</div>`
-        : `<div class="tb"><p>${defaultTechnicalIntro}</p></div>`;
+    const introHtml = `<div class="tb">${renderContent(introText)}</div>`;
 
     let subsHtml = '';
     activeSubs.forEach((sub, si) => {

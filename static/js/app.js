@@ -1527,59 +1527,91 @@ async function viewProject(projectId) {
 // ==== INJECT PREVIEW CHAPTERS (Halaman Sampul, Daftar Isi, Bab 1, Bab 2, Bab 3) ====
     const defaultStructure = [
         { id: 'sec-1', title: 'Bab 1: Ringkasan Eksekutif (Executive Summary)', subsections: [
-            { id: 'sub-1-1', title: '1.1 Latar Belakang' },
-            { id: 'sub-1-2', title: '1.2 Tujuan' },
-            { id: 'sub-1-3', title: '1.3 Ruang Lingkup' },
-            { id: 'sub-1-4', title: '1.4 Batasan Pekerjaan' }
+            { id: 'sub-1-1', title: '1.1 Latar Belakang', content: p.description || '' },
+            { id: 'sub-1-2', title: '1.2 Ruang Lingkup', content: `<table class="tbl"><thead><tr><th>No.</th><th>Perangkat / Aplikasi</th><th>URL/IP</th><th>Detail</th><th>Metodologi</th></tr></thead><tbody><tr><td style="text-align:center;">1</td><td>${p.name || 'Aplikasi'}</td><td><code>${p.scope || '-'}</code></td><td>Aplikasi Web</td><td>${p.methodology || 'Black box'}</td></tr></tbody></table>` },
+            { id: 'sub-1-3', title: '1.3 Skenario Penetration Testing', content: `<p>${p.access_info || 'Pentester melakukan scanning terkait informasi OS, port, dan celah yang terbuka sebagai pengguna internet, pengguna aplikasi, juga sebagai admin aplikasi.'}</p>` },
+            { id: 'sub-1-4', title: '1.4 Batasan Pekerjaan', content: `<p>${p.out_of_scope ? p.out_of_scope.replace(/\n/g, '<br>') : 'Pengantaran jasa yang dijelaskan pada ruang lingkup pekerjaan tidak mencakupi hal-hal berikut ini:<br>- Vulnerability Assessment & Penetration Testing terhadap sistem di luar sistem yang tercantum di dokumen ini.<br>- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.'}</p>` },
+            { id: 'sub-1-5', title: '1.5 Timeline Kegiatan', content: `<p>Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada tanggal: <strong>${p.start_date || 'Juni 2026'}</strong> sampai dengan <strong>${p.end_date || 'Juni 2026'}</strong>.</p>` },
+            { id: 'sub-1-6', title: '1.6 OWASP TOP 10 Application Security Risk Checklist - 2021', content: (function() {
+                const sc = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
+                findings.forEach(f => {
+                    if (f.severity in sc) sc[f.severity]++;
+                });
+                const hasA01Issue = !(sc.Critical === 0 && sc.High === 0);
+                const hasA05Issue = !(sc.Medium === 0);
+                return `<table class="tbl"><thead><tr><th>No.</th><th>ID</th><th>OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody><tr><td>1</td><td style="font-weight:700;color:#1e3a5f;">A01:2021</td><td>Broken Access Control</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>2</td><td style="font-weight:700;color:#1e3a5f;">A02:2021</td><td>Cryptographic Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>3</td><td style="font-weight:700;color:#1e3a5f;">A03:2021</td><td>Injection</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>4</td><td style="font-weight:700;color:#1e3a5f;">A04:2021</td><td>Insecure Design</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>5</td><td style="font-weight:700;color:#1e3a5f;">A05:2021</td><td>Security Misconfiguration</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>6</td><td style="font-weight:700;color:#1e3a5f;">A06:2021</td><td>Vulnerable and Outdated Components</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>7</td><td style="font-weight:700;color:#1e3a5f;">A07:2021</td><td>Identification and Authentication Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>8</td><td style="font-weight:700;color:#1e3a5f;">A08:2021</td><td>Software and Data Integrity Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>9</td><td style="font-weight:700;color:#1e3a5f;">A09:2021</td><td>Security Logging and Monitoring Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>10</td><td style="font-weight:700;color:#1e3a5f;">A10:2021</td><td>Server-Side Request Forgery (SSRF)</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr></tbody></table>`;
+            })() },
+            { id: 'sub-1-7', title: '1.7 Ringkasan Temuan Celah Keamanan', content: (function() {
+                const sc = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
+                findings.forEach(f => {
+                    if (f.severity in sc) sc[f.severity]++;
+                });
+                const totalRiskScore = sc.Critical * 10 + sc.High * 7 + sc.Medium * 4 + sc.Low * 1;
+                let overallRisk = 'Low';
+                let overallColor = '#16a34a';
+                if (sc.Critical > 0 || totalRiskScore >= 25) { overallRisk = 'Critical'; overallColor = '#7c3aed'; }
+                else if (sc.High > 0 || totalRiskScore >= 15) { overallRisk = 'High'; overallColor = '#dc2626'; }
+                else if (sc.Medium > 0 || totalRiskScore >= 5) { overallRisk = 'Medium'; overallColor = '#d97706'; }
+
+                let rowsHTML = findings.map((f, idx) => `
+                <tr>
+                    <td style="text-align:center;">${idx + 1}</td>
+                    <td><strong>${f.title}</strong></td>
+                    <td style="text-align:center;font-weight:700;color:${f.severity === 'Critical' ? '#7c3aed' : f.severity === 'High' ? '#dc2626' : f.severity === 'Medium' ? '#d97706' : f.severity === 'Low' ? '#16a34a' : '#0284c7'};">${(f.cvss_score || 0).toFixed(1)}</td>
+                    <td><span class="badge badge-${f.severity.toLowerCase()}" style="font-weight:bold; font-size:11px;">${f.severity.toUpperCase()}</span></td>
+                    <td style="color:${(f.status === 'Open' || f.finding_status === 'Open') ? '#dc2626' : '#16a34a'};font-weight:700;">${(f.status || f.finding_status || 'OPEN').toUpperCase()}</td>
+                </tr>`).join('');
+                if (findings.length === 0) {
+                    rowsHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">Tidak ada temuan.</td></tr>`;
+                }
+
+                return `
+                <table class="tbl">
+                    <thead><tr><th>No.</th><th>Temuan</th><th style="text-align:center;">Nilai CVSS</th><th>Klasifikasi Risiko</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${rowsHTML}
+                    </tbody>
+                </table>
+                <div class="risk-overall" style="border: 2px solid ${overallColor}; color: ${overallColor}; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; text-align: center; background: #fff;">Overall Risk: <strong>${overallRisk}</strong></div>
+                `;
+            })() }
         ]},
-        { id: 'sec-2', title: 'Bab 2: Metodologi (Methodology)', subsections: [
-            { id: 'sub-2-1', title: '2.1 Fase Metodologi' }
+        { id: 'sec-2', title: 'Bab 2: Metodologi (Methodology)', content: `<p>PT Inovasi Informatika Indonesia menggunakan framework yang disesuaikan dengan target seperti Open Web Application Security Project (OWASP), Penetration Testing Execution Standard (PTES), dll.</p><p><br></p><p>Pengujian ini mengikuti standar industri seperti OWASP (Open Web Application Security Project) dan PTES (Penetration Testing Execution Standard) dengan tahapan pengumpulan informasi, pemetaan kerentanan, eksploitasi, hingga analisis dampak.</p><p><br></p><table style="width:100%; border:none; border-collapse:collapse; margin:15px 0;"><tr><td align="center" style="background:#22c55e; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Planning</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#eab308; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Intelligence Gathering</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#3b82f6; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Assessment</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#ef4444; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Testing</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#8b5cf6; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Reporting</td></tr></table><p><br></p><p><strong>Planning</strong> — Perjanjian antar pihak dan aturan keterlibatan. <strong>Information Gathering</strong> — Mengumpulkan informasi secara aktif dan pasif. <strong>Assessment</strong> — Mencari celah (Vulnerability Assessment) dan mensimulasikan serangan. <strong>Testing</strong> — Melakukan testing (Penetration Testing) berdasarkan OWASP Top 10. <strong>Report</strong> — Menganalisis data dan menuliskan laporan.</p>`, subsections: [
+            { id: 'sub-2-1', title: '2.1. Risk Assessment', content: `<table class="tbl" style="width:100%; border-collapse:collapse; border:1px solid #cbd5e1; margin-top:1rem;"><thead><tr style="background:#1e3a5f; color:white;"><th style="padding:12px; border:1px solid #cbd5e1; text-align:left; font-weight:700; color:white;">CVSS Score</th><th style="padding:12px; border:1px solid #cbd5e1; text-align:left; font-weight:700; color:white;">Severity</th><th style="padding:12px; border:1px solid #cbd5e1; text-align:left; font-weight:700; color:white;">Definition</th></tr></thead><tbody><tr><td style="padding:12px; border:1px solid #cbd5e1; font-weight:bold;">0.0</td><td style="padding:12px; border:1px solid #cbd5e1;"><span class="badge badge-none" style="font-weight:bold; font-size:12px;">NONE</span></td><td style="padding:12px; border:1px solid #cbd5e1;">Tidak ada kerentanan yang ada.</td></tr><tr><td style="padding:12px; border:1px solid #cbd5e1; font-weight:bold;">0.1 - 3.9</td><td style="padding:12px; border:1px solid #cbd5e1;"><span class="badge badge-low" style="font-weight:bold; font-size:12px;">LOW</span></td><td style="padding:12px; border:1px solid #cbd5e1;">Kerentanan tidak dapat dieksploitasi tetapi akan mengurangi permukaan serangan.</td></tr><tr><td style="padding:12px; border:1px solid #cbd5e1; font-weight:bold;">4.0 - 6.9</td><td style="padding:12px; border:1px solid #cbd5e1;"><span class="badge badge-medium" style="font-weight:bold; font-size:12px;">MEDIUM</span></td><td style="padding:12px; border:1px solid #cbd5e1;">Kerentanan ada tetapi tidak dapat dieksploitasi atau memerlukan langkah tambahan.</td></tr><tr><td style="padding:12px; border:1px solid #cbd5e1; font-weight:bold;">7.0 - 8.9</td><td style="padding:12px; border:1px solid #cbd5e1;"><span class="badge badge-high" style="font-weight:bold; font-size:12px;">HIGH</span></td><td style="padding:12px; border:1px solid #cbd5e1;">Eksploitasi sulit tetapi dapat menyebabkan peningkatan hak istimewa dan kehilangan data.</td></tr><tr><td style="padding:12px; border:1px solid #cbd5e1; font-weight:bold;">9.0 - 10.0</td><td style="padding:12px; border:1px solid #cbd5e1;"><span class="badge badge-critical" style="font-weight:bold; font-size:12px;">CRITICAL</span></td><td style="padding:12px; border:1px solid #cbd5e1;">Eksploitasi sangat mudah dan biasanya menghasilkan kompromi tingkat sistem.</td></tr></tbody></table>` },
+            { id: 'sub-2-2', title: '2.2. Penetration Testing Tools', content: (function() {
+                const tools = (p.used_tools || 'Maltego, Dnsenum, Theharvester, Nmap, Nessus Pro, Nikto, w3af, Acunetix Pro, Zaproxy, Sqlmap, Metasploit, Burpsuite Pro, exploit-db, Dirb').split(',');
+                const col1 = tools.slice(0, 4).map(t => `<div>${t.trim()}</div>`).join('');
+                const col2 = tools.slice(4, 9).map(t => `<div>${t.trim()}</div>`).join('');
+                const col3 = tools.slice(9).map(t => `<div>${t.trim()}</div>`).join('');
+                return `
+                <table class="tbl">
+                    <thead><tr><th>Information Gathering</th><th>Assessment</th><th>Exploit/Tools</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>${col1}</td>
+                            <td>${col2}</td>
+                            <td>${col3}</td>
+                        </tr>
+                    </tbody>
+                </table>`;
+            })() }
+        ]},
+        { id: 'sec-3', title: 'Bab 3: Laporan Teknis (Findings)', content: '<p>Laporan teknis terbagi menjadi 3 bagian utama yaitu: Intelligence Gathering, Vulnerability Assessment dan Penetration Testing (Exploitation) yang menjelaskan setiap kerentanan keamanan yang ditemukan.</p>', subsections: [
+            { id: 'sub-3-1', title: '3.1 Intelligence Gathering', content: '<p>Tahap pertama pengujian dimulai dengan proses pengumpulan informasi intelijen untuk menentukan jenis sistem operasi, tingkat patch, layanan yang berjalan, dll.</p><p><br></p><p>Alat yang digunakan: NMAP, Paramspider, Nikto, Wafw00f, Acunetix, Burpsuite Pro, SQLmap, Dalfox, Slowhttptest.</p>' },
+            { id: 'sub-3-2', title: '3.2 Vulnerability Assessment', content: '<p>Pada tahap ini Pentester melakukan pemindaian kerentanan, mengklasifikasikan jenis kerentanan, mengukur severity berdasarkan CVSS, dan menginformasikan status celah keamanan tersebut.</p><p><br></p><p>Alat: Burpsuite Pro, Acunetix, OWASP ZAP, Dalfox, Nessus Pro.</p>' },
+            { id: 'sub-3-3', title: '3.3 Penetration Testing (Exploitation)', content: '<p>Pada tahap ini Pentester melanjutkan kegiatan exploitasi berdasarkan hasil Vulnerability Assessment, untuk mensimulasikan serangan attacker yang sesungguhnya.</p>' }
         ]}
     ];
 
-        let techReport = [];
+    let techReport = [];
     try {
         if (p.technical_report) techReport = JSON.parse(p.technical_report);
-    } catch(e) {}
-    if (!Array.isArray(techReport) || techReport.length === 0) techReport = defaultStructure;
-
-    // Ensure Bab 2 has default content if empty
-    const sec2 = techReport.find(s => s.id === 'sec-2' || s.title.includes('Bab 2'));
-    if (sec2) {
-        if (!sec2.content || !sec2.content.includes('<table')) {
-            sec2.content = `<p>PT Inovasi Informatika Indonesia menggunakan framework yang disesuaikan dengan target seperti Open Web Application Security Project (OWASP), Penetration Testing Execution Standard (PTES), dll.</p><p><br></p><p>Pengujian ini mengikuti standar industri seperti OWASP (Open Web Application Security Project) dan PTES (Penetration Testing Execution Standard) dengan tahapan pengumpulan informasi, pemetaan kerentanan, eksploitasi, hingga analisis dampak.</p><p><br></p><table style="width:100%; border:none; border-collapse:collapse; margin:15px 0;"><tr><td align="center" style="background:#22c55e; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Planning</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#eab308; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Intelligence Gathering</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#3b82f6; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Assessment</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#ef4444; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Testing</td><td align="center" style="font-size:12px; color:#64748b; width:4%;">&#9654;</td><td align="center" style="background:#8b5cf6; color:#fff; font-weight:700; padding:8px 12px; border-radius:4px; font-size:10px; text-align:center; width:16%;">Reporting</td></tr></table><p><br></p><p><strong>Planning</strong> — Perjanjian antar pihak dan aturan keterlibatan. <strong>Information Gathering</strong> — Mengumpulkan informasi secara aktif dan pasif. <strong>Assessment</strong> — Mencari celah (Vulnerability Assessment) dan mensimulasikan serangan. <strong>Testing</strong> — Melakukan testing (Penetration Testing) berdasarkan OWASP Top 10. <strong>Report</strong> — Menganalisis data dan menuliskan laporan.</p>`;
-        }
-        
-        let sub21 = null;
-        if (!sec2.subsections) sec2.subsections = [];
-        sub21 = sec2.subsections.find(s => s.id === 'sub-2-1' || s.title.includes('Risk Assessment') || s.title.includes('Fase'));
-        if (!sub21) {
-            sub21 = { id: 'sub-2-1', title: '2.1. Risk Assessment' };
-            sec2.subsections.push(sub21);
-        } else {
-            sub21.title = '2.1. Risk Assessment';
-        }
-        
-        if (!sub21.content || !sub21.content.includes('<table')) {
-            sub21.content = `<table class="tbl" style="width:100%; border-collapse:collapse; border:1px solid #e2e8f0; margin-top:1rem;"><thead style="background:#1e3a8a; color:white;"><tr><th style="padding:10px; border:1px solid #e2e8f0; text-align:left;">CVSS Score</th><th style="padding:10px; border:1px solid #e2e8f0; text-align:left;">Severity</th><th style="padding:10px; border:1px solid #e2e8f0; text-align:left;">Definition</th></tr></thead><tbody><tr><td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold;">0.0</td><td style="padding:10px; border:1px solid #e2e8f0;"><span style="background:#f8fafc; color:#64748b; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">NONE</span></td><td style="padding:10px; border:1px solid #e2e8f0;">Tidak ada kerentanan yang ada.</td></tr><tr><td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold;">0.1 - 3.9</td><td style="padding:10px; border:1px solid #e2e8f0;"><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">LOW</span></td><td style="padding:10px; border:1px solid #e2e8f0;">Kerentanan tidak dapat dieksploitasi tetapi akan mengurangi permukaan serangan.</td></tr><tr><td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold;">4.0 - 6.9</td><td style="padding:10px; border:1px solid #e2e8f0;"><span style="background:#fef9c3; color:#ca8a04; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">MEDIUM</span></td><td style="padding:10px; border:1px solid #e2e8f0;">Kerentanan ada tetapi tidak dapat dieksploitasi atau memerlukan langkah tambahan.</td></tr><tr><td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold;">7.0 - 8.9</td><td style="padding:10px; border:1px solid #e2e8f0;"><span style="background:#fee2e2; color:#dc2626; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">HIGH</span></td><td style="padding:10px; border:1px solid #e2e8f0;">Eksploitasi sulit tetapi dapat menyebabkan peningkatan hak istimewa dan kehilangan data.</td></tr><tr><td style="padding:10px; border:1px solid #e2e8f0; font-weight:bold;">9.0 - 10.0</td><td style="padding:10px; border:1px solid #e2e8f0;"><span style="background:#f3e8ff; color:#9333ea; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">CRITICAL</span></td><td style="padding:10px; border:1px solid #e2e8f0;">Eksploitasi sangat mudah dan biasanya menghasilkan kompromi tingkat sistem.</td></tr></tbody></table>`;
-        }
+    } catch(e) {
+        console.error("Error parsing technical_report from db:", e);
     }
-
-    // Ensure Bab 3 is present
-    const hasBab3 = techReport.some(sec => sec.title.includes('Bab 3'));
-    if (!hasBab3) {
-        techReport.push({
-            id: 'sec-3',
-            title: 'Bab 3: Laporan Teknis (Findings)',
-            subsections: [
-                { id: 'sub-3-1', title: '3.1 Intelligence Gathering' },
-                { id: 'sub-3-2', title: '3.2 Vulnerability Assessment' },
-                { id: 'sub-3-3', title: '3.3 Penetration Testing (Exploitation)' }
-            ]
-        });
+    if (!Array.isArray(techReport) || techReport.length === 0) {
+        techReport = defaultStructure;
     }
-
-    // Attach to window so save function can access it
     window.currentTechReport = techReport;
 
     let chaptersHTML = `
@@ -7557,7 +7589,7 @@ window.initWorkspaceEditors = function() {
         // Initialize editor for the chapter itself
         const secEditorId = 'editor-' + sec.id;
         const secContainer = document.getElementById(secEditorId);
-        if (secContainer && !window.chapterEditors[secEditorId]) {
+        if (secContainer && secContainer.tagName !== 'TEXTAREA' && !window.chapterEditors[secEditorId]) {
             window.chapterEditors[secEditorId] = new Quill('#' + secEditorId, {
                 theme: 'snow',
                 modules: {
@@ -7575,11 +7607,12 @@ window.initWorkspaceEditors = function() {
             sec.subsections.forEach(sub => {
                 const editorId = 'editor-' + sub.id;
                 const container = document.getElementById(editorId);
-                if (container && !window.chapterEditors[editorId]) {
+                if (container && container.tagName !== 'TEXTAREA' && !window.chapterEditors[editorId]) {
                     window.chapterEditors[editorId] = new Quill('#' + editorId, {
                         theme: 'snow',
                         modules: {
-                            toolbar: toolbarOptions
+                            toolbar: toolbarOptions,
+                            table: true
                         }
                     });
                     if (sub.content) {
@@ -7901,15 +7934,25 @@ window.renderWorkspaceChapters = function() {
     const container = document.getElementById('workspace-chapters-container');
     if (!container) return;
     
-    // Save current quill contents first before re-rendering
+    // Save current editor contents first before re-rendering
     if (window.chapterEditors) {
         window.currentTechReport.forEach(sec => {
             const qSec = window.chapterEditors['editor-' + sec.id];
-            if (qSec) sec.content = qSec.root.innerHTML === '<p><br></p>' ? '' : qSec.root.innerHTML;
+            if (qSec) {
+                sec.content = qSec.root.innerHTML === '<p><br></p>' ? '' : qSec.root.innerHTML;
+            } else {
+                const el = document.getElementById('editor-' + sec.id);
+                if (el && el.tagName === 'TEXTAREA') sec.content = el.value;
+            }
             if (sec.subsections) {
                 sec.subsections.forEach(sub => {
                     const qSub = window.chapterEditors['editor-' + sub.id];
-                    if (qSub) sub.content = qSub.root.innerHTML === '<p><br></p>' ? '' : qSub.root.innerHTML;
+                    if (qSub) {
+                        sub.content = qSub.root.innerHTML === '<p><br></p>' ? '' : qSub.root.innerHTML;
+                    } else {
+                        const el = document.getElementById('editor-' + sub.id);
+                        if (el && el.tagName === 'TEXTAREA') sub.content = el.value;
+                    }
                 });
             }
         });
@@ -7917,16 +7960,27 @@ window.renderWorkspaceChapters = function() {
 
     let html = '';
     window.currentTechReport.forEach((sec, sIdx) => {
+        const hasTable = sec.content && sec.content.includes('<table');
         html += `
-        <div class="sysreptor-report-card" style="margin-bottom: 2rem; border-color: #3b82f6;">
+        <div class="sysreptor-report-card" id="card-sec-${sec.id}" data-editing="false" style="margin-bottom: 2rem; border-color: #3b82f6;">
             <div class="sysreptor-report-title" style="display:flex; justify-content:space-between; align-items:center; background: #eff6ff; color: #1e3a8a;">
                 <div style="flex:1; display:flex; gap:0.5rem; align-items:center;">
                     <input type="text" class="form-control" value="${sec.title}" onchange="wsUpdateChapterTitle(${sIdx}, this.value)" style="font-size: 1.1rem; font-weight:bold; color: #1e3a8a; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
                 </div>
-                ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteChapter(${sIdx})">Delete Chapter</button>` : ''}
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    ${canEditProject(currentProject) ? `<button class="btn-helper" id="btn-edit-${sec.id}" style="color:#0f62fe; border-color:#0f62fe; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsToggleEdit('${sec.id}', ${hasTable})">✏️ Edit</button>` : ''}
+                    ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteChapter(${sIdx})">Delete Chapter</button>` : ''}
+                </div>
             </div>
             <div class="card-edit-content" style="padding: 1rem; background: #fafafa; border: 1px solid var(--border-color); border-top: none; border-bottom: none;">
-                ${canEditProject(currentProject) ? `<div id="editor-${sec.id}" class="wp-editor" style="height: 250px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sec.content || '', {val:0})}</div>`}
+                <div id="static-${sec.id}" style="display: block; padding: 1rem; background: white; border: 1px solid #ddd;" class="sysreptor-content">
+                    ${sec.content || '<p style="color:#94a3b8; font-style:italic;">No content.</p>'}
+                </div>
+                <div id="editor-wrapper-${sec.id}" style="display: none;">
+                    ${hasTable 
+                        ? `<textarea id="editor-${sec.id}" class="form-control" style="font-family:monospace; font-size:12px; height: 250px; width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:8px;" onchange="updateReportSectionContent('${sec.id}', this.value)">${sec.content || ''}</textarea>`
+                        : (canEditProject(currentProject) ? `<div id="editor-${sec.id}" class="wp-editor" style="height: 250px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sec.content || '', {val:0})}</div>`)}
+                </div>
             </div>
             
             <!-- Subchapters Container Inside Chapter Card -->
@@ -7936,17 +7990,28 @@ window.renderWorkspaceChapters = function() {
         
         if (sec.subsections) {
             sec.subsections.forEach((sub, subIdx) => {
+                const subHasTable = sub.content && sub.content.includes('<table');
                 html += `
-                <div style="margin-bottom: 1.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div style="margin-bottom: 1.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" id="card-sub-${sub.id}" data-editing="false">
                     <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 1rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0;">
                         <div style="flex:1; display:flex; gap:0.5rem; align-items:center;">
                             <span style="color:#64748b;">↳</span>
                             <input type="text" class="form-control" value="${sub.title}" onchange="wsUpdateSubchapterTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.95rem; font-weight:600; color: #334155; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
                         </div>
-                        ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteSubchapter(${sIdx}, ${subIdx})">Delete Sub</button>` : ''}
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            ${canEditProject(currentProject) ? `<button class="btn-helper" id="btn-edit-${sub.id}" style="color:#0f62fe; border-color:#0f62fe; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsToggleEdit('${sub.id}', ${subHasTable})">✏️ Edit</button>` : ''}
+                            ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteSubchapter(${sIdx}, ${subIdx})">Delete Sub</button>` : ''}
+                        </div>
                     </div>
                     <div style="padding: 0.5rem;">
-                        ${canEditProject(currentProject) ? `<div id="editor-${sub.id}" class="wp-editor" style="height: 200px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sub.content || '', {val:0})}</div>`}
+                        <div id="static-${sub.id}" style="display: block; padding: 1rem; background: white; border: 1px solid #ddd;" class="sysreptor-content">
+                            ${sub.content || '<p style="color:#94a3b8; font-style:italic;">No content.</p>'}
+                        </div>
+                        <div id="editor-wrapper-${sub.id}" style="display: none;">
+                            ${subHasTable 
+                                ? `<textarea id="editor-${sub.id}" class="form-control" style="font-family:monospace; font-size:12px; height: 200px; width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:8px;" onchange="updateReportSectionContent('${sub.id}', this.value)">${sub.content || ''}</textarea>`
+                                : (canEditProject(currentProject) ? `<div id="editor-${sub.id}" class="wp-editor" style="height: 200px; background: white;"></div>` : `<div style="padding: 1rem; background: white; border: 1px solid #ddd;">${renderMarkdownToHtml(sub.content || '', {val:0})}</div>`)}
+                        </div>
                     </div>
                     ${sub.id === 'sub-3-3' || sub.title.includes('3.3 Penetration') ? `
                         <div style="margin: 1rem 0.5rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
@@ -7980,6 +8045,298 @@ window.renderWorkspaceChapters = function() {
     
     window.chapterEditors = {};
     window.initWorkspaceEditors();
+};
+
+window.wsToggleEdit = function(id, isTable) {
+    const cardEl = document.getElementById('card-sec-' + id) || document.getElementById('card-sub-' + id);
+    if (!cardEl) return;
+    
+    const isEditing = cardEl.getAttribute('data-editing') === 'true';
+    const staticView = document.getElementById('static-' + id);
+    const editorWrapper = document.getElementById('editor-wrapper-' + id);
+    const btn = document.getElementById('btn-edit-' + id);
+    
+    if (isEditing) {
+        // Switching to View Mode: Save values
+        cardEl.setAttribute('data-editing', 'false');
+        let newContent = '';
+        
+        if (id === 'sub-1-6' || id === 'sub-1-2' || id === 'sub-2-2' || id === 'sub-2-1' || id === 'sub-1-7') {
+            newContent = getReportSectionContent(id);
+        } else {
+            const qEditor = window.chapterEditors['editor-' + id];
+            if (qEditor) {
+                newContent = qEditor.root.innerHTML === '<p><br></p>' ? '' : qEditor.root.innerHTML;
+            } else {
+                const ta = document.getElementById('editor-' + id);
+                if (ta) newContent = ta.value;
+            }
+        }
+        
+        updateReportSectionContent(id, newContent);
+        
+        if (staticView) {
+            staticView.innerHTML = newContent || '<p style="color:#94a3b8; font-style:italic;">No content.</p>';
+            staticView.style.display = 'block';
+        }
+        if (editorWrapper) editorWrapper.style.display = 'none';
+        if (btn) btn.innerHTML = '✏️ Edit';
+    } else {
+        // Switching to Edit Mode
+        cardEl.setAttribute('data-editing', 'true');
+        if (staticView) staticView.style.display = 'none';
+        if (editorWrapper) editorWrapper.style.display = 'block';
+        if (btn) btn.innerHTML = '👁️ View';
+        
+        if (id === 'sub-1-6') {
+            const content = getReportSectionContent(id);
+            const state = parseOwaspState(content);
+            const owaspNames = {
+                'A01': 'Broken Access Control',
+                'A02': 'Cryptographic Failures',
+                'A03': 'Injection',
+                'A04': 'Insecure Design',
+                'A05': 'Security Misconfiguration',
+                'A06': 'Vulnerable and Outdated Components',
+                'A07': 'Identification and Authentication Failures',
+                'A08': 'Software and Data Integrity Failures',
+                'A09': 'Security Logging and Monitoring Failures',
+                'A10': 'Server-Side Request Forgery (SSRF)'
+            };
+            
+            let checklistHtml = `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 750px; margin: 0 auto;">
+                <h4 style="margin-top:0; margin-bottom:1rem; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">OWASP Top 10 Checklist Editor</h4>
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            `;
+            
+            for (let i = 1; i <= 10; i++) {
+                const key = 'A' + (i < 10 ? '0' + i : i);
+                const currentVal = state[key] || 'pass';
+                checklistHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:0.75rem 1rem; border:1px solid #e2e8f0; border-radius:6px;">
+                    <div style="font-weight:600; color:#1e3a5f; flex:1; font-size:0.9rem;">
+                        <span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:8px; font-family:monospace;">${key}:2021</span>
+                        ${owaspNames[key]}
+                    </div>
+                    <div style="display:flex; gap:1.5rem; align-items:center;">
+                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-weight:600; color:#16a34a; font-size:0.85rem; margin:0;">
+                            <input type="radio" name="owasp-radio-${key}" value="pass" ${currentVal === 'pass' ? 'checked' : ''} onchange="wsUpdateOwaspRow('${key}', 'pass')">
+                            Pass (✓)
+                        </label>
+                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-weight:600; color:#dc2626; font-size:0.85rem; margin:0;">
+                            <input type="radio" name="owasp-radio-${key}" value="issue" ${currentVal === 'issue' ? 'checked' : ''} onchange="wsUpdateOwaspRow('${key}', 'issue')">
+                            Issue (✗)
+                        </label>
+                    </div>
+                </div>
+                `;
+            }
+            checklistHtml += `</div></div>`;
+            editorWrapper.innerHTML = checklistHtml;
+        } else if (id === 'sub-1-2') {
+            const content = getReportSectionContent(id);
+            const scopeData = parseScopeTable(content);
+            let scopeHtml = `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 600px; margin: 0 auto; display:flex; flex-direction:column; gap:1rem;">
+                <h4 style="margin:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Edit Ruang Lingkup (Scope)</h4>
+                <div>
+                    <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Perangkat / Aplikasi</label>
+                    <input type="text" id="scope-input-device" class="form-control" value="${scopeData.device}" oninput="wsUpdateScopeTable()">
+                </div>
+                <div>
+                    <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">URL / IP Target</label>
+                    <input type="text" id="scope-input-url" class="form-control" value="${scopeData.url}" oninput="wsUpdateScopeTable()">
+                </div>
+                <div>
+                    <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Detail Perangkat</label>
+                    <input type="text" id="scope-input-detail" class="form-control" value="${scopeData.detail}" oninput="wsUpdateScopeTable()">
+                </div>
+                <div>
+                    <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Metodologi</label>
+                    <input type="text" id="scope-input-methodology" class="form-control" value="${scopeData.methodology}" oninput="wsUpdateScopeTable()">
+                </div>
+            </div>`;
+            editorWrapper.innerHTML = scopeHtml;
+        } else if (id === 'sub-2-2') {
+            const content = getReportSectionContent(id);
+            const toolsText = parseToolsTable(content);
+            let toolsHtml = `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 600px; margin: 0 auto; display:flex; flex-direction:column; gap:1rem;">
+                <h4 style="margin:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Edit Penetration Testing Tools</h4>
+                <p style="margin:0; font-size:0.8rem; color:#64748b;">Masukkan nama tools dipisahkan dengan tanda koma ( , ). Sistem akan otomatis membaginya menjadi 3 kolom secara rapi.</p>
+                <textarea id="tools-input-text" class="form-control" style="height:120px; font-family:var(--font-sans);" oninput="wsUpdateToolsTable()">${toolsText}</textarea>
+            </div>`;
+            editorWrapper.innerHTML = toolsHtml;
+        } else if (id === 'sub-2-1') {
+            let infoHtml = `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 600px; margin: 0 auto; text-align:center;">
+                <h4 style="margin-top:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Tabel Risk Assessment Standar</h4>
+                <p style="margin-bottom:0; font-size:0.9rem; color:#475569; line-height:1.5;">Tabel ini berisi definisi penilaian risiko standar CVSS (0.0 s.d 10.0) dan lencana tingkat keparahan yang berlaku umum pada audit keamanan. Tidak memerlukan pengeditan manual.</p>
+            </div>`;
+            editorWrapper.innerHTML = infoHtml;
+        } else if (id === 'sub-1-7') {
+            let infoHtml = `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 600px; margin: 0 auto; text-align:center;">
+                <h4 style="margin-top:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Ringkasan Temuan Otomatis</h4>
+                <p style="margin-bottom:0; font-size:0.9rem; color:#475569; line-height:1.5;">Tabel ringkasan temuan ini dibuat secara otomatis berdasarkan database kerentanan (Findings) yang Anda input di bagian atas proyek ini. Data akan selalu tersinkronisasi saat Anda menambah atau mengubah temuan.</p>
+            </div>`;
+            editorWrapper.innerHTML = infoHtml;
+        } else {
+            // Initialize Quill if it's a rich text section and editor isn't active
+            const editorId = 'editor-' + id;
+            const container = document.getElementById(editorId);
+            if (container && container.tagName !== 'TEXTAREA' && !window.chapterEditors[editorId]) {
+                window.chapterEditors[editorId] = new Quill('#' + editorId, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'image', 'video', 'formula', 'table'],
+                            ['clean']
+                        ],
+                        table: true
+                    }
+                });
+                const content = getReportSectionContent(id);
+                window.chapterEditors[editorId].root.innerHTML = content;
+            }
+        }
+    }
+};
+
+window.getReportSectionContent = function(id) {
+    let content = '';
+    window.currentTechReport.forEach(sec => {
+        if (sec.id === id) content = sec.content || '';
+        if (sec.subsections) {
+            sec.subsections.forEach(sub => {
+                if (sub.id === id) content = sub.content || '';
+            });
+        }
+    });
+    return content;
+};
+
+window.updateReportSectionContent = function(id, content) {
+    window.currentTechReport.forEach(sec => {
+        if (sec.id === id) sec.content = content;
+        if (sec.subsections) {
+            sec.subsections.forEach(sub => {
+                if (sub.id === id) sub.content = content;
+            });
+        }
+    });
+};
+
+window.parseOwaspState = function(content) {
+    const state = {};
+    if (!content) return state;
+    for (let i = 1; i <= 10; i++) {
+        const key = 'A' + (i < 10 ? '0' + i : i);
+        const id = key + ':2021';
+        if (content.includes(id)) {
+            const parts = content.split(id);
+            if (parts.length > 1) {
+                const afterId = parts[1].split('</tr>')[0];
+                if (afterId.includes('color:#dc2626') || afterId.includes('color: rgb(220, 38, 38)') || afterId.includes('color:red') || afterId.includes('color: red')) {
+                    state[key] = 'issue';
+                } else {
+                    state[key] = 'pass';
+                }
+            }
+        } else {
+            state[key] = 'pass';
+        }
+    }
+    return state;
+};
+
+window.wsUpdateOwaspRow = function(key, status) {
+    const content = getReportSectionContent('sub-1-6');
+    const state = parseOwaspState(content);
+    state[key] = status;
+    
+    const owaspNames = {
+        'A01': 'Broken Access Control',
+        'A02': 'Cryptographic Failures',
+        'A03': 'Injection',
+        'A04': 'Insecure Design',
+        'A05': 'Security Misconfiguration',
+        'A06': 'Vulnerable and Outdated Components',
+        'A07': 'Identification and Authentication Failures',
+        'A08': 'Software and Data Integrity Failures',
+        'A09': 'Security Logging and Monitoring Failures',
+        'A10': 'Server-Side Request Forgery (SSRF)'
+    };
+    
+    let newTable = `<table class="tbl"><thead><tr><th>No.</th><th>ID</th><th>OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody>`;
+    for (let i = 1; i <= 10; i++) {
+        const k = 'A' + (i < 10 ? '0' + i : i);
+        const name = owaspNames[k];
+        const isPass = (state[k] || 'pass') === 'pass';
+        newTable += `<tr><td>${i}</td><td style="font-weight:700;color:#1e3a5f;">${k}:2021</td><td>${name}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${isPass ? '<span style="color:#16a34a;">&#10003;</span>' : '-'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${isPass ? '-' : '<span style="color:#dc2626;">&#10003;</span>'}</td></tr>`;
+    }
+    newTable += `</tbody></table>`;
+    
+    updateReportSectionContent('sub-1-6', newTable);
+};
+
+window.parseScopeTable = function(content) {
+    if (!content) return { device: '', url: '', detail: '', methodology: '' };
+    const div = document.createElement('div');
+    div.innerHTML = content;
+    const tds = div.querySelectorAll('td');
+    if (tds.length >= 5) {
+        return {
+            device: tds[1].textContent.trim(),
+            url: tds[2].textContent.trim(),
+            detail: tds[3].textContent.trim(),
+            methodology: tds[4].textContent.trim()
+        };
+    }
+    const p = window.currentProject || {};
+    return {
+        device: p.name || 'Aplikasi',
+        url: p.scope || '-',
+        detail: 'Aplikasi Web',
+        methodology: p.methodology || 'Black box'
+    };
+};
+
+window.wsUpdateScopeTable = function() {
+    const dev = document.getElementById('scope-input-device').value;
+    const url = document.getElementById('scope-input-url').value;
+    const det = document.getElementById('scope-input-detail').value;
+    const met = document.getElementById('scope-input-methodology').value;
+    
+    const newTable = `<table class="tbl"><thead><tr><th>No.</th><th>Perangkat / Aplikasi</th><th>URL/IP</th><th>Detail</th><th>Metodologi</th></tr></thead><tbody><tr><td style="text-align:center;">1</td><td>${dev}</td><td><code>${url}</code></td><td>${det}</td><td>${met}</td></tr></tbody></table>`;
+    updateReportSectionContent('sub-1-2', newTable);
+};
+
+window.parseToolsTable = function(content) {
+    if (!content) return '';
+    const div = document.createElement('div');
+    div.innerHTML = content;
+    const divs = div.querySelectorAll('td div');
+    if (divs.length > 0) {
+        return Array.from(divs).map(d => d.textContent.trim()).join(', ');
+    }
+    const p = window.currentProject || {};
+    return p.used_tools || 'Maltego, Dnsenum, Theharvester, Nmap, Nessus Pro, Nikto, w3af, Acunetix Pro, Zaproxy, Sqlmap, Metasploit, Burpsuite Pro, exploit-db, Dirb';
+};
+
+window.wsUpdateToolsTable = function() {
+    const val = document.getElementById('tools-input-text').value;
+    const tools = val.split(',');
+    const col1 = tools.slice(0, 4).map(t => `<div>${t.trim()}</div>`).join('');
+    const col2 = tools.slice(4, 9).map(t => `<div>${t.trim()}</div>`).join('');
+    const col3 = tools.slice(9).map(t => `<div>${t.trim()}</div>`).join('');
+    
+    const newTable = `<table class="tbl"><thead><tr><th>Information Gathering</th><th>Assessment</th><th>Exploit/Tools</th></tr></thead><tbody><tr><td>${col1}</td><td>${col2}</td><td>${col3}</td></tr></tbody></table>`;
+    updateReportSectionContent('sub-2-2', newTable);
 };
 
 window.wsAddChapter = function() {
