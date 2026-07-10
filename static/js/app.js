@@ -3049,6 +3049,24 @@ function setupImagePaste() {
             uploadMultipleBtn.parentNode.insertBefore(codeBtn, uploadMultipleBtn.nextSibling);
         }
 
+        const captionBtn = row.querySelector('.insert-caption-btn');
+        if (captionBtn && textarea) {
+            captionBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const originalVal = textarea.value;
+                const selectionStart = textarea.selectionStart || 0;
+                const selectionEnd = textarea.selectionEnd || 0;
+                const selectedText = originalVal.substring(selectionStart, selectionEnd);
+                
+                const wrappedText = `\n[caption: ${selectedText || "Tulis keterangan gambar di sini"}]\n`;
+                textarea.value = originalVal.substring(0, selectionStart) + wrappedText + originalVal.substring(selectionEnd);
+                
+                textarea.focus();
+                textarea.selectionStart = selectionStart + 11;
+                textarea.selectionEnd = selectionStart + 11 + (selectedText ? selectedText.length : 31);
+            });
+        }
+
         if (uploadBtn && fileInput && textarea) {
             uploadBtn.addEventListener('click', (e) => {
                 e.preventDefault();

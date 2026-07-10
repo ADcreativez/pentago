@@ -13,6 +13,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     const yearStr  = new Date().getFullYear();
 
     let workspaceDocs = {};
+    let captionCounter = 1;
     try {
         if (p.technical_report) {
             const parsed = JSON.parse(p.technical_report);
@@ -101,7 +102,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         // Increase tr base height to 30, and DO NOT multiply by spacingMult 
         // because the table padding and line-height are hardcoded in the HTML string!
         const trCount = (html.match(/<tr/g) || []).length;
-        h += trCount * 30;
+        h += trCount * 45;
 
         const imgCount = (html.match(/<img/g) || []).length;
         h += imgCount * 300;
@@ -130,6 +131,28 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         // Bold, italic, code
         h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
         h = h.replace(/`(.+?)`/g,'<code>$1</code>');
+        
+        // Images: ![alt](url) or ![alt | center](url)
+        h = h.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+            let alignStyle = '';
+            let imgStyle = 'max-width:100%; height:auto; border:1px solid #000;';
+            if (alt.includes('center')) {
+                alignStyle = 'text-align:center;';
+            }
+            let cleanAlt = alt.split('|')[0].trim();
+            let captionHtml = '';
+            if (cleanAlt && cleanAlt.toLowerCase() !== 'screenshot' && cleanAlt !== '') {
+                const prefix = (lang === 'en' ? 'Figure ' : 'Gambar ') + (captionCounter++) + '. ';
+                captionHtml = `<div style="font-size:7.5pt; color:#64748b; margin-top:4px; text-align:center; font-style:italic;">${prefix}${cleanAlt}</div>`;
+            }
+            return `<div style="margin:0.5rem 0; ${alignStyle}"><img src="${url}" alt="${cleanAlt}" style="${imgStyle}">${captionHtml}</div>`;
+        });
+        
+        // Standalone caption: [caption: Keterangan]
+        h = h.replace(/\[caption:\s*(.+?)\]/gi, (match, captionText) => {
+            const prefix = (lang === 'en' ? 'Figure ' : 'Gambar ') + (captionCounter++) + '. ';
+            return `<div style="font-size:7.5pt; color:#64748b; margin-top:4px; margin-bottom:0.5rem; text-align:center; font-style:italic;">${prefix}${captionText}</div>`;
+        });
         
         // Format lines with list item markers
         h = h.replace(/^[-*] (.+)$/gm,'<li>$1</li>');
@@ -1122,16 +1145,25 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                     case 'cvss': return 120;
                     case 'status':
                     case 'retest_status': return 50;
-                    case 'poc':
-                        const isImg = str.startsWith('data:image/') || str.startsWith('http://') || str.startsWith('https://');
-                        if (isImg) return 340; 
-                        return Math.max(50, Math.ceil(str.length / 60) * 22 + 20);
                     case 'script':
+                    case 'script_payload':
                         const lines = str.split('\n').length;
                         return Math.max(50, lines * 18 + 30); // Pre code block has more padding
+                    case 'reference':
                     case 'references':
                         const refCount = str.split('\n').filter(r => r.trim()).length;
                         return Math.max(50, refCount * 22 + 20);
+                    case 'poc':
+                        const isImg = str.startsWith('data:image/') || str.startsWith('http://') || str.startsWith('https://');
+                        if (isImg) return 340; 
+                        return estimateHtmlHeight(renderContent(str)) + 20;
+                    case 'description':
+                    case 'exploitation':
+                    case 'impact':
+                    case 'solution':
+                    case 'step_reproduce':
+                    case 'retest_evidence':
+                        return estimateHtmlHeight(renderContent(str)) + 20;
                     default:
                         const rawText = str.replace(/<[^>]*>/g, '');
                         return Math.max(50, Math.ceil(rawText.length / 60) * 22 + 20);
@@ -1144,26 +1176,61 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 html: `<h3 class="ssh" style="border-left-color:${sc}; font-size:11pt; font-weight:800; margin-top:1.8rem;">3.3.1.${idx+1} ${f.title}</h3>`
             });
 
+            const splitMarkdownToRows = (label, labelEn, mdContent, typeKey) => {
+                if (!mdContent || typeof mdContent !== 'string') return [
+                    { type: typeKey, val: mdContent, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? labelEn : label}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${'<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` }
+                ];
+                
+                if (mdContent.trim().startsWith('data:image/') || mdContent.trim().startsWith('http://') || mdContent.trim().startsWith('https://')) {
+                     return [{ type: typeKey, val: mdContent, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? labelEn : label}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;"><div style="text-align:center; margin:0.5rem 0;"><img src="${mdContent}" style="max-width:100%; border:1px solid #000;" alt="${label}"><div style="font-size:7.5pt; color:#64748b; margin-top:4px;">${lang === 'en' ? 'Figure' : 'Gambar'} ${captionCounter++}. ${labelEn}</div></div></td></tr>` }];
+                }
+                
+                // Split markdown by double newline to separate paragraphs/images
+                const blocks = mdContent.split(/\n{2,}/).filter(b => b.trim() !== '');
+                if (blocks.length === 0) {
+                    return [{ type: typeKey, val: mdContent, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? labelEn : label}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${'<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` }];
+                }
+                
+                return blocks.map((block, i) => {
+                    const isFirst = i === 0;
+                    const isLast = i === blocks.length - 1;
+                    
+                    const borderTop = isFirst ? '1px solid #000' : 'none';
+                    const borderBottom = isLast ? '1px solid #000' : 'none';
+                    
+                    const leftStyle = `background:${sc}; color:${isFirst ? '#fff' : 'transparent'}; font-weight:bold; padding:8px 12px; border-left:1px solid #000; border-right:1px solid #000; border-top:${borderTop}; border-bottom:${borderBottom}; width:20%; text-align:left; vertical-align:top;`;
+                    
+                    const rightStyle = `padding:8px 12px; border-left:1px solid #000; border-right:1px solid #000; border-top:${borderTop}; border-bottom:${borderBottom}; line-height:1.6;`;
+                    
+                    const labelText = isFirst ? (lang === 'en' ? labelEn : label) : '&nbsp;';
+                    return {
+                        type: typeKey,
+                        val: block,
+                        html: `<tr><td style="${leftStyle}">${labelText}</td><td style="${rightStyle}">${renderContent(block)}</td></tr>`
+                    };
+                });
+            };
+
             let rowsData = [
                 { type: 'title', val: f.title, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Finding Title" : "Judul Temuan"}</td><td style="padding:8px 12px; border:1px solid #000; font-weight:bold; font-size:10pt;">${f.title}</td></tr>` },
                 { type: 'affected', val: f.affected_system, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Affected System" : "Sistem Terdampak"}</td><td style="padding:8px 12px; border:1px solid #000; color:#0f62fe; text-decoration:underline; font-weight:500; font-family:monospace; word-break:break-all;">${f.affected_system || '-'}</td></tr>` },
                 { type: 'cvss', val: f.cvss_vector, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "CVSS Calculator" : "Kalkulator CVSS"}</td><td style="padding:8px 12px; border:1px solid #000; font-weight:500;"><div style="font-weight:bold; margin-bottom:4px;">${f.cvss_version || 'CVSS v3.1'}</div><div style="font-family:monospace; font-size:8.5pt; margin-bottom:4px; word-break:break-all;"><strong>Vector:</strong> ${f.cvss_vector || '-'}</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;"><strong>Score:</strong> ${(f.cvss_score || 0).toFixed(1)} <span style="background-color: ${sevBg[f.severity] || '#eff6ff'}; color: ${sevColor[f.severity] || '#0284c7'}; padding: 3px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${sevColor[f.severity]}33;">${f.severity || 'Info'}</span></div></td></tr>` },
                 { type: 'status', val: f.finding_status || f.status, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Finding Status" : "Status Temuan"}</td><td style="padding:8px 12px; border:1px solid #000;">${(() => { const val = f.finding_status || f.status || 'Open'; const isOp = val.toLowerCase() === 'open'; return `<span style="background-color: ${isOp ? '#def7ec' : '#e0f2fe'}; color: ${isOp ? '#03543f' : '#0369a1'}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${isOp ? 'rgba(16, 185, 129, 0.2)' : 'rgba(14, 165, 233, 0.2)'};">${val}</span>`; })()}</td></tr>` },
                 { type: 'retest_status', val: f.status || f.finding_status, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Retest Status" : "Status Retest"}</td><td style="padding:8px 12px; border:1px solid #000;">${(() => { const val = f.status || f.finding_status || 'Open'; const valL = val.toLowerCase(); const bg = valL === 'open' ? '#def7ec' : (valL === 'fixed' || valL === 'closed' ? '#e0f2fe' : '#fef3c7'); const fg = valL === 'open' ? '#03543f' : (valL === 'fixed' || valL === 'closed' ? '#0369a1' : '#b45309'); const bd = valL === 'open' ? 'rgba(16, 185, 129, 0.2)' : (valL === 'fixed' || valL === 'closed' ? 'rgba(14, 165, 233, 0.2)' : 'rgba(245, 158, 11, 0.2)'); return `<span style="background-color: ${bg}; color: ${fg}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${bd};">${val}</span>`; })()}</td></tr>` },
-                { type: 'description', val: f.description, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Description" : "Deskripsi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.description)}</td></tr>` },
-                { type: 'poc', val: f.poc, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Proof of Vulnerability (PoC)" : "Bukti Kerentanan (PoC)"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${f.poc ? ((f.poc.trim().startsWith('data:image/') || f.poc.trim().startsWith('http://') || f.poc.trim().startsWith('https://')) ? `<div style="text-align:center; margin:0.5rem 0;"><img src="${f.poc}" style="max-width:100%; border:1px solid #000;" alt="PoC"><div style="font-size:7.5pt; color:#64748b; margin-top:4px;">${lang === 'en' ? 'Figure' : 'Gambar'} ${figBase}. Proof of Concept</div></div>` : renderContent(f.poc)) : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
-                { type: 'exploitation', val: f.exploitation, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Exploitation" : "Eksploitasi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.exploitation)}</td></tr>` },
-                { type: 'impact', val: f.impact, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Impact" : "Dampak"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.impact)}</td></tr>` },
+                ...splitMarkdownToRows("Deskripsi", "Description", f.description, 'description'),
+                ...splitMarkdownToRows("Bukti Kerentanan (PoC)", "Proof of Vulnerability (PoC)", f.poc, 'poc'),
+                ...splitMarkdownToRows("Eksploitasi", "Exploitation", f.exploitation, 'exploitation'),
+                ...splitMarkdownToRows("Dampak", "Impact", f.impact, 'impact'),
                 { type: 'script_payload', val: f.script_payload, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Script/Payload" : "Skrip/Payload"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.script_payload ? `<pre style="font-family:'Courier New', monospace; font-size:8pt; background:#f1f5f9; padding:6px 10px; border:1px solid #cbd5e1; border-radius:3px; overflow-x:auto; margin:0;"><code>${f.script_payload}</code></pre>` : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
-                { type: 'solution', val: f.solution, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Solution" : "Rekomendasi/Solusi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.solution)}</td></tr>` },
+                ...splitMarkdownToRows("Rekomendasi/Solusi", "Solution", f.solution, 'solution'),
                 { type: 'reference', val: f.reference, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "References" : "Referensi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${f.reference ? `<ul style="margin:0; padding-left:1.2rem;">${f.reference.split('\n').filter(r=>r.trim()).map(r=>`<li><a href="${r.trim()}" style="color:#0f62fe; word-break:break-all;" target="_blank">${r.trim()}</a></li>`).join('')}</ul>` : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
-                { type: 'step_reproduce', val: f.step_reproduce, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Steps to Reproduce" : "Langkah Reproduksi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.step_reproduce)}</td></tr>` },
+                ...splitMarkdownToRows("Langkah Reproduksi", "Steps to Reproduce", f.step_reproduce, 'step_reproduce'),
                 { type: 'cwe', val: f.cwe, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">CWE (Common Weakness Enumeration)</td><td style="padding:8px 12px; border:1px solid #000;">${f.cwe ? `<ul style="margin:0; padding-left:1.2rem;">${f.cwe.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
                 { type: 'mitre_attack', val: f.mitre_attack, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "MITRE ATT&CK Technique" : "Teknik MITRE ATT&CK"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.mitre_attack ? `<ul style="margin:0; padding-left:1.2rem;">${f.mitre_attack.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
                 { type: 'iso_27001', val: f.iso_27001, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "ISO 27001 Annex A Control" : "Kontrol ISO 27001 Annex A"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.iso_27001 ? `<ul style="margin:0; padding-left:1.2rem;">${f.iso_27001.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
                 { type: 'nist_control', val: f.nist_control, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "NIST SP 800-53 Control" : "Kontrol NIST SP 800-53"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.nist_control ? `<ul style="margin:0; padding-left:1.2rem;">${f.nist_control.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
                 { type: 'ptes_phase', val: f.ptes_phase, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "PTES Assessment Phase" : "Fase Penilaian PTES"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.ptes_phase ? `<ul style="margin:0; padding-left:1.2rem;">${f.ptes_phase.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
-                { type: 'retest_evidence', val: f.retest_evidence, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Retest Evidence" : "Bukti Retest"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${renderContent(f.retest_evidence)}</td></tr>` }
+                ...splitMarkdownToRows("Bukti Retest", "Retest Evidence", f.retest_evidence, 'retest_evidence')
             ];
 
             const optionalRefs = ['cwe', 'mitre_attack', 'iso_27001', 'nist_control', 'ptes_phase'];
@@ -1285,7 +1352,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
 
     flowItems.forEach(item => {
         // Use 820 as threshold to pack content securely without overlapping the footer
-        if (currentChunkHeight + item.height > 820 && currentChunk.length > 0) {
+        if (currentChunkHeight + item.height > 750 && currentChunk.length > 0) {
             pageChunks.push(currentChunk);
             currentChunk = [item];
             currentChunkHeight = 30 + item.height;

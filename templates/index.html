@@ -1131,7 +1131,7 @@
                 </div>
                 <div class="form-group">
                     <label for="ref-category-desc">Description</label>
-                    <textarea id="ref-category-desc" class="form-control" rows="3"></textarea>
+                    <textarea id="ref-category-desc" class="form-control" style="min-height: 200px;" rows="8"></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 1rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeReferenceCategoryModal()">Cancel</button>
@@ -1156,7 +1156,7 @@
                 </div>
                 <div class="form-group">
                     <label for="ref-item-notes">Notes</label>
-                    <textarea id="ref-item-notes" class="form-control" rows="3"></textarea>
+                    <textarea id="ref-item-notes" class="form-control" style="min-height: 200px;" rows="8"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="ref-item-consultant">Member</label>
@@ -1419,7 +1419,7 @@
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1434,7 +1434,7 @@
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1477,7 +1477,7 @@
                 </div>
                 <div class="form-group" id="finding-affected-system-container">
                     <label for="finding-affected-system">Affected System</label>
-                    <textarea id="finding-affected-system" class="form-control" rows="3" placeholder="Masukkan URL, domain, atau IP (satu per baris atau dipisah koma)&#10;e.g.&#10;https://api.fintechglobal.com/v1/auth/login&#10;192.168.1.100&#10;*.fintechglobal.com" required></textarea>
+                    <textarea id="finding-affected-system" class="form-control" style="min-height: 200px;" rows="8" placeholder="Masukkan URL, domain, atau IP (satu per baris atau dipisah koma)&#10;e.g.&#10;https://api.fintechglobal.com/v1/auth/login&#10;192.168.1.100&#10;*.fintechglobal.com" required></textarea>
                 </div>
                 
                 <!-- CVSS Calculator Section -->
@@ -1652,12 +1652,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-desc">Description</label>
-                    <textarea id="finding-desc" class="form-control" rows="3" placeholder="Provide general details..."></textarea>
+                    <textarea id="finding-desc" class="form-control" style="min-height: 200px;" rows="8" placeholder="Provide general details..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1667,12 +1667,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-poc">Proof of Vulnerability (PoC)</label>
-                    <textarea id="finding-poc" class="form-control" rows="3" placeholder="URL paths, requests, raw outputs..."></textarea>
+                    <textarea id="finding-poc" class="form-control" style="min-height: 200px;" rows="8" placeholder="URL paths, requests, raw outputs..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1682,12 +1682,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-exploitation">Exploitation</label>
-                    <textarea id="finding-exploitation" class="form-control" rows="3" placeholder="Provide exploitation walk-through..."></textarea>
+                    <textarea id="finding-exploitation" class="form-control" style="min-height: 200px;" rows="8" placeholder="Provide exploitation walk-through..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1697,12 +1697,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-impact">Impact</label>
-                    <textarea id="finding-impact" class="form-control" rows="3" placeholder="Explain severity and potential damage..."></textarea>
+                    <textarea id="finding-impact" class="form-control" style="min-height: 200px;" rows="8" placeholder="Explain severity and potential damage..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1712,12 +1712,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-script-payload">Script/Payload</label>
-                    <textarea id="finding-script-payload" class="form-control" rows="3" placeholder="Insert payloads, exploit scripts, shell commands..."></textarea>
+                    <textarea id="finding-script-payload" class="form-control" style="min-height: 200px;" rows="8" placeholder="Insert payloads, exploit scripts, shell commands..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1727,12 +1727,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-solution">Solution</label>
-                    <textarea id="finding-solution" class="form-control" rows="3" placeholder="Remediation steps..."></textarea>
+                    <textarea id="finding-solution" class="form-control" style="min-height: 200px;" rows="8" placeholder="Remediation steps..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1746,12 +1746,12 @@
                 </div>
                 <div class="form-group">
                     <label for="finding-step-reproduce">Steps to Reproduce</label>
-                    <textarea id="finding-step-reproduce" class="form-control" rows="3" placeholder="1. Go to... 2. Input payload..."></textarea>
+                    <textarea id="finding-step-reproduce" class="form-control" style="min-height: 200px;" rows="8" placeholder="1. Go to... 2. Input payload..."></textarea>
                     <div class="image-helper-row">
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -1792,7 +1792,7 @@
                         <button type="button" class="btn-helper align-left" title="Align Left">▤</button>
                         <button type="button" class="btn-helper align-center active" title="Align Center">▞</button>
                         <button type="button" class="btn-helper align-right" title="Align Right">▨</button>
-                        <input type="text" class="image-caption-helper form-control" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; height: auto; border-radius: 4px; border: 1px solid var(--border-color); width: 130px; margin-left: 0.5rem;" placeholder="Caption...">
+                        <button type="button" class="btn-helper insert-caption-btn" style="margin-left: 0.5rem;" title="Insert Caption">📝 Caption</button>
                         <button type="button" class="btn-helper upload-btn" style="margin-left: 0.5rem;" title="Upload Image">📷 Upload / Paste Image</button>
                         <button type="button" class="btn-helper upload-multiple-btn" style="margin-left: 0.5rem; font-weight: bold;" title="Upload Multiple Images">+</button>
                         <input type="file" class="image-file-helper" accept="image/*" style="display: none;">
@@ -2097,7 +2097,7 @@
                 </div>
                 <div class="form-group">
                     <label for="guide-item-purpose">Purpose / Deskripsi (Bahasa Indonesia)</label>
-                    <textarea id="guide-item-purpose" class="form-control" rows="3" required placeholder="Tujuan pengujian..."></textarea>
+                    <textarea id="guide-item-purpose" class="form-control" style="min-height: 200px;" rows="8" required placeholder="Tujuan pengujian..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="guide-item-steps">Test Steps / Langkah Pengujian</label>
@@ -2105,7 +2105,7 @@
                 </div>
                 <div class="form-group">
                     <label for="guide-item-expected">Expected Result / Hasil yang Diharapkan (Bahasa Indonesia)</label>
-                    <textarea id="guide-item-expected" class="form-control" rows="3" required placeholder="Sistem menolak input berbahaya..."></textarea>
+                    <textarea id="guide-item-expected" class="form-control" style="min-height: 200px;" rows="8" required placeholder="Sistem menolak input berbahaya..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="guide-item-tools">Recommended Tools (Comma separated)</label>
@@ -2202,7 +2202,7 @@
                 </div>
                 <div class="form-group">
                     <label for="framework-category-desc">Description</label>
-                    <textarea id="framework-category-desc" class="form-control" rows="3" placeholder="Brief description of the framework..."></textarea>
+                    <textarea id="framework-category-desc" class="form-control" style="min-height: 200px;" rows="8" placeholder="Brief description of the framework..."></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeFrameworkCategoryModal()">Cancel</button>
@@ -2268,9 +2268,9 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
     <script src="{{ url_for('static', filename='js/dictionary-id-en.js') }}?v=1.4.0"></script>
     <script src="{{ url_for('static', filename='js/cwe-db.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/preview_builder.js') }}?v=1.4.49"></script>
+    <script src="{{ url_for('static', filename='js/preview_builder.js') }}?v=1.4.57"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.4.16"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.4.17"></script>
 <!-- Report Template Modal -->
     <div id="report-template-modal" class="modal-overlay">
         <div class="modal" style="max-width: 900px;">
