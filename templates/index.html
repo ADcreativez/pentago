@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PentaGO - Pentest Management & Reporting</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Quill Editor -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.4.7">
 </head>
 <body>
 
@@ -458,9 +459,9 @@
                 <a href="#" class="back-link" id="project-back-link" onclick="switchTab('projects')">&larr; Back</a>
                 
                 <div class="workspace-header" style="background: #ffffff; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
-                    <div>
+                    <div style="min-width: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h2 id="detail-project-name" style="font-family: var(--font-title); font-size: 1.8rem; margin: 0;">Project Name</h2>
+                            <h2 id="detail-project-name" style="font-family: var(--font-title); font-size: 1.8rem; margin: 0; word-break: break-word;">Project Name</h2>
                             <div>
                                 <span id="detail-project-status" class="badge badge-status">In Progress</span>
                             </div>
@@ -500,10 +501,10 @@
                                 </select>
                             </div>
                             
-                            <div style="margin-top: 0.25rem;"><strong>Scope:</strong> <span id="detail-project-scope" style="font-family: monospace; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem;">-</span></div>
-                            <div style="margin-top: 0.25rem;"><strong>Out of Scope:</strong> <span id="detail-project-out-of-scope" style="font-family: monospace; background: #ffe4e6; color: #b91c1c; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem;">-</span></div>
+                            <div style="margin-top: 0.25rem; min-width: 0;"><strong>Scope:</strong> <span id="detail-project-scope" style="font-family: monospace; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; display: inline-block; max-width: 100%;"></span></div>
+                            <div style="margin-top: 0.25rem; min-width: 0;"><strong>Out of Scope:</strong> <span id="detail-project-out-of-scope" style="font-family: monospace; background: #ffe4e6; color: #b91c1c; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; display: inline-block; max-width: 100%;"></span></div>
                         </div>
-                        <p id="detail-project-desc" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;"></p>
+                        <p id="detail-project-desc" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;"></p>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: start;">
                         <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Project Severity</span>
@@ -542,10 +543,8 @@
                     </table>
                 </div>
 
-                <!-- Add Summary & Appendix Actions -->
+                <!-- Tools and Actions -->
                 <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: -2rem; margin-bottom: 3rem;">
-                    <button class="btn btn-secondary" id="btn-project-edit-summary" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"></button>
-                    <button class="btn btn-secondary" id="btn-project-edit-appendix" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"></button>
                     <button class="btn btn-secondary" id="btn-project-edit-tools" onclick="openUsedToolsModal()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                         <span>🔧 Used Tools</span>
                     </button>
@@ -559,37 +558,21 @@
                     <h3 style="font-family: var(--font-title); font-size: 1.4rem; font-weight: 700;">Pentest Report Workspace Preview</h3>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <select id="report-spacing-selector" style="padding: 0.3rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-sans); background: #ffffff; color: var(--text-primary);">
-                            <option value="1.0">Spasi 1.0 (Rapat)</option>
+                            <option value="1.0" selected>Spasi 1.0 (Rapat)</option>
                             <option value="1.2">Spasi 1.2 (Normal)</option>
-                            <option value="1.4" selected>Spasi 1.4 (Ideal)</option>
+                            <option value="1.4">Spasi 1.4 (Ideal)</option>
                             <option value="1.6">Spasi 1.6 (Renggang)</option>
                             <option value="1.8">Spasi 1.8 (Sangat Renggang)</option>
                         </select>
                         <button class="btn btn-secondary" onclick="openReportPreview('id')" style="font-weight: 600;">📄 Preview ID</button>
                         <button class="btn btn-secondary" onclick="openReportPreview('en')" style="font-weight: 600;">📄 Preview EN</button>
+                        <button class="btn btn-secondary" onclick="saveCurrentProjectAsTemplate()" style="font-weight: 600; color: #10b981; border-color: #10b981;">➕ Save as Template</button>
+                        <button class="btn btn-secondary" id="btn-approve-report" onclick="toggleReportApproval()" style="font-weight: 600; display: none; color: #2563eb; border-color: #2563eb;">✔️ Approve Report</button>
                     </div>
                 </div>
                 
-                <div id="sysreptor-report-cards-container">
-                    <!-- Dynamic SysReptor report tables go here -->
-                </div>
-
-                <!-- Tools Preview Card removed as it is covered in 2.2 -->
-
-                <!-- Dynamic Threat Model Diagram Cards Container -->
-                <div id="project-threat-models-container" style="margin-top: 2rem;">
-                </div>
-
-
-
-                <!-- Summary & Appendix Preview Cards -->
-                <div id="project-summary-preview-card" class="sysreptor-report-card" style="margin-top: 2rem; display: none;">
-                    <div class="sysreptor-report-title">
-                        <span>Kesimpulan (Project Summary)</span>
-                    </div>
-                    <div class="sysreptor-content" id="project-summary-preview-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; line-height: 1.6;">
-                        <!-- Rendered Markdown -->
-                    </div>
+                <div id="sysreptor-cover-container">
+                    <!-- Dynamic Cover Page goes here -->
                 </div>
 
                 <div id="project-doc-control-card" class="sysreptor-report-card" style="margin-top: 2rem;">
@@ -623,13 +606,17 @@
                     </div>
                 </div>
 
-                <div id="project-appendix-preview-card" class="sysreptor-report-card" style="margin-top: 2rem; display: none;">
-                    <div class="sysreptor-report-title">
-                        <span>Appendix (Catatan Pengetesan)</span>
-                    </div>
-                    <div class="sysreptor-content" id="project-appendix-preview-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; line-height: 1.6;">
-                        </div>
+                <div id="sysreptor-report-cards-container">
+                    <!-- Dynamic SysReptor report tables go here -->
                 </div>
+
+                <!-- Tools Preview Card removed as it is covered in 2.2 -->
+
+                <!-- Dynamic Threat Model Diagram Cards Container -->
+                <div id="project-threat-models-container" style="margin-top: 2rem;">
+                </div>
+
+                <!-- Summary & Appendix Preview Cards removed as they are now in the Workspace Editor -->
             </div>
 
             <!-- Threat Modelling Studio View -->
@@ -1272,6 +1259,26 @@
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Consolidate Report Modal -->
+    <div id="consolidate-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="consolidate-modal-title">Consolidated Report</h3>
+                <button class="close-btn" onclick="closeConsolidateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select projects to combine into a single consolidated report:</p>
+                <div id="consolidate-projects-list" style="margin-top: 1rem; margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem;">
+                    <!-- Checkboxes will be populated here -->
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeConsolidateModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="generateConsolidatedReport()">Generate</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2259,10 +2266,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dictionary-id-en.js') }}?v=1.4.0"></script>
     <script src="{{ url_for('static', filename='js/cwe-db.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/preview_builder.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/preview_builder.js') }}?v=1.4.49"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.1.0"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.4.16"></script>
 <!-- Report Template Modal -->
     <div id="report-template-modal" class="modal-overlay">
         <div class="modal" style="max-width: 900px;">

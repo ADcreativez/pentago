@@ -1,11 +1,17 @@
-import os
-from app import app, db, Project, ReportTemplate
+import sqlite3
+import json
 
-with app.app_context():
-    print("--- Report Templates ---")
-    for t in ReportTemplate.query.all():
-        print(f"ID: {t.id}, Name: {t.name}, Structure Length: {len(t.structure or '')}")
-        
-    print("\n--- Projects ---")
-    for p in Project.query.all():
-        print(f"ID: {p.id}, Name: {p.name}, Template ID: {p.report_template_id}")
+conn = sqlite3.connect('pentago.db')
+cur = conn.cursor()
+cur.execute("SELECT technical_report FROM project WHERE id=5")
+row = cur.fetchone()
+if row and row[0]:
+    tr = json.loads(row[0])
+    for sec in tr:
+        if sec['id'] == 'sec-1':
+            for sub in sec.get('subsections', []):
+                if sub['id'] == 'sub-1-6':
+                    content = sub.get('content', '')
+                    print("CONTENT EXACT:")
+                    print(repr(content[:100]))
+                    break

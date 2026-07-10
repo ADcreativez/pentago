@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(filename='flask_error.log', level=logging.DEBUG)
 import os
 from datetime import datetime, timedelta
 import re
@@ -360,6 +362,7 @@ class Project(db.Model):
     status = db.Column(db.String(50), default='In Progress') # In Progress, Completed, Retest Pending, Retest Completed
     start_date = db.Column(db.String(50))
     end_date = db.Column(db.String(50))
+    report_template_id = db.Column(db.Integer, db.ForeignKey('report_template.id'), nullable=True)
     description = db.Column(EncryptedText)
     summary = db.Column(EncryptedText)
     appendix = db.Column(EncryptedText)
@@ -387,9 +390,16 @@ class Project(db.Model):
     client_approver_name = db.Column(EncryptedText)
     cover_logo = db.Column(db.String(500))
     client_logo = db.Column(db.String(500))
+    auditor_logo = db.Column(db.String(500), default='')
+    use_watermark = db.Column(db.Boolean, default=True)
+    exec_summary = db.Column(db.Text)
+    methodology_text = db.Column(db.Text)
     header_text = db.Column(db.String(250))
     footer_text = db.Column(db.String(250))
+    cover_title_2 = db.Column(db.String(250), default='')
+    main_cover_logo = db.Column(db.String(500), default='')
     technical_report = db.Column(db.Text)
+    is_approved = db.Column(db.Boolean, default=False)
     findings = db.relationship('Finding', backref='project', lazy=True, cascade="all, delete-orphan")
 
     def get_metrics(self):
@@ -440,6 +450,7 @@ class Project(db.Model):
             'status': self.status,
             'start_date': self.start_date,
             'end_date': self.end_date,
+            'report_template_id': self.report_template_id,
             'description': self.description,
             'summary': self.summary,
             'appendix': self.appendix,
@@ -474,9 +485,16 @@ class Project(db.Model):
             'client_approver_name': self.client_approver_name,
             'cover_logo': self.cover_logo,
             'client_logo': self.client_logo,
+            'auditor_logo': self.auditor_logo,
+            'use_watermark': self.use_watermark,
+            'exec_summary': self.exec_summary,
+            'methodology_text': self.methodology_text,
             'header_text': self.header_text,
             'footer_text': self.footer_text,
-            'technical_report': self.technical_report
+            'cover_title_2': self.cover_title_2,
+            'main_cover_logo': self.main_cover_logo,
+            'technical_report': self.technical_report,
+            'is_approved': self.is_approved
         }
 
 class Finding(db.Model):
@@ -543,6 +561,61 @@ class Finding(db.Model):
             'retest_evidence': self.retest_evidence,
             'custom_fields': self.custom_fields,
             'created_at': self.created_at.strftime('%Y-%m-%d')
+        }
+
+
+class SystemChangelog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.String(50))
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'version': self.version,
+            'date': self.date,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class ReportTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    template_type = db.Column(db.String(50))
+    default_title = db.Column(db.String(250))
+    classification = db.Column(db.String(50))
+    background_text = db.Column(db.Text)
+    methodology_text = db.Column(db.Text)
+    footer_text = db.Column(db.String(250))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    structure = db.Column(db.Text)
+    client_logo = db.Column(db.Text)
+    auditor_logo = db.Column(db.Text)
+    header_alignment = db.Column(db.String(50), default='center')
+    show_client_logo = db.Column(db.Integer, default=1)
+    show_auditor_logo = db.Column(db.Integer, default=1)
+    start_page_num = db.Column(db.Integer, default=2)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'template_type': self.template_type,
+            'default_title': self.default_title,
+            'classification': self.classification,
+            'background_text': self.background_text,
+            'methodology_text': self.methodology_text,
+            'footer_text': self.footer_text,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'structure': self.structure,
+            'client_logo': self.client_logo,
+            'auditor_logo': self.auditor_logo,
+            'header_alignment': self.header_alignment,
+            'show_client_logo': self.show_client_logo,
+            'show_auditor_logo': self.show_auditor_logo,
+            'start_page_num': self.start_page_num
         }
 
 class FindingTemplate(db.Model):
@@ -1376,6 +1449,7 @@ def api_projects():
             out_of_scope=data.get('out_of_scope', ''),
             access_info=data.get('access_info', ''),
             location_type=data.get('location_type', 'Remote'),
+            report_template_id=data.get('report_template_id'),
             used_tools=data.get('used_tools', ''),
             threat_model=data.get('threat_model', ''),
             report_date=data.get('report_date', ''),
@@ -1412,6 +1486,7 @@ def api_project(project_id):
         project.status = data.get('status', project.status)
         project.start_date = data.get('start_date', project.start_date)
         project.end_date = data.get('end_date', project.end_date)
+        project.report_template_id = data.get('report_template_id', project.report_template_id)
         project.description = data.get('description', project.description)
         project.summary = data.get('summary', project.summary)
         project.appendix = data.get('appendix', project.appendix)
@@ -1436,9 +1511,17 @@ def api_project(project_id):
         project.client_approver_name = data.get('client_approver_name', project.client_approver_name)
         project.cover_logo = data.get('cover_logo', project.cover_logo)
         project.client_logo = data.get('client_logo', project.client_logo)
+        project.auditor_logo = data.get('auditor_logo', project.auditor_logo)
+        if 'use_watermark' in data:
+            project.use_watermark = data['use_watermark']
+        project.exec_summary = data.get('exec_summary', project.exec_summary)
+        project.methodology_text = data.get('methodology_text', project.methodology_text)
         project.header_text = data.get('header_text', project.header_text)
         project.footer_text = data.get('footer_text', project.footer_text)
+        project.cover_title_2 = data.get('cover_title_2', project.cover_title_2)
+        project.main_cover_logo = data.get('main_cover_logo', project.main_cover_logo)
         project.technical_report = data.get('technical_report', project.technical_report)
+        project.is_approved = data.get('is_approved', project.is_approved)
         db.session.commit()
         log_audit('UPDATE_PROJECT', f"Updated project: {project.name}")
         return jsonify(project.to_dict())
@@ -1448,6 +1531,98 @@ def api_project(project_id):
         db.session.commit()
         log_audit('DELETE_PROJECT', f"Deleted project: {proj_name}")
         return jsonify({'message': 'Project deleted successfully'})
+
+@app.route('/api/projects/consolidate', methods=['POST'])
+@login_required
+def api_projects_consolidate():
+    user = User.query.get(session['user_id'])
+    data = request.json
+    project_ids = data.get('project_ids', [])
+    if not project_ids:
+        return jsonify({'message': 'No project IDs provided'}), 400
+    
+    projects = Project.query.filter(Project.id.in_(project_ids)).all()
+    if not projects:
+        return jsonify({'message': 'Projects not found'}), 404
+        
+    if user.role != 'Admin':
+        allowed_company_ids = [c.id for c in user.allowed_companies]
+        for p in projects:
+            if p.company_id not in allowed_company_ids:
+                return jsonify({'message': 'Unauthorized to view one or more projects'}), 403
+
+    result = []
+    for p in projects:
+        p_dict = p.to_dict()
+        findings = Finding.query.filter_by(project_id=p.id).order_by(Finding.cvss_score.desc()).all()
+        p_dict['findings'] = [f.to_dict() for f in findings]
+        result.append(p_dict)
+        
+    return jsonify(result)
+
+@app.route('/api/export_secure_pdf/<int:project_id>', methods=['POST'])
+@login_required
+def api_export_secure_pdf(project_id):
+    project = Project.query.get_or_404(project_id)
+    
+    # Check permissions
+    user = User.query.get(session['user_id'])
+    allowed = False
+    if user.role == 'Admin':
+        allowed = True
+    elif user.consultant:
+        role_lower = (user.consultant.role or '').lower()
+        if 'lead' in role_lower or 'leader' in role_lower:
+            allowed = True
+        elif project.pentest_consultant_id == user.consultant.id:
+            allowed = True
+        elif project.retest_consultant_id == user.consultant.id:
+            allowed = True
+    elif project.pentest_consultant_name and project.pentest_consultant_name.lower() == user.username.lower():
+        allowed = True
+    elif project.retest_consultant_name and project.retest_consultant_name.lower() == user.username.lower():
+        allowed = True
+        
+    if not allowed:
+        return jsonify({'error': 'Unauthorized to download this report'}), 403
+        
+    data = request.json
+    html_content = data.get('html_content')
+    password = data.get('password')
+    
+    if not html_content or not password:
+        return jsonify({'error': 'HTML content and password are required'}), 400
+        
+    try:
+        from weasyprint import HTML
+        from PyPDF2 import PdfReader, PdfWriter
+        import io
+        from flask import send_file
+        
+        pdf_bytes = HTML(string=html_content).write_pdf()
+        
+        input_pdf = PdfReader(io.BytesIO(pdf_bytes))
+        output_pdf = PdfWriter()
+        
+        for page in input_pdf.pages:
+            output_pdf.add_page(page)
+            
+        output_pdf.encrypt(password)
+        
+        out_io = io.BytesIO()
+        output_pdf.write(out_io)
+        out_io.seek(0)
+        
+        safe_name = "".join([c if c.isalnum() else "_" for c in project.name])
+        return send_file(
+            out_io,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'Pentago_Report_{safe_name}.pdf'
+        )
+    except Exception as e:
+        print("Export Secure PDF Error:", e)
+        return jsonify({'error': str(e)}), 500
 
 # Finding CRUD
 @app.route('/api/findings', methods=['GET', 'POST'])
@@ -2082,6 +2257,91 @@ def api_admin_blocklist_delete(block_id):
         
     log_audit('UNBLOCK_IP', f'Unblocked IP address: {ip}')
     return jsonify({'message': f'IP {ip} unblocked successfully'})
+
+# System Changelog APIs
+@app.route('/api/admin/changelogs', methods=['GET', 'POST'])
+@login_required
+def api_changelogs():
+    if request.method == 'GET':
+        logs = SystemChangelog.query.order_by(SystemChangelog.created_at.desc()).all()
+        return jsonify([l.to_dict() for l in logs])
+    elif request.method == 'POST':
+        data = request.json
+        log = SystemChangelog(
+            version=data.get('version'),
+            date=data.get('date'),
+            description=data.get('description')
+        )
+        db.session.add(log)
+        db.session.commit()
+        return jsonify(log.to_dict())
+
+@app.route('/api/admin/changelogs/<int:id>', methods=['DELETE'])
+@login_required
+def api_changelog_delete(id):
+    log = SystemChangelog.query.get_or_404(id)
+    db.session.delete(log)
+    db.session.commit()
+    return jsonify({'message': 'Deleted'})
+
+# Report Template APIs
+@app.route('/api/report_templates', methods=['GET', 'POST'])
+@login_required
+def api_report_templates():
+    if request.method == 'GET':
+        tpls = ReportTemplate.query.order_by(ReportTemplate.created_at.desc()).all()
+        return jsonify([t.to_dict() for t in tpls])
+    elif request.method == 'POST':
+        data = request.json
+        tpl = ReportTemplate(
+            name=data.get('name'),
+            template_type=data.get('template_type'),
+            default_title=data.get('default_title'),
+            classification=data.get('classification'),
+            background_text=data.get('background_text'),
+            methodology_text=data.get('methodology_text'),
+            footer_text=data.get('footer_text'),
+            structure=data.get('structure'),
+            client_logo=data.get('client_logo'),
+            auditor_logo=data.get('auditor_logo'),
+            header_alignment=data.get('header_alignment'),
+            show_client_logo=data.get('show_client_logo'),
+            show_auditor_logo=data.get('show_auditor_logo'),
+            start_page_num=data.get('start_page_num')
+        )
+        db.session.add(tpl)
+        db.session.commit()
+        return jsonify(tpl.to_dict())
+
+@app.route('/api/report_templates/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+def api_report_template_detail(id):
+    tpl = ReportTemplate.query.get_or_404(id)
+    if request.method == 'GET':
+        return jsonify(tpl.to_dict())
+    elif request.method == 'PUT':
+        data = request.json
+        tpl.name = data.get('name', tpl.name)
+        tpl.template_type = data.get('template_type', tpl.template_type)
+        tpl.default_title = data.get('default_title', tpl.default_title)
+        tpl.classification = data.get('classification', tpl.classification)
+        tpl.background_text = data.get('background_text', tpl.background_text)
+        tpl.methodology_text = data.get('methodology_text', tpl.methodology_text)
+        tpl.footer_text = data.get('footer_text', tpl.footer_text)
+        tpl.structure = data.get('structure', tpl.structure)
+        tpl.client_logo = data.get('client_logo', tpl.client_logo)
+        tpl.auditor_logo = data.get('auditor_logo', tpl.auditor_logo)
+        tpl.header_alignment = data.get('header_alignment', tpl.header_alignment)
+        tpl.show_client_logo = data.get('show_client_logo', tpl.show_client_logo)
+        tpl.show_auditor_logo = data.get('show_auditor_logo', tpl.show_auditor_logo)
+        tpl.start_page_num = data.get('start_page_num', tpl.start_page_num)
+        db.session.commit()
+        return jsonify(tpl.to_dict())
+    elif request.method == 'DELETE':
+        db.session.delete(tpl)
+        db.session.commit()
+        return jsonify({'message': 'Deleted'})
+
 
 if __name__ == '__main__':
     with app.app_context():

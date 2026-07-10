@@ -1,69 +1,49 @@
-def check():
-    content = open('static/js/preview_builder.js', 'r', encoding='utf-8').read()
-    in_multi_comment = False
-    in_single_comment = False
-    in_string = None
-    escape = False
-    idx = 0
-    line_num = 1
-    stack = []
+import sys
+import re
+
+def check_braces(filepath):
+    with open(filepath, 'r') as f:
+        code = f.read()
     
-    while idx < len(content):
-        char = content[idx]
+    # Very simple string/comment stripping
+    code = re.sub(r'//.*', '', code)
+    code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+    
+    # Strip template literals properly (since they can contain braces)
+    # but for simplicity let's just strip everything between backticks
+    code = re.sub(r'`[^`]*`', '``', code)
+    code = re.sub(r'"([^"\\]|\\.)*"', '""', code)
+    code = re.sub(r"'([^'\\]|\\.)*'", "''", code)
+    
+    stack = []
+    line = 1
+    col = 1
+    
+    for i, char in enumerate(code):
         if char == '\n':
-            line_num += 1
-
-        if escape:
-            escape = False
-            idx += 1
-            continue
-        if in_string:
-            if char == '\\':
-                escape = True
-            elif char == in_string:
-                in_string = None
-            idx += 1
-            continue
-        if in_multi_comment:
-            if content[idx:idx+2] == '*/':
-                in_multi_comment = False
-                idx += 2
-            else:
-                idx += 1
-            continue
-        if in_single_comment:
-            if char == '\n':
-                in_single_comment = False
-            idx += 1
-            continue
-        if content[idx:idx+2] == '/*':
-            in_multi_comment = True
-            idx += 2
-            continue
-        if content[idx:idx+2] == '//':
-            in_single_comment = True
-            idx += 2
-            continue
-        if char in ['\'', '\"', '`']:
-            in_string = char
-            idx += 1
-            continue
+            line += 1
+            col = 1
+        else:
+            col += 1
             
-        if char in '{[(':
-            stack.append((char, line_num))
-        elif char in '}])':
-            if stack:
-                top, l = stack.pop()
-            else:
-                print(f"Unmatched closing '{char}' at line {line_num}")
+        if char in '({[':
+            stack.append((char, line, col))
+        elif char in ')}]':
+            if not stack:
+                print(f"Extra closing {char} at line {line}, col {col}")
                 return
-        idx += 1
-
+            opening, o_line, o_col = stack.pop()
+            if (opening == '(' and char != ')') or \
+               (opening == '{' and char != '}') or \
+               (opening == '[' and char != ']'):
+                print(f"Mismatched {opening} at line {o_line}, col {o_col} closed by {char} at line {line}, col {col}")
+                return
+                
     if stack:
-        print(f"Unclosed elements remaining: {len(stack)}")
-        for char, line in stack:
-            print(f"  '{char}' at line {line}")
+        print(f"Unclosed braces remaining: {len(stack)}")
+        for item in stack[:5]:
+            print(f"  {item[0]} at line {item[1]}, col {item[2]}")
     else:
-        print("Clean!")
+        print("Braces are balanced perfectly!")
 
-check()
+check_braces('/Users/macbookpro/ErwanzCode/Pentago copy/static/js/preview_builder.js')

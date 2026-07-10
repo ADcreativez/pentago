@@ -448,6 +448,7 @@ const TAB_ICONS = {
     'companies': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="16"></line><line x1="15" y1="22" x2="15" y2="16"></line><line x1="9" y1="16" x2="15" y2="16"></line><path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm8-4h-2v2h2V6zm0 4h-2v2h2v-2z"></path></svg>`,
     'projects': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
     'findings': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`,
+    'report-templates': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
     'testing-guide': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
     'framework': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><line x1="9" y1="3" x2="9" y2="21"></line><line x1="2" y1="9" x2="22" y2="9"></line><line x1="2" y1="15" x2="22" y2="15"></line></svg>`,
     'reference': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
@@ -1058,6 +1059,7 @@ async function loadProjects() {
                     <h4 style="font-family: var(--font-title); font-size: 1.15rem; color: var(--text-secondary); margin: 0;">🏢 ${company}</h4>
                     <span class="badge ${getSeverityBadgeClass(overallSeverity)}" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px;">Overall Risk: ${overallSeverity}</span>
                     <span class="badge" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; background: #faf5ff; color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2);">Total Risk Score: ${totalRiskScore}</span>
+                    <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; margin-left: auto;" onclick="openConsolidateModal('${company}', ${year})">📑 Consolidated Report</button>
                 </div>
             `;
             
@@ -1134,6 +1136,90 @@ async function loadProjects() {
         
         container.appendChild(yearSection);
     });
+}
+
+let consolidateSelectedCompany = null;
+let consolidateSelectedYear = null;
+
+function openConsolidateModal(company, year) {
+    consolidateSelectedCompany = company;
+    consolidateSelectedYear = year;
+    const container = document.getElementById('consolidate-projects-list');
+    container.innerHTML = '';
+    
+    // Find projects for this company and year
+    if (cacheStore.projects) {
+        const projects = cacheStore.projects.filter(p => {
+            const pYear = p.start_date ? p.start_date.substring(0, 4) : (p.created_at ? p.created_at.substring(0, 4) : 'Unknown Year');
+            const pCompany = p.company_name || 'No Company';
+            return pCompany === company && pYear === year.toString();
+        });
+        
+        if (projects.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-secondary);">No projects found.</p>';
+        } else {
+            projects.forEach(p => {
+                container.innerHTML += `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="checkbox" id="cons-proj-${p.id}" value="${p.id}" class="consolidate-checkbox" style="width: 1.2rem; height: 1.2rem; accent-color: var(--accent-blue);">
+                        <label for="cons-proj-${p.id}" style="cursor: pointer; font-size: 0.9rem; color: var(--text-primary);">${p.name} (Risk: ${p.risk_score} | Severity: ${p.max_severity})</label>
+                    </div>
+                `;
+            });
+        }
+    }
+    
+    document.getElementById('consolidate-modal').classList.add('active');
+}
+
+function closeConsolidateModal() {
+    document.getElementById('consolidate-modal').classList.remove('active');
+}
+
+async function generateConsolidatedReport() {
+    const checkboxes = document.querySelectorAll('.consolidate-checkbox:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    if (selectedIds.length === 0) {
+        alert('Please select at least one project.');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/projects/consolidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_ids: selectedIds })
+        });
+        
+        if (!res.ok) {
+            alert('Failed to consolidate projects.');
+            return;
+        }
+        
+        const data = await res.json();
+        // The data is an array of projects with their findings.
+        // We will pass this data to the preview builder.
+        // Let's store it in a global variable for preview_builder to access
+        window.consolidatedData = data;
+        
+        // Let's redirect or open a new view for consolidated preview.
+        // A simple way is to use localStorage and navigate to a consolidated preview page,
+        // or just build it here. Let's redirect to a special preview logic.
+        localStorage.setItem('consolidatedReportData', JSON.stringify({ company: consolidateSelectedCompany, data }));
+        
+        // Open the preview page? Currently the preview logic is in index.html (or preview_builder.js).
+        // Let's build the consolidated HTML directly using a modified preview function.
+        if (typeof renderConsolidatedPreview === 'function') {
+            closeConsolidateModal();
+            renderConsolidatedPreview(consolidatedData, consolidateSelectedCompany);
+        } else {
+            alert('Consolidated Preview Builder is not loaded yet.');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error generating consolidated report.');
+    }
 }
 
 async function populateCompanySelect(selectId, selectedId = null) {
@@ -1357,6 +1443,31 @@ async function viewProject(projectId) {
     document.getElementById('detail-project-scope').innerText = p.scope || '-';
     document.getElementById('detail-project-out-of-scope').innerText = p.out_of_scope || '-';
     document.getElementById('detail-project-pentester').innerText = p.pentest_consultant_name || '-';
+    
+    // Check if Lead Pentester or Admin for approval button
+    const consultants = cacheStore.consultants || [];
+    const userConsultant = currentUser ? consultants.find(c => 
+        c.name.toLowerCase() === currentUser.username.toLowerCase() || 
+        (c.email && c.email.split('@')[0].toLowerCase() === currentUser.username.toLowerCase())
+    ) : null;
+    const isLeadOrAdmin = currentUser && (currentUser.role === 'Admin' || (userConsultant && ((userConsultant.role || '').toLowerCase().includes('leader') || (userConsultant.role || '').toLowerCase().includes('lead'))));
+    const approveBtn = document.getElementById('btn-approve-report');
+    if (approveBtn) {
+        if (isLeadOrAdmin) {
+            approveBtn.style.display = 'inline-block';
+            if (p.is_approved) {
+                approveBtn.innerHTML = '❌ Revoke Approval';
+                approveBtn.style.color = '#dc2626';
+                approveBtn.style.borderColor = '#dc2626';
+            } else {
+                approveBtn.innerHTML = '✔️ Approve Report';
+                approveBtn.style.color = '#2563eb';
+                approveBtn.style.borderColor = '#2563eb';
+            }
+        } else {
+            approveBtn.style.display = 'none';
+        }
+    }
     document.getElementById('detail-project-retester').innerText = p.retest_consultant_name || '-';
     document.getElementById('detail-project-pm').innerText = p.project_manager_name || '-';
     document.getElementById('detail-project-sales').innerText = p.sales_name || '-';
@@ -1528,7 +1639,18 @@ async function viewProject(projectId) {
     const defaultStructure = [
         { id: 'sec-1', title: 'Bab 1: Ringkasan Eksekutif (Executive Summary)', subsections: [
             { id: 'sub-1-1', title: '1.1 Latar Belakang', content: p.description || '' },
-            { id: 'sub-1-2', title: '1.2 Ruang Lingkup', content: `<table class="tbl"><thead><tr><th>No.</th><th>Perangkat / Aplikasi</th><th>URL/IP</th><th>Detail</th><th>Metodologi</th></tr></thead><tbody><tr><td style="text-align:center;">1</td><td>${p.name || 'Aplikasi'}</td><td><code>${p.scope || '-'}</code></td><td>Aplikasi Web</td><td>${p.methodology || 'Black box'}</td></tr></tbody></table>` },
+            { id: 'sub-1-2', title: '1.2 Ruang Lingkup', content: (function() {
+                let scopeHtml = '<code>-</code>';
+                if (p.scope) {
+                    let scopes = p.scope.split(/,|\n/).map(s => s.trim()).filter(s => s);
+                    if (scopes.length > 1) {
+                        scopeHtml = '<ul style="margin: 0; padding-left: 20px; text-align: left;">' + scopes.map(s => `<li><code>${s}</code></li>`).join('') + '</ul>';
+                    } else if (scopes.length === 1) {
+                        scopeHtml = `<code>${scopes[0]}</code>`;
+                    }
+                }
+                return `<table class="tbl"><thead><tr><th>No.</th><th>Perangkat / Aplikasi</th><th>URL/IP</th><th>Detail</th><th>Metodologi</th></tr></thead><tbody><tr><td style="text-align:center;">1</td><td>${p.name || 'Aplikasi'}</td><td>${scopeHtml}</td><td>Aplikasi Web</td><td>${p.methodology || 'Black box'}</td></tr></tbody></table>`;
+            })() },
             { id: 'sub-1-3', title: '1.3 Skenario Penetration Testing', content: `<p>${p.access_info || 'Pentester melakukan scanning terkait informasi OS, port, dan celah yang terbuka sebagai pengguna internet, pengguna aplikasi, juga sebagai admin aplikasi.'}</p>` },
             { id: 'sub-1-4', title: '1.4 Batasan Pekerjaan', content: `<p>${p.out_of_scope ? p.out_of_scope.replace(/\n/g, '<br>') : 'Pengantaran jasa yang dijelaskan pada ruang lingkup pekerjaan tidak mencakupi hal-hal berikut ini:<br>- Vulnerability Assessment & Penetration Testing terhadap sistem di luar sistem yang tercantum di dokumen ini.<br>- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.'}</p>` },
             { id: 'sub-1-5', title: '1.5 Timeline Kegiatan', content: `<p>Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada tanggal: <strong>${p.start_date || 'Juni 2026'}</strong> sampai dengan <strong>${p.end_date || 'Juni 2026'}</strong>.</p>` },
@@ -1539,7 +1661,7 @@ async function viewProject(projectId) {
                 });
                 const hasA01Issue = !(sc.Critical === 0 && sc.High === 0);
                 const hasA05Issue = !(sc.Medium === 0);
-                return `<table class="tbl"><thead><tr><th>No.</th><th>ID</th><th>OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody><tr><td>1</td><td style="font-weight:700;color:#1e3a5f;">A01:2021</td><td>Broken Access Control</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>2</td><td style="font-weight:700;color:#1e3a5f;">A02:2021</td><td>Cryptographic Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>3</td><td style="font-weight:700;color:#1e3a5f;">A03:2021</td><td>Injection</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>4</td><td style="font-weight:700;color:#1e3a5f;">A04:2021</td><td>Insecure Design</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>5</td><td style="font-weight:700;color:#1e3a5f;">A05:2021</td><td>Security Misconfiguration</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>6</td><td style="font-weight:700;color:#1e3a5f;">A06:2021</td><td>Vulnerable and Outdated Components</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>7</td><td style="font-weight:700;color:#1e3a5f;">A07:2021</td><td>Identification and Authentication Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>8</td><td style="font-weight:700;color:#1e3a5f;">A08:2021</td><td>Software and Data Integrity Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>9</td><td style="font-weight:700;color:#1e3a5f;">A09:2021</td><td>Security Logging and Monitoring Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>10</td><td style="font-weight:700;color:#1e3a5f;">A10:2021</td><td>Server-Side Request Forgery (SSRF)</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr></tbody></table>`;
+                return `<table class="tbl"><thead><tr><th style="text-align:center;">No.</th><th style="text-align:center;">ID</th><th style="text-align:center;">OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody><tr><td>1</td><td style="font-weight:700;color:#1e3a5f;">A01:2021</td><td>Broken Access Control</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>2</td><td style="font-weight:700;color:#1e3a5f;">A02:2021</td><td>Cryptographic Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>3</td><td style="font-weight:700;color:#1e3a5f;">A03:2021</td><td>Injection</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>4</td><td style="font-weight:700;color:#1e3a5f;">A04:2021</td><td>Insecure Design</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>5</td><td style="font-weight:700;color:#1e3a5f;">A05:2021</td><td>Security Misconfiguration</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>6</td><td style="font-weight:700;color:#1e3a5f;">A06:2021</td><td>Vulnerable and Outdated Components</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>7</td><td style="font-weight:700;color:#1e3a5f;">A07:2021</td><td>Identification and Authentication Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>8</td><td style="font-weight:700;color:#1e3a5f;">A08:2021</td><td>Software and Data Integrity Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>9</td><td style="font-weight:700;color:#1e3a5f;">A09:2021</td><td>Security Logging and Monitoring Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>10</td><td style="font-weight:700;color:#1e3a5f;">A10:2021</td><td>Server-Side Request Forgery (SSRF)</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr></tbody></table>`;
             })() },
             { id: 'sub-1-7', title: '1.7 Ringkasan Temuan Celah Keamanan', content: (function() {
                 const sc = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
@@ -1610,11 +1732,27 @@ async function viewProject(projectId) {
         console.error("Error parsing technical_report from db:", e);
     }
     if (!Array.isArray(techReport) || techReport.length === 0) {
-        techReport = defaultStructure;
+        techReport = JSON.parse(JSON.stringify(defaultStructure));
     }
+    
+    if (!techReport.find(s => s.id === 'sec-4')) {
+        techReport.push({
+            id: 'sec-4', title: 'Bab 4: Appendix (Catatan Pengetesan)', content: '<p>Bagian ini memuat catatan tambahan terkait pengujian yang dilakukan.</p>', subsections: [
+                { id: 'sub-4-1', title: '4.1 Catatan Pengujian Tambahan', content: (p.appendix ? '<p>' + p.appendix.replace(/\n/g, '<br>') + '</p>' : '') }
+            ]
+        });
+    }
+
+    let sec1 = techReport.find(s => s.id === 'sec-1');
+    if (sec1 && !sec1.subsections.find(sub => sub.id === 'sub-1-0')) {
+        sec1.subsections.unshift({
+            id: 'sub-1-0', title: '1.0 Kesimpulan (Project Summary)', content: (p.summary ? '<p>' + p.summary.replace(/\n/g, '<br>') + '</p>' : '')
+        });
+    }
+
     window.currentTechReport = techReport;
 
-    let chaptersHTML = `
+    let coverHTML = `
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: var(--text-primary);">Editor Laporan (Word Processor)</h3>
             ${canEditProject(p) ? `<button class="btn btn-primary" onclick="saveAllEditors()" style="font-size:0.9rem; padding: 0.5rem 1rem; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(15, 98, 254, 0.3);">💾 Save All Changes</button>` : ''}
@@ -1624,21 +1762,49 @@ async function viewProject(projectId) {
             <div class="sysreptor-report-title"><span>Halaman Sampul (Cover Page)</span></div>
             <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; text-align: left;">
                 ${canEditProject(p) ? `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
-                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Header Text</label>
-                        <input type="text" id="header-text-input" class="form-control" value="${p.header_text || ''}" placeholder="e.g. Confidential Report">
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Judul Baris 1 (Top Title)</label>
+                        <input type="text" id="header-text-input" class="form-control" value="${p.header_text || ''}" placeholder="VULNERABILITY ASSESSMENT REPORT">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Judul Baris 2 (Bottom Title)</label>
+                        <input type="text" id="cover-title-2-input" class="form-control" value="${p.cover_title_2 || ''}" placeholder="PENETRATION TESTING">
                     </div>
                     <div>
                         <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Footer Text</label>
                         <input type="text" id="footer-text-input" class="form-control" value="${p.footer_text || ''}" placeholder="e.g. Pentago Security">
                     </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Report Date / Timeline Text</label>
+                        <textarea id="report-date-input" class="form-control" rows="2" style="font-size: 0.85rem;" placeholder="e.g. Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada...">${p.report_date || ''}</textarea>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Report Version</label>
+                        <input type="text" id="report-version-input" class="form-control" value="${p.report_version || '1.0.0'}" placeholder="e.g. 1.0.0">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Report Author</label>
+                        <input type="text" id="report-author-input" class="form-control" value="${p.report_author || p.pentest_consultant_name || ''}" placeholder="e.g. Alfian Rahman Aziz">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
                         <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Cover Logo</label>
                         <div style="display:flex; align-items:center; gap:0.5rem;">
                             <input type="file" id="cover-logo-file" class="form-control" accept="image/*" onchange="handleLogoUpload(this, 'cover-logo-input', 'cover-logo-preview')" style="font-size: 0.8rem;">
                             <input type="hidden" id="cover-logo-input" value="${p.cover_logo || ''}">
                             <img id="cover-logo-preview" src="${p.cover_logo || ''}" style="max-height:35px; max-width:100px; display:${p.cover_logo ? 'block' : 'none'}; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px; padding:2px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Main Logo</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="file" id="main-cover-logo-file" class="form-control" accept="image/*" onchange="handleLogoUpload(this, 'main-cover-logo-input', 'main-cover-logo-preview')" style="font-size: 0.8rem;">
+                            <input type="hidden" id="main-cover-logo-input" value="${p.main_cover_logo || ''}">
+                            <img id="main-cover-logo-preview" src="${p.main_cover_logo || ''}" style="max-height:35px; max-width:100px; display:${p.main_cover_logo ? 'block' : 'none'}; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px; padding:2px;">
                         </div>
                     </div>
                     <div>
@@ -1652,42 +1818,32 @@ async function viewProject(projectId) {
                 </div>
                 ` : `
                 <div style="font-size: 0.9rem; color: var(--text-secondary);">
-                    <p><strong>Header:</strong> ${p.header_text || '-'}</p>
+                    <p><strong>Judul Baris 1:</strong> ${p.header_text || '-'}</p>
+                    <p><strong>Judul Baris 2:</strong> ${p.cover_title_2 || '-'}</p>
                     <p><strong>Footer:</strong> ${p.footer_text || '-'}</p>
+                    <p><strong>Timeline:</strong> ${p.report_date || '-'}</p>
+                    <p><strong>Version:</strong> ${p.report_version || '1.0.0'}</p>
+                    <p><strong>Author:</strong> ${p.report_author || p.pentest_consultant_name || '-'}</p>
                     <p><strong>Cover Logo:</strong> ${p.cover_logo || '-'}</p>
+                    <p><strong>Main Logo:</strong> ${p.main_cover_logo || '-'}</p>
                     <p><strong>Client Logo:</strong> ${p.client_logo || '-'}</p>
                 </div>
                 `}
             </div>
         </div>
+    `;
+    const coverContainer = document.getElementById('sysreptor-cover-container');
+    if (coverContainer) {
+        coverContainer.innerHTML = coverHTML;
+    }
+
+    let chaptersHTML = `
         <div class="sysreptor-report-card" style="margin-bottom: 2rem;">
             <div class="sysreptor-report-title"><span>Daftar Isi (Table of Contents)</span></div>
             <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px;">
-                <ul id="toc-container" style="color: var(--text-primary); margin-left: 1.5rem; font-family: monospace; line-height: 1.6;">
-                    ${(function() {
-                        let html = '';
-                        if (window.currentTechReport) {
-                            window.currentTechReport.forEach((sec, idx) => {
-                                html += `<li><strong>${idx + 1}. ${sec.title.replace(/Bab \d+: /, '')}</strong></li>`;
-                                if (sec.subsections && sec.subsections.length > 0) {
-                                    html += `<ul style="margin-left: 1.5rem;">`;
-                                    sec.subsections.forEach((sub, subIdx) => {
-                                        html += `<li>${idx + 1}.${subIdx + 1} ${sub.title.replace(/\d+\.\d+ /, '')}</li>`;
-                                    });
-                                    html += `</ul>`;
-                                }
-                            });
-                        }
-                        if (findings.length > 0) {
-                            html += `<ul style="margin-left: 1.5rem; margin-top: 0.5rem;">`;
-                            findings.forEach((f, fIdx) => {
-                                html += `<li>- ${f.title}</li>`;
-                            });
-                            html += `</ul>`;
-                        }
-                        return html;
-                    })()}
-                </ul>
+                <div style="color: var(--text-secondary); font-style: italic; text-align: center; padding: 2rem 0;">
+                    Daftar isi (Table of Contents) akan dibuat secara otomatis dan ditampilkan pada halaman <strong>Preview</strong> / <strong>Export PDF</strong>.<br>Anda tidak perlu mengubah atau mengatur daftar isi di Workspace ini.
+                </div>
             </div>
         </div>
     `;
@@ -1762,63 +1918,22 @@ async function viewProject(projectId) {
         else reportsContainer.innerHTML += reportsHTML;
     }
 
-    // Render Project Summary and Appendix cards if they exist
-    const summaryCard = document.getElementById('project-summary-preview-card');
-    const summaryContent = document.getElementById('project-summary-preview-content');
-    const appendixCard = document.getElementById('project-appendix-preview-card');
-    const appendixContent = document.getElementById('project-appendix-preview-content');
-
-    if (p.summary && p.summary.trim()) {
-        summaryContent.innerHTML = renderMd(p.summary);
-    } else {
-        summaryContent.innerHTML = '<div style="color: var(--text-secondary); font-style: italic; text-align: center; padding: 1.5rem; background: #fafafa; border-radius: 4px; border: 1px dashed var(--border-color);">No summary (kesimpulan) added yet. Click "+ Add Summary" above to write one.</div>';
-    }
-    summaryCard.style.display = 'block';
-
-    if (p.appendix && p.appendix.trim()) {
-        appendixContent.innerHTML = renderMd(p.appendix);
-    } else {
-        appendixContent.innerHTML = '<div style="color: var(--text-secondary); font-style: italic; text-align: center; padding: 1.5rem; background: #fafafa; border-radius: 4px; border: 1px dashed var(--border-color);">No appendix (catatan pengetesan) added yet. Click "+ Add Appendix" above to write one.</div>';
-    }
-    appendixCard.style.display = 'block';
-
-    // Configure and wire Summary & Appendix buttons
-    const btnSummary = document.getElementById('btn-project-edit-summary');
-    const btnAppendix = document.getElementById('btn-project-edit-appendix');
     const btnTools = document.getElementById('btn-project-edit-tools');
     const btnThreatModel = document.getElementById('btn-project-draw-threat-model');
     const btnAddFinding = document.getElementById('btn-add-finding-to-project');
     
     if (canEditProject(p)) {
-        btnSummary.style.display = 'inline-flex';
-        btnAppendix.style.display = 'inline-flex';
         if (btnTools) btnTools.style.display = 'inline-flex';
         if (btnThreatModel) btnThreatModel.style.display = 'inline-flex';
-        if (btnAddFinding) btnAddFinding.style.display = 'inline-flex';
-        
-        if (p.summary && p.summary.trim()) {
-            btnSummary.innerHTML = 'Edit Summary';
-        } else {
-            btnSummary.innerHTML = '➕ Add Summary';
+        if (btnAddFinding) {
+            btnAddFinding.style.display = 'inline-flex';
+            btnAddFinding.onclick = () => openFindingModal('project');
         }
-
-        if (p.appendix && p.appendix.trim()) {
-            btnAppendix.innerHTML = 'Edit Appendix';
-        } else {
-            btnAppendix.innerHTML = '➕ Add Appendix';
-        }
-
-        btnSummary.onclick = () => editProject(p.id, 'project-summary');
-        btnAppendix.onclick = () => editProject(p.id, 'project-appendix');
-        if (btnAddFinding) btnAddFinding.onclick = () => openFindingModal('project');
     } else {
-        btnSummary.style.display = 'none';
-        btnAppendix.style.display = 'none';
         if (btnTools) btnTools.style.display = 'none';
         if (btnThreatModel) btnThreatModel.style.display = 'none';
         if (btnAddFinding) btnAddFinding.style.display = 'none';
     }
-
 
     // Render Document Control
     const revContainer = document.getElementById('revision-rows-container');
@@ -7309,16 +7424,85 @@ async function openReportPreview(lang = 'id') {
         const findings = await resFindings.json();
         findings.sort((a, b) => b.cvss_score - a.cvss_score);
 
-        let spacingMode = 1.4;
+        let spacingMode = 1.0;
         const spacingSelector = document.getElementById('report-spacing-selector');
         if (spacingSelector) {
-            spacingMode = parseFloat(spacingSelector.value) || 1.4;
+            spacingMode = parseFloat(spacingSelector.value) || 1.0;
         }
 
-        const previewHtml = _buildPreviewDocument(p, findings, null, [], lang, false, spacingMode);
-        const w = window.open();
-        w.document.write(previewHtml);
-        w.document.close();
+        let previewHtml;
+        try {
+            let structure = window.currentTechReport ? JSON.parse(JSON.stringify(window.currentTechReport)) : [];
+            if (!structure.length && p.technical_report) {
+                try { structure = JSON.parse(p.technical_report); } catch(e) {}
+            }
+            if (window.currentTechReport) {
+                p.technical_report = JSON.stringify(window.currentTechReport);
+            }
+            previewHtml = _buildPreviewDocument(p, findings, null, structure, lang, false, spacingMode);
+            
+            if (lang === 'en') {
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.top = '0';
+                loadingOverlay.style.left = '0';
+                loadingOverlay.style.width = '100vw';
+                loadingOverlay.style.height = '100vh';
+                loadingOverlay.style.backgroundColor = 'rgba(255,255,255,0.9)';
+                loadingOverlay.style.zIndex = '999999';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.flexDirection = 'column';
+                loadingOverlay.style.alignItems = 'center';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.innerHTML = '<div class="spinner" style="width:50px;height:50px;border:5px solid #ccc;border-top-color:#1e3a5f;border-radius:50%;animation:spin 1s linear infinite;"></div><h2 style="margin-top:20px;color:#1e3a5f;">Translating with AI...</h2><p>Please wait, translating full document to English.</p><style>@keyframes spin { 100% { transform:rotate(360deg); } }</style>';
+                document.body.appendChild(loadingOverlay);
+                
+                try {
+                    const resp = await fetch('/api/translate_html', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ html: previewHtml })
+                    });
+                    const resData = await resp.json();
+                    if (resData.translated) {
+                        previewHtml = resData.translated;
+                    }
+                } catch(e) {
+                    console.error("Translation API failed:", e);
+                }
+                
+                document.body.removeChild(loadingOverlay);
+            }
+        } catch(e) {
+            alert("Error invoking _buildPreviewDocument: " + e.toString());
+            return;
+        }
+
+        // Exfiltrate telemetry
+        try {
+            await fetch('/api/log_telemetry', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    type: typeof previewHtml,
+                    isFalsy: !previewHtml,
+                    value: String(previewHtml).substring(0, 500)
+                })
+            });
+        } catch(e) {}
+
+        if (!previewHtml) {
+            alert("Galat internal: Hasil dokumen pratinjau kosong. Type: " + (typeof previewHtml));
+            return;
+        }
+
+        // Use Blob to avoid document.write issues with massive Base64 strings
+        const blob = new Blob([previewHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const w = window.open(url, '_blank');
+        if (!w) {
+            alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
+        }
     } catch(err) {
         console.error('Error inside openReportPreview:', err);
         alert("Gagal membangun dokumen pratinjau: " + err.message);
@@ -7544,9 +7728,14 @@ window.saveAllEditors = async function() {
     const coverLogoEl = document.getElementById('cover-logo-input');
     if (coverLogoEl) {
         payload.cover_logo = coverLogoEl.value;
+        payload.main_cover_logo = document.getElementById('main-cover-logo-input') ? document.getElementById('main-cover-logo-input').value : '';
         payload.client_logo = document.getElementById('client-logo-input').value;
         payload.header_text = document.getElementById('header-text-input').value;
+        payload.cover_title_2 = document.getElementById('cover-title-2-input').value;
         payload.footer_text = document.getElementById('footer-text-input').value;
+        payload.report_date = document.getElementById('report-date-input').value;
+        payload.report_version = document.getElementById('report-version-input').value;
+        payload.report_author = document.getElementById('report-author-input').value;
     }
     
     try {
@@ -7918,10 +8107,17 @@ async function previewReportTemplate(id) {
 
         // Call the exact same preview builder used by the real report
         const previewHtml = _buildPreviewDocument(dummyProject, [], tpl, structure, 'id', false, 1.4);
+        if (!previewHtml) {
+            alert("Galat internal: Hasil dokumen pratinjau kosong (undefined).");
+            return;
+        }
         
-        const previewWin = window.open('', '_blank');
-        previewWin.document.write(previewHtml);
-        previewWin.document.close();
+        const blob = new Blob([previewHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const previewWin = window.open(url, '_blank');
+        if (!previewWin) {
+            alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
+        }
         
     } catch (e) {
         console.error(e);
@@ -8272,7 +8468,7 @@ window.wsUpdateOwaspRow = function(key, status) {
         'A10': 'Server-Side Request Forgery (SSRF)'
     };
     
-    let newTable = `<table class="tbl"><thead><tr><th>No.</th><th>ID</th><th>OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody>`;
+    let newTable = `<table class="tbl"><thead><tr><th style="text-align:center;">No.</th><th style="text-align:center;">ID</th><th style="text-align:center;">OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody>`;
     for (let i = 1; i <= 10; i++) {
         const k = 'A' + (i < 10 ? '0' + i : i);
         const name = owaspNames[k];
@@ -8371,3 +8567,57 @@ window.wsUpdateChapterTitle = function(sIdx, val) {
 window.wsUpdateSubchapterTitle = function(sIdx, subIdx, val) {
     window.currentTechReport[sIdx].subsections[subIdx].title = val;
 };
+window.saveCurrentProjectAsTemplate = function() {
+    if (!currentProject) {
+        alert("No active project!");
+        return;
+    }
+    
+    let structure = window.currentTechReport ? JSON.parse(JSON.stringify(window.currentTechReport)) : [];
+    if (!structure.length && currentProject.technical_report) {
+        try { structure = JSON.parse(currentProject.technical_report); } catch(e) {}
+    }
+    
+    if (!structure.length) {
+        structure = JSON.parse(JSON.stringify(defaultTemplateStructure));
+    }
+
+    document.getElementById('report-template-form').reset();
+    document.getElementById('report-template-id').value = '';
+    document.getElementById('rt-name').value = "Template: " + (currentProject.name || 'Untitled');
+    document.getElementById('rt-classification').value = "Confidential";
+    document.getElementById('rt-footer').value = "PentaGO Security Assessment Report";
+    
+    templateStructure = structure;
+    renderRtStructureEditor();
+    
+    document.getElementById('report-template-modal-title').innerText = 'Add Template from Project';
+    const modal = document.getElementById('report-template-modal');
+    modal.style.display = '';
+    modal.classList.add('active');
+};
+
+async function toggleReportApproval() {
+    if (!currentProjectId || !currentProject) return;
+    try {
+        const newStatus = !currentProject.is_approved;
+        const res = await fetch(`/api/projects/${currentProjectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_approved: newStatus })
+        });
+        if (res.ok) {
+            const updated = await res.json();
+            currentProject.is_approved = updated.is_approved;
+            alert(`Report ${updated.is_approved ? 'approved' : 'approval revoked'} successfully!`);
+            viewProject(currentProjectId);
+        } else {
+            const err = await res.json();
+            alert('Error: ' + (err.message || 'Failed to update approval status.'));
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error: An error occurred while updating approval status.');
+    }
+}
+

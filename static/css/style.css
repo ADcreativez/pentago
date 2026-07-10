@@ -244,6 +244,7 @@ body.sidebar-collapsed .sidebar-open-btn {
 .main-content {
     margin-left: 260px;
     flex: 1;
+    min-width: 0;
     padding: 2rem 3rem;
     min-height: 100vh;
     background-color: var(--workspace-bg);
@@ -507,20 +508,24 @@ body.sidebar-collapsed .main-content {
 
 /* Standardize column widths for all project list tables to ensure perfect alignment */
 .project-list-table {
-    table-layout: fixed;
     width: 100%;
+    min-width: 900px; /* Reduced min-width to allow more wrapping before scrolling */
 }
-.project-list-table th:nth-child(1), .project-list-table td:nth-child(1) { width: 18%; }
-.project-list-table th:nth-child(2), .project-list-table td:nth-child(2) { width: 8%; }
-.project-list-table th:nth-child(3), .project-list-table td:nth-child(3) { width: 8%; }
-.project-list-table th:nth-child(4), .project-list-table td:nth-child(4) { width: 10%; }
-.project-list-table th:nth-child(5), .project-list-table td:nth-child(5) { width: 9%; }
-.project-list-table th:nth-child(6), .project-list-table td:nth-child(6) { width: 9%; }
-.project-list-table th:nth-child(7), .project-list-table td:nth-child(7) { width: 8%; }
-.project-list-table th:nth-child(8), .project-list-table td:nth-child(8) { width: 9%; }
-.project-list-table th:nth-child(9), .project-list-table td:nth-child(9) { width: 4%; }
-.project-list-table th:nth-child(10), .project-list-table td:nth-child(10) { width: 9%; overflow: visible; text-overflow: clip; }
-.project-list-table th:nth-child(11), .project-list-table td:nth-child(11) { width: 8%; white-space: nowrap; }
+
+.project-list-table th, 
+.project-list-table td {
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+/* Ensure Action buttons column doesn't wrap awkwardly */
+.project-list-table th:last-child, 
+.project-list-table td:last-child {
+    white-space: nowrap !important;
+    min-width: 120px;
+}
 
 .project-list-table th:nth-child(n+2),
 .project-list-table td:nth-child(n+2) {
@@ -626,18 +631,19 @@ table td .btn {
     background: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     margin-bottom: 2rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-table {
+.table-container table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
 }
 
-th {
+.table-container th {
     background: #f8fafc;
     padding: 0.85rem 1.25rem;
     font-weight: 600;
@@ -648,18 +654,18 @@ th {
     letter-spacing: 0.5px;
 }
 
-td {
+.table-container td {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-primary);
     font-size: 0.9rem;
 }
 
-tr:last-child td {
+.table-container tr:last-child td {
     border-bottom: none;
 }
 
-tr:hover td {
+.table-container tr:hover td {
     background: #f8fafc;
 }
 
@@ -1479,7 +1485,7 @@ input:disabled {
     background: #1e3a5f !important;
     color: #fff !important;
     padding: 10px 12px !important;
-    text-align: left !important;
+    text-align: center !important;
     font-weight: 700 !important;
     border: 1px solid #1e3a5f !important;
 }
@@ -1512,7 +1518,7 @@ input:disabled {
     font-weight: 700 !important;
     font-size: 0.9rem !important;
     border: 1px solid #cbd5e1 !important;
-    text-align: left !important;
+    text-align: center !important;
 }
 
 .ql-editor table td {
@@ -1529,7 +1535,18 @@ input:disabled {
 .ql-editor table tr:first-child td {
     background-color: #1e3a5f !important;
     color: #ffffff !important;
+    text-align: center !important;
 }
 
+/* Base text styling for Quill Editor (Workspace) */
+.ql-editor {
+    font-family: Arial, Helvetica, sans-serif !important;
+    text-align: justify !important;
+    line-height: 1.5 !important;
+    font-size: 14px !important;
+}
 
-
+.ql-editor p {
+    text-align: justify !important;
+    line-height: 1.5 !important;
+}
