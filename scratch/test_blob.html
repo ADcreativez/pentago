@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        const html = '<table class="tbl"><tr><td>Hello</td></tr></table>';
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        document.write(`<a href="${url}" target="_blank">Click here</a>`);
+    </script>
+</body>
+</html>
