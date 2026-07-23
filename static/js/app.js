@@ -1693,7 +1693,7 @@ async function viewProject(projectId) {
             if (systems.length > 0) {
                 affectedPreview = systems.map(sys => {
                     if (sys.startsWith('http://') || sys.startsWith('https://')) {
-                        return `<div style="margin-bottom: 0.25rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">🔗 ${sys}</a></div>`;
+                        return `<div style="margin-bottom: 0.25rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">&bull; ${sys}</a></div>`;
                     } else {
                         return `<div style="margin-bottom: 0.25rem; font-family: monospace; font-size: 0.85rem; background: #f1f5f9; display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid var(--border-color);">${sys}</div>`;
                     }
@@ -1979,7 +1979,7 @@ async function viewProject(projectId) {
                 affectedHTML = systems.map(sys => {
                     const isUrl = sys.startsWith('http://') || sys.startsWith('https://');
                     if (isUrl) {
-                        return `<div style="margin-bottom: 0.35rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">🔗 ${sys}</a></div>`;
+                        return `<div style="margin-bottom: 0.35rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">&bull; ${sys}</a></div>`;
                     } else {
                         return `<div style="margin-bottom: 0.35rem; color: var(--text-primary); font-family: monospace; font-size: 0.85rem; background: #f1f5f9; display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--border-color); margin-right: 0.5rem;">🖥️ ${sys}</div>`;
                     }
@@ -7085,8 +7085,8 @@ function buildAffectedHTML(f, isCopy = false) {
         const isUrl = sys.startsWith('http://') || sys.startsWith('https://');
         if (isUrl) {
             return isCopy 
-                ? `<div style="margin-bottom: 4px;"><a href="${sys}" target="_blank" style="color: #0f62fe; text-decoration: none;">🔗 ${sys}</a></div>`
-                : `<div style="margin-bottom: 0.35rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">🔗 ${sys}</a></div>`;
+                ? `<div style="margin-bottom: 4px;"><a href="${sys}" target="_blank" style="color: #0f62fe; text-decoration: none;">&bull; ${sys}</a></div>`
+                : `<div style="margin-bottom: 0.35rem;"><a href="${sys}" target="_blank" style="color: var(--accent-blue); word-break: break-all; font-weight: 500; text-decoration: none;">&bull; ${sys}</a></div>`;
         } else {
             return isCopy
                 ? `<div style="margin-bottom: 4px; font-family: Consolas, monospace; font-size: 11px; background-color: #f1f5f9; display: inline-block; padding: 2px 6px; border-radius: 4px; border: 1px solid #cbd5e1; margin-right: 5px;">🖥️ ${sys}</div>`
