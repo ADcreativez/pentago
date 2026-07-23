@@ -1565,6 +1565,34 @@ async function viewProject(projectId) {
     }
     renderProjectThreatModels(diagrams);
     
+    // Render Cyber Kill Chain List
+    let kcDiagrams = [];
+    if (p.cyber_kill_chain) {
+        const cleanedKC = p.cyber_kill_chain.trim();
+        if (cleanedKC.startsWith('[')) {
+            try {
+                kcDiagrams = JSON.parse(cleanedKC);
+            } catch (e) {
+                console.error("Error parsing kill chain JSON", e);
+            }
+        } else if (cleanedKC.startsWith('{')) {
+            try {
+                const parsedKC = JSON.parse(cleanedKC);
+                kcDiagrams = [{
+                    id: 'default_kc',
+                    name: 'Default Cyber Kill Chain',
+                    image: parsedKC.image || "",
+                    elements: parsedKC.elements || [],
+                    flows: parsedKC.flows || [],
+                    type: 'killchain'
+                }];
+            } catch (e) {
+                console.error("Error parsing single KC diagram JSON", e);
+            }
+        }
+    }
+    renderProjectKillChains(kcDiagrams);
+    
     // Dynamic back button behavior
     if (currentCompanyId) {
         document.getElementById('project-back-link').onclick = () => viewCompany(currentCompanyId);
@@ -3818,6 +3846,8 @@ function switchConfigSubTab(subtab) {
     document.getElementById('config-blocklist-section').style.display = 'none';
     const verSec = document.getElementById('config-versions-section'); if(verSec) verSec.style.display = 'none';
     
+    const kSec = document.getElementById('config-kcicons-section'); if(kSec) kSec.style.display = 'none';
+
     if (subtab === 'users') {
         document.getElementById('tab-users-btn').classList.add('active');
         document.getElementById('config-users-section').style.display = 'block';
@@ -3836,6 +3866,12 @@ function switchConfigSubTab(subtab) {
         document.getElementById('tab-blocklist-btn').classList.add('active');
         document.getElementById('config-blocklist-section').style.display = 'block';
         loadBlocklist();
+    } else if (subtab === 'kcicons') {
+        const btn = document.getElementById('tab-kcicons-btn');
+        if (btn) btn.classList.add('active');
+        const sec = document.getElementById('config-kcicons-section');
+        if (sec) sec.style.display = 'block';
+        loadKCIconsConfig();
     }
 }
 
@@ -4345,27 +4381,34 @@ let tempMousePos = { x: 0, y: 0 };
 
 let currentDiagramId = null;
 let currentDiagramName = "";
+let currentStudioType = 'threat';
 
-function createNewDiagramFlow() {
+function createNewDiagramFlow(type = 'threat') {
     if (currentProject && !canEditProject(currentProject)) {
-        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can create threat model diagrams.");
+        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can create diagrams.");
         return;
     }
-    const name = prompt("Enter a name for the new Threat Model Diagram:", "New Threat Model");
+    const promptText = type === 'killchain' ? "Enter a name for the new Cyber Kill Chain:" : "Enter a name for the new Threat Model Diagram:";
+    const defaultName = type === 'killchain' ? "New Cyber Kill Chain" : "New Threat Model";
+    const name = prompt(promptText, defaultName);
     if (!name || name.trim() === "") return;
     const newId = Date.now().toString() + Math.random().toString().substr(2, 5);
-    openThreatModelStudio(newId, name.trim());
+    openThreatModelStudio(newId, name.trim(), type);
 }
 
 function openThreatModelModal() {
     createNewDiagramFlow();
 }
 
-function openThreatModelStudio(diagramId, name) {
+function openThreatModelStudio(diagramId, name, type = 'threat') {
+    if (type === 'killchain') {
+        loadWorkspaceKCIcons();
+    }
     if (currentProject && !canEditProject(currentProject)) {
-        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can edit threat model diagrams.");
+        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can edit diagrams.");
         return;
     }
+    currentStudioType = type;
     // Hide all view sections
     document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
     document.getElementById('threat-model-view').style.display = 'block';
@@ -4375,11 +4418,13 @@ function openThreatModelStudio(diagramId, name) {
     
     // Scale canvas to match device pixel ratio for high DPI / Retina screens
     const dpr = window.devicePixelRatio || 2;
-    studioCanvas.width = 1200 * dpr;
+    
+    const canvasWidth = type === 'killchain' ? 2200 : 1200;
+    studioCanvas.width = canvasWidth * dpr;
     studioCanvas.height = 700 * dpr;
-    studioCanvas.style.width = "100%";
+    studioCanvas.style.width = type === 'killchain' ? "2200px" : "100%";
     studioCanvas.style.height = "auto";
-    studioCanvas.style.maxWidth = "1200px";
+    studioCanvas.style.maxWidth = type === 'killchain' ? "none" : "1200px";
     
     selectedNodeId = null;
     isDraggingNode = false;
@@ -4392,7 +4437,22 @@ function openThreatModelStudio(diagramId, name) {
     // Set headers
     const studioTitleEl = document.querySelector('#threat-model-view h2');
     if (studioTitleEl) {
-        studioTitleEl.innerText = `Threat Modelling Studio: ${currentDiagramName}`;
+        studioTitleEl.innerText = type === 'killchain' ? `Cyber Kill Chain: ${currentDiagramName}` : `Threat Modelling Studio: ${currentDiagramName}`;
+    }
+    
+    // Toggle Toolbox Visibility
+    const threatElementsSection = document.getElementById('threat-elements-section');
+    const genericIconsSection = document.getElementById('generic-icons-section');
+    const attackIconsSection = document.getElementById('attack-icons-section');
+    
+    if (threatElementsSection) {
+        threatElementsSection.style.display = type === 'killchain' ? 'none' : 'block';
+    }
+    if (genericIconsSection) {
+        genericIconsSection.style.display = type === 'killchain' ? 'none' : 'block';
+    }
+    if (attackIconsSection) {
+        attackIconsSection.style.display = type === 'killchain' ? 'block' : 'none';
     }
     
     studioElements = [];
@@ -4428,8 +4488,9 @@ function openThreatModelStudio(diagramId, name) {
             .then(res => res.json())
             .then(p => {
                 let diagrams = [];
-                if (p.threat_model) {
-                    const cleaned = p.threat_model.trim();
+                const targetField = type === 'killchain' ? p.cyber_kill_chain : p.threat_model;
+                if (targetField) {
+                    const cleaned = targetField.trim();
                     if (cleaned.startsWith('[')) {
                         try {
                             diagrams = JSON.parse(cleaned);
@@ -4572,9 +4633,20 @@ function addStudioElement(type) {
         label = "Firewall";
         width = 80;
         height = 70;
+    } else if (type.startsWith('tech_') || type.startsWith('kc_')) {
+        width = 180;
+        height = 40;
+        if (type === 'tech_generic') {
+            label = "Custom Technique";
+        } else {
+            const found = workspaceKCIcons.find(i => i.id === type);
+            if (found) label = found.label;
+            else label = "Unknown Technique";
+        }
     }
     
-    const x = Math.floor(1200 / 2 - width / 2);
+    const cW = currentStudioType === 'killchain' ? 2200 : 1200;
+    const x = Math.floor(cW / 2 - width / 2);
     const y = Math.floor(700 / 2 - height / 2);
     
     const elem = { id, type, x, y, label, width, height };
@@ -4598,8 +4670,9 @@ function clearStudioCanvas() {
 
 function getMousePos(e) {
     const rect = studioCanvas.getBoundingClientRect();
+    const canvasWidth = currentStudioType === 'killchain' ? 2200 : 1200;
     return {
-        x: ((e.clientX - rect.left) / rect.width) * 1200,
+        x: ((e.clientX - rect.left) / rect.width) * canvasWidth,
         y: ((e.clientY - rect.top) / rect.height) * 700
     };
 }
@@ -4684,7 +4757,8 @@ function handleStudioMouseMove(e) {
     if (isDraggingNode && selectedNodeId) {
         const node = studioElements.find(item => item.id === selectedNodeId);
         if (node) {
-            node.x = Math.max(0, Math.min(1200 - node.width, pos.x - dragOffset.x));
+            const cW = currentStudioType === 'killchain' ? 2200 : 1200;
+            node.x = Math.max(0, Math.min(cW - node.width, pos.x - dragOffset.x));
             node.y = Math.max(0, Math.min(700 - node.height, pos.y - dragOffset.y));
             renderStudioDiagram();
         }
@@ -4863,8 +4937,8 @@ function getIntersectionPoint(fromNode, toNode) {
 }
 
 function drawArrowhead(ctx, x, y, angle) {
-    const arrowLength = 12;
-    const arrowWidth = 6;
+    const arrowLength = currentStudioType === 'killchain' ? 8 : 12;
+    const arrowWidth = currentStudioType === 'killchain' ? 4 : 6;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
@@ -4887,26 +4961,55 @@ function renderStudioDiagram(forExport = false) {
     studioCtx.save();
     studioCtx.scale(dpr, dpr);
     
+    const cW = currentStudioType === 'killchain' ? 2200 : 1200;
     if (forExport) {
-        // Draw solid white background for final PNG export
         studioCtx.fillStyle = '#ffffff';
-        studioCtx.fillRect(0, 0, 1200, 700);
+        studioCtx.fillRect(0, 0, cW, 700);
     } else {
-        // Draw professional grid background for editing
-        studioCtx.strokeStyle = '#f1f5f9';
-        studioCtx.lineWidth = 1;
-        const gridSpacing = 20;
-        for (let x = 0; x < 1200; x += gridSpacing) {
-            studioCtx.beginPath();
-            studioCtx.moveTo(x, 0);
-            studioCtx.lineTo(x, 700);
-            studioCtx.stroke();
-        }
-        for (let y = 0; y < 700; y += gridSpacing) {
-            studioCtx.beginPath();
-            studioCtx.moveTo(0, y);
-            studioCtx.lineTo(1200, y);
-            studioCtx.stroke();
+        if (currentStudioType === 'killchain') {
+            const columns = [
+                "Reconnaissance", "Initial Access", "Execution", "Persistence", 
+                "Privilege Escalation", "Defense Evasion", "Credential Access", 
+                "Discovery", "Collection", "Command & Control"
+            ];
+            const colWidth = cW / columns.length;
+            
+            studioCtx.fillStyle = '#fafafa';
+            studioCtx.fillRect(0, 0, cW, 700);
+            
+            for (let i = 0; i < columns.length; i++) {
+                const x = i * colWidth;
+                if (i > 0) {
+                    studioCtx.beginPath();
+                    studioCtx.setLineDash([5, 5]);
+                    studioCtx.strokeStyle = '#cbd5e1';
+                    studioCtx.moveTo(x, 0);
+                    studioCtx.lineTo(x, 700);
+                    studioCtx.stroke();
+                    studioCtx.setLineDash([]);
+                }
+                studioCtx.fillStyle = '#64748b';
+                studioCtx.font = '11px sans-serif';
+                studioCtx.textAlign = 'center';
+                studioCtx.fillText(columns[i], x + (colWidth / 2), 30);
+            }
+            studioCtx.textAlign = 'left';
+        } else {
+            studioCtx.strokeStyle = '#f1f5f9';
+            studioCtx.lineWidth = 1;
+            const gridSpacing = 20;
+            for (let x = 0; x < cW; x += gridSpacing) {
+                studioCtx.beginPath();
+                studioCtx.moveTo(x, 0);
+                studioCtx.lineTo(x, 700);
+                studioCtx.stroke();
+            }
+            for (let y = 0; y < 700; y += gridSpacing) {
+                studioCtx.beginPath();
+                studioCtx.moveTo(0, y);
+                studioCtx.lineTo(cW, y);
+                studioCtx.stroke();
+            }
         }
     }
     
@@ -4942,7 +5045,7 @@ function renderStudioDiagram(forExport = false) {
             studioCtx.moveTo(cx1, cy1);
             studioCtx.lineTo(targetPt.x, targetPt.y);
             studioCtx.strokeStyle = '#475569';
-            studioCtx.lineWidth = 2;
+            studioCtx.lineWidth = currentStudioType === 'killchain' ? 1 : 2;
             studioCtx.stroke();
             
             const angle = Math.atan2(targetPt.y - cy1, targetPt.x - cx1);
@@ -4951,16 +5054,18 @@ function renderStudioDiagram(forExport = false) {
             const mx = (cx1 + targetPt.x) / 2;
             const my = (cy1 + targetPt.y) / 2;
             
-            studioCtx.font = '10px Inter, Roboto, Arial, sans-serif';
-            studioCtx.textAlign = 'center';
-            studioCtx.textBaseline = 'middle';
-            const textWidth = studioCtx.measureText(flow.label).width;
-            
-            studioCtx.fillStyle = '#ffffff';
-            studioCtx.fillRect(mx - textWidth / 2 - 4, my - 8, textWidth + 8, 16);
-            
-            studioCtx.fillStyle = '#0f172a';
-            studioCtx.fillText(flow.label, mx, my);
+            if (currentStudioType !== 'killchain') {
+                studioCtx.font = '10px Inter, Roboto, Arial, sans-serif';
+                studioCtx.textAlign = 'center';
+                studioCtx.textBaseline = 'middle';
+                const textWidth = studioCtx.measureText(flow.label).width;
+                
+                studioCtx.fillStyle = '#ffffff';
+                studioCtx.fillRect(mx - textWidth / 2 - 4, my - 8, textWidth + 8, 16);
+                
+                studioCtx.fillStyle = '#0f172a';
+                studioCtx.fillText(flow.label, mx, my);
+            }
         }
     });
     
@@ -5036,7 +5141,7 @@ function renderStudioDiagram(forExport = false) {
             studioCtx.textAlign = 'center';
             studioCtx.textBaseline = 'middle';
             studioCtx.fillText(node.label, node.x + node.width / 2, node.y + node.height / 2);
-        } else if (['user', 'server', 'device', 'cloud', 'attacker', 'virus', 'switch', 'router', 'database', 'firewall'].includes(node.type)) {
+        } else if (['user', 'server', 'device', 'cloud', 'attacker', 'virus', 'switch', 'router', 'database', 'firewall', 'tech_generic'].includes(node.type) || node.type.startsWith('tech_') || node.type.startsWith('kc_')) {
             studioCtx.fillStyle = '#ffffff';
             studioCtx.fillRect(node.x, node.y, node.width, node.height);
             studioCtx.strokeStyle = '#334155';
@@ -5053,15 +5158,55 @@ function renderStudioDiagram(forExport = false) {
             else if (node.type === 'router') emoji = '📶';
             else if (node.type === 'database') emoji = '🗄️';
             else if (node.type === 'firewall') emoji = '🧱';
+            else if (node.type === 'tech_generic') emoji = '📝';
+            else if (node.type.startsWith('tech_') || node.type.startsWith('kc_')) {
+                const found = workspaceKCIcons.find(i => i.id === node.type);
+                if (found) emoji = found.emoji;
+                else emoji = '❓';
+            }
             
-            studioCtx.font = '24px Inter, Roboto, Arial, sans-serif';
-            studioCtx.textAlign = 'center';
-            studioCtx.textBaseline = 'middle';
-            studioCtx.fillText(emoji, node.x + node.width / 2, node.y + node.height / 2 - 8);
-            
-            studioCtx.fillStyle = '#0f172a';
-            studioCtx.font = '10px Inter, Roboto, Arial, sans-serif';
-            studioCtx.fillText(node.label, node.x + node.width / 2, node.y + node.height - 12);
+            if (node.type.startsWith('tech_') || node.type.startsWith('kc_')) {
+                studioCtx.clearRect(node.x, node.y, node.width, node.height);
+                studioCtx.fillStyle = '#fafafa';
+                studioCtx.fillRect(node.x, node.y, node.width, node.height);
+                
+                studioCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+                studioCtx.lineWidth = 1;
+                studioCtx.strokeRect(node.x, node.y, node.width, node.height);
+                
+                if (emoji.startsWith('/') || emoji.startsWith('http')) {
+                    // Try to load image
+                    if (!node.imgObj) {
+                        const img = new Image();
+                        img.crossOrigin = "Anonymous";
+                        img.src = emoji;
+                        img.onload = () => { node.imgObj = img; renderStudioDiagram(); };
+                        node.imgObj = "loading";
+                    } else if (node.imgObj !== "loading") {
+                        studioCtx.drawImage(node.imgObj, node.x + 5, node.y + (node.height/2) - 10, 20, 20);
+                    }
+                } else {
+                    studioCtx.font = '16px Inter, Roboto, Arial, sans-serif';
+                    studioCtx.textAlign = 'center';
+                    studioCtx.textBaseline = 'middle';
+                    studioCtx.fillText(emoji, node.x + 15, node.y + node.height / 2);
+                }
+                
+                studioCtx.fillStyle = '#334155';
+                studioCtx.font = '11px Inter, Roboto, Arial, sans-serif';
+                studioCtx.textAlign = 'left';
+                studioCtx.textBaseline = 'middle';
+                studioCtx.fillText(node.label, node.x + 30, node.y + node.height / 2);
+            } else {
+                studioCtx.font = '24px Inter, Roboto, Arial, sans-serif';
+                studioCtx.textAlign = 'center';
+                studioCtx.textBaseline = 'middle';
+                studioCtx.fillText(emoji, node.x + node.width / 2, node.y + node.height / 2 - 8);
+                
+                studioCtx.fillStyle = '#0f172a';
+                studioCtx.font = '10px Inter, Roboto, Arial, sans-serif';
+                studioCtx.fillText(node.label, node.x + node.width / 2, node.y + node.height - 12);
+            }
         }
         
         // Selected highlight and resize handle
@@ -5122,7 +5267,7 @@ function autoSaveDraftLocally() {
     updateDraftStatusLabel("Draft autosaved locally", "#ea580c");
 }
 
-async function saveThreatModelDraft() {
+async function saveThreatModelDraft(isPublished = false) {
     if (!studioCanvas || !currentDiagramId) return;
     autoSaveDraftLocally();
     
@@ -5138,43 +5283,17 @@ async function saveThreatModelDraft() {
     const p = await res.json();
     
     let diagrams = [];
-    if (p.threat_model) {
-        const cleaned = p.threat_model.trim();
-        if (cleaned.startsWith('[')) {
-            try {
-                diagrams = JSON.parse(cleaned);
-            } catch (e) {
-                console.error(e);
-            }
-        } else if (cleaned.startsWith('{')) {
-            try {
-                const parsed = JSON.parse(cleaned);
-                diagrams = [{
-                    id: 'default',
-                    name: 'Default Threat Model',
-                    image: parsed.image || "",
-                    elements: parsed.elements || [],
-                    flows: parsed.flows || [],
-                    threats: parsed.threats || [],
-                    status: parsed.status || 'Published'
-                }];
-            } catch (e) {
-                console.error(e);
-            }
-        } else if (cleaned.startsWith('data:image/png;base64,')) {
-            diagrams = [{
-                id: 'default',
-                name: 'Default Threat Model',
-                image: p.threat_model,
-                elements: [],
-                flows: [],
-                threats: [],
-                status: 'Published'
-            }];
+    const targetField = currentStudioType === 'killchain' ? p.cyber_kill_chain : p.threat_model;
+    
+    if (targetField) {
+        try {
+            diagrams = JSON.parse(targetField);
+            if (!Array.isArray(diagrams)) diagrams = []; // Handle old formats
+        } catch (e) {
+            console.error(e);
         }
     }
     
-    // Find if we are updating an existing diagram or adding a new one
     const diagramIndex = diagrams.findIndex(d => d.id === currentDiagramId);
     const diagramData = {
         id: currentDiagramId,
@@ -5183,7 +5302,8 @@ async function saveThreatModelDraft() {
         elements: studioElements,
         flows: studioFlows,
         threats: studioThreats,
-        status: 'Draft' // Saved as draft
+        status: isPublished ? 'Published' : 'Draft',
+        type: currentStudioType
     };
     
     if (diagramIndex > -1) {
@@ -5192,13 +5312,17 @@ async function saveThreatModelDraft() {
         diagrams.push(diagramData);
     }
     
-    // Save updated array to database
+    const payload = {};
+    if (currentStudioType === 'killchain') {
+        payload.cyber_kill_chain = JSON.stringify(diagrams);
+    } else {
+        payload.threat_model = JSON.stringify(diagrams);
+    }
+    
     await fetch(`/api/projects/${currentProjectId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            threat_model: JSON.stringify(diagrams)
-        })
+        body: JSON.stringify(payload)
     });
     
     // Clear localStorage drafts for this specific diagram
@@ -5212,98 +5336,37 @@ async function saveThreatModelDraft() {
 }
 
 async function publishThreatModelDrawing() {
-    if (!studioCanvas || !currentDiagramId) return;
+    await saveThreatModelDraft(true);
     
-    // Render clean view for export (white background, no grids, no highlights)
-    renderStudioDiagram(true);
-    const imgData = studioCanvas.toDataURL('image/png');
-    
-    // Restore editor view with grid
-    renderStudioDiagram(false);
-    
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = imgData;
-    link.download = `${currentDiagramName.toLowerCase().replace(/[^a-z0-9]/g, '_')}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Fetch current list of diagrams from server
-    const res = await fetch(`/api/projects/${currentProjectId}`);
-    const p = await res.json();
-    
-    let diagrams = [];
-    if (p.threat_model) {
-        const cleaned = p.threat_model.trim();
-        if (cleaned.startsWith('[')) {
-            try {
-                diagrams = JSON.parse(cleaned);
-            } catch (e) {
-                console.error(e);
-            }
-        } else if (cleaned.startsWith('{')) {
-            try {
-                const parsed = JSON.parse(cleaned);
-                diagrams = [{
-                    id: 'default',
-                    name: 'Default Threat Model',
-                    image: parsed.image || "",
-                    elements: parsed.elements || [],
-                    flows: parsed.flows || [],
-                    threats: parsed.threats || [],
-                    status: parsed.status || 'Published'
-                }];
-            } catch (e) {
-                console.error(e);
-            }
-        } else if (cleaned.startsWith('data:image/png;base64,')) {
-            diagrams = [{
-                id: 'default',
-                name: 'Default Threat Model',
-                image: p.threat_model,
-                elements: [],
-                flows: [],
-                threats: [],
-                status: 'Published'
-            }];
+    // Download image
+    const canvas = document.getElementById('studio-canvas');
+    if (canvas) {
+        try {
+            // Fill background white before export to avoid transparent PNG issues
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const ctx = exportCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+            
+            const dataURL = exportCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = (currentDiagramName || 'Diagram') + '.png';
+            link.href = dataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error("Error generating image download:", e);
+            alert("Error downloading image: " + e.message);
         }
     }
     
-    // Find if we are updating an existing diagram or adding a new one
-    const diagramIndex = diagrams.findIndex(d => d.id === currentDiagramId);
-    const diagramData = {
-        id: currentDiagramId,
-        name: currentDiagramName,
-        image: imgData,
-        elements: studioElements,
-        flows: studioFlows,
-        threats: studioThreats,
-        status: 'Published' // Saved as published
-    };
-    
-    if (diagramIndex > -1) {
-        diagrams[diagramIndex] = diagramData;
-    } else {
-        diagrams.push(diagramData);
-    }
-    
-    // Save updated array to database
-    await fetch(`/api/projects/${currentProjectId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            threat_model: JSON.stringify(diagrams)
-        })
-    });
-    
-    // Clear localStorage drafts for this specific diagram
-    localStorage.removeItem(`threat_model_json_${currentProjectId}_${currentDiagramId}`);
-    localStorage.removeItem(`threat_model_draft_${currentProjectId}_${currentDiagramId}`);
-    localStorage.removeItem(`threat_model_threats_${currentProjectId}_${currentDiagramId}`);
-    
-    alert("Threat model diagram published and downloaded successfully!");
-    goBackToProjectFromThreatModel();
+    alert("Diagram published successfully!");
+    document.getElementById('threat-model-view').style.display = 'none';
+    viewProject(currentProjectId);
 }
 
 function updateDraftStatusLabel(msg, color) {
@@ -5484,20 +5547,21 @@ function renderStudioThreats() {
     updateThreatsSummary('studio-threats-summary-tbody', studioThreats);
 }
 
-// Diagrams List Rendering on VAPT Project Details Page
-async function deleteThreatModelDiagram(diagramId) {
+async function deleteThreatModelDiagram(diagramId, type = 'threat') {
     if (currentProject && !canEditProject(currentProject)) {
-        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can delete threat model diagrams.");
+        alert("Unauthorized: Only assigned Pentest Consultant, Team Leader, or Admin can delete diagrams.");
         return;
     }
-    if (!confirm("Are you sure you want to delete this Threat Model Diagram? This action cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this Diagram? This action cannot be undone.")) return;
     
     const res = await fetch(`/api/projects/${currentProjectId}`);
     const p = await res.json();
     
     let diagrams = [];
-    if (p.threat_model) {
-        const cleaned = p.threat_model.trim();
+    const targetField = type === 'killchain' ? p.cyber_kill_chain : p.threat_model;
+    
+    if (targetField) {
+        const cleaned = targetField.trim();
         if (cleaned.startsWith('[')) {
             try {
                 diagrams = JSON.parse(cleaned);
@@ -5509,12 +5573,17 @@ async function deleteThreatModelDiagram(diagramId) {
     
     diagrams = diagrams.filter(d => d.id !== diagramId);
     
+    const payload = {};
+    if (type === 'killchain') {
+        payload.cyber_kill_chain = JSON.stringify(diagrams);
+    } else {
+        payload.threat_model = JSON.stringify(diagrams);
+    }
+    
     await fetch(`/api/projects/${currentProjectId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            threat_model: JSON.stringify(diagrams)
-        })
+        body: JSON.stringify(payload)
     });
     
     localStorage.removeItem(`threat_model_json_${currentProjectId}_${diagramId}`);
@@ -5549,7 +5618,7 @@ function renderProjectThreatModels(diagrams) {
     card.style.marginTop = '2rem';
     
     let rowsHTML = '';
-    diagrams.forEach((diag, idx) => {
+    diagrams.filter(d => d.type !== 'killchain').forEach((diag, idx) => {
         const num = idx + 1;
         const totalThreats = diag.threats ? diag.threats.length : 0;
         
@@ -5567,7 +5636,7 @@ function renderProjectThreatModels(diagrams) {
                     <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                         ${(currentProject && canEditProject(currentProject)) ? `
                         <button class="btn btn-secondary" onclick="openThreatModelStudio('${diag.id}', '${diag.name}')" style="width: auto; height: 32px; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; white-space: nowrap; cursor: pointer;">✏️ Edit</button>
-                        <button class="btn btn-danger" onclick="deleteThreatModelDiagram('${diag.id}')" style="width: auto; height: 32px; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; white-space: nowrap; border-color: #fecdd3; background: #fff1f2; cursor: pointer;">❌ Delete</button>
+                        <button class="btn btn-danger" onclick="deleteThreatModelDiagram('${diag.id}', '${type}')" style="width: auto; height: 32px; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; white-space: nowrap; border-color: #fecdd3; background: #fff1f2; cursor: pointer;">❌ Delete</button>
                         ` : `
                         <span style="color: var(--text-secondary); font-size: 0.8rem;">Read Only</span>
                         `}
@@ -8843,3 +8912,329 @@ function saveSystemConfig(event) {
         btn.disabled = false;
     });
 }
+
+
+function renderProjectKillChains(diagrams) {
+    const container = document.getElementById('project-killchain-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (!diagrams || diagrams.length === 0) {
+        container.innerHTML = `
+            <div class="sysreptor-report-card" style="margin-top: 2rem;">
+                <div class="sysreptor-report-title">
+                    <span>Cyber Kill Chain</span>
+                </div>
+                <div class="sysreptor-content" style="padding: 2rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; text-align: center; color: var(--text-secondary); font-style: italic;">
+                    No Cyber Kill Chain diagrams have been designed for this project yet. Click "Draw Cyber Kill Chain" above to create one.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    const card = document.createElement('div');
+    card.className = 'sysreptor-report-card';
+    card.style.marginTop = '2rem';
+    
+    let rowsHTML = '';
+    diagrams.forEach((diag, idx) => {
+        const num = idx + 1;
+        const type = diag.type || 'killchain';
+        
+        rowsHTML += `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 0.75rem 1rem; color: var(--text-primary); font-weight: 500;">${num}</td>
+                <td style="padding: 0.75rem 1rem; color: var(--text-primary); font-weight: 600;">${diag.name}</td>
+                <td style="padding: 0.75rem 1rem; text-align: center;">
+                    <span class="badge" style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid ${diag.status === 'Published' ? '#bbf7d0' : '#fed7aa'}; background: ${diag.status === 'Published' ? '#dcfce7' : '#ffedd5'}; color: ${diag.status === 'Published' ? '#15803d' : '#d97706'}; text-transform: uppercase;">
+                        ${diag.status || 'Draft'}
+                    </span>
+                </td>
+                <td style="padding: 0.75rem 1rem; text-align: center;">
+                    <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                        ${(currentProject && canEditProject(currentProject)) ? `
+                        <button class="btn btn-secondary" onclick="openThreatModelStudio('${diag.id}', '${diag.name}', '${type}')" style="width: auto; height: 32px; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; white-space: nowrap; cursor: pointer;">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteThreatModelDiagram('${diag.id}', '${type}')" style="width: auto; height: 32px; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; white-space: nowrap; border-color: #fecdd3; background: #fff1f2; cursor: pointer;">❌ Delete</button>
+                        ` : `
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">Read Only</span>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    card.innerHTML = `
+        <div class="sysreptor-report-title">
+            <span>Cyber Kill Chain</span>
+        </div>
+        <div class="sysreptor-content" style="padding: 0; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-secondary); width: 60px;">No</th>
+                        <th style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-secondary);">Diagram Title</th>
+                        <th style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-secondary); width: 120px; text-align: center;">Status</th>
+                        <th style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-secondary); width: 180px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHTML}
+                </tbody>
+            </table>
+        </div>
+    `;
+    container.appendChild(card);
+}
+
+// --- Kill Chain Icons Config ---
+let killChainIconsConfig = [];
+
+async function loadKCIconsConfig() {
+    try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.killchain_icons) {
+                killChainIconsConfig = JSON.parse(data.killchain_icons);
+            } else {
+                // Default
+                killChainIconsConfig = [
+                    { id: 'tech_goal', emoji: '🚩', label: 'Assessment Goal' },
+                    { id: 'tech_vuln', emoji: '🔍', label: 'Vulnerability Scan' },
+                    { id: 'tech_phish', emoji: '🎣', label: 'Phishing' },
+                    { id: 'tech_driveby', emoji: '🖥️', label: 'Drive-by Compromise' },
+                    { id: 'tech_wmi', emoji: '🛠️', label: 'WMI / Scripting' },
+                    { id: 'tech_inject', emoji: '💉', label: 'Process Injection' },
+                    { id: 'tech_evade', emoji: '🛡️', label: 'Defense Evasion' },
+                    { id: 'tech_cred', emoji: '🔑', label: 'Credential Access' },
+                    { id: 'tech_c2', emoji: '📡', label: 'Command & Control' }
+                ];
+            }
+            renderKCIconsTable();
+        }
+    } catch (e) { console.error(e); }
+}
+
+
+
+async function handleIconFileUpload(fileInput, index) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const res = await fetch('/api/settings/upload_icon', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.local_url) {
+            killChainIconsConfig[index].emoji = data.local_url;
+            renderKCIconsTable();
+        } else {
+            alert('Gagal mengupload gambar: ' + (data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error uploading image');
+    }
+}
+
+async function handleIconInputBlur(input, index) {
+    const val = input.value.trim();
+    if (val.startsWith('http://') || val.startsWith('https://')) {
+        input.value = 'Downloading...';
+        try {
+            const res = await fetch('/api/settings/download_icon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: val })
+            });
+            const data = await res.json();
+            if (res.ok && data.local_url) {
+                killChainIconsConfig[index].emoji = data.local_url;
+                renderKCIconsTable();
+            } else {
+                alert('Gagal mendownload gambar: ' + (data.error || 'Unknown error'));
+                input.value = val;
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error downloading image');
+            input.value = val;
+        }
+    } else {
+        killChainIconsConfig[index].emoji = val;
+        renderKCIconsTable();
+    }
+}
+
+function renderKCIconsTable() {
+    const tbody = document.getElementById('kcicons-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    killChainIconsConfig.forEach((icon, index) => {
+        let inputHtml = '';
+        if (icon.emoji.startsWith('/') || icon.emoji.startsWith('http')) {
+            inputHtml = `
+                <div style="display:flex; align-items:center; gap:0.5rem; background:#f8fafc; border:1px solid #ccc; border-radius:4px; padding:0.25rem 0.5rem;">
+                    <img src="${icon.emoji}" style="max-width:24px; max-height:24px; object-fit:contain; border-radius:2px;" />
+                    <input type="text" class="kc-emoji-input" placeholder="URL..." value="${icon.emoji.includes('Downloading') ? '' : icon.emoji}" onblur="handleIconInputBlur(this, ${index})" style="flex:1; border:none; background:transparent; font-size:0.8rem; outline:none;" title="${icon.emoji}">
+                </div>
+            `;
+        } else {
+            inputHtml = `<input type="text" class="kc-emoji-input" placeholder="Emoji / Paste URL..." value="${icon.emoji.includes('Downloading') ? '' : icon.emoji}" onblur="handleIconInputBlur(this, ${index})" style="width:100%; text-align:center; padding:0.5rem; font-size:1.2rem; border:1px solid #ccc; border-radius:4px;">`;
+        }
+        
+        tbody.innerHTML += `
+            <tr>
+                <td style="vertical-align:middle; padding: 0.75rem;">
+                    <div style="display:flex; gap:0.25rem;">
+                        <div style="flex:1;">
+                            ${inputHtml}
+                        </div>
+                        <label class="btn btn-secondary" style="margin:0; padding:0.5rem 0.6rem; cursor:pointer; border-radius:4px; display:inline-flex; align-items:center;" title="Upload File Lokal">
+                            📁
+                            <input type="file" style="display:none;" accept="image/png, image/jpeg, image/gif, image/svg+xml" onchange="handleIconFileUpload(this, ${index})">
+                        </label>
+                    </div>
+                </td>
+                <td style="vertical-align:middle;"><input type="text" class="kc-label-input" value="${icon.label}" onchange="killChainIconsConfig[${index}].label = this.value" style="width:100%; padding:0.6rem; border:1px solid #ccc; border-radius:4px; font-size:0.9rem;"></td>
+                <td style="vertical-align:middle; text-align:center;">
+                    <button type="button" onclick="deleteKCIconRow(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background 0.2s; display:inline-flex; align-items:center; justify-content:center;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'" title="Delete">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function addKCIconRow() {
+    killChainIconsConfig.push({ id: 'tech_custom_' + Date.now(), emoji: '❓', label: 'New Technique' });
+    renderKCIconsTable();
+}
+
+function deleteKCIconRow(index) {
+    killChainIconsConfig.splice(index, 1);
+    renderKCIconsTable();
+}
+
+async function saveKCIcons() {
+    const tbody = document.getElementById('kcicons-table-body');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    
+    let newConfig = [];
+    rows.forEach((row, index) => {
+        const emoji = row.querySelector('.kc-emoji-input').value;
+        const label = row.querySelector('.kc-label-input').value;
+        const existingId = killChainIconsConfig[index] ? killChainIconsConfig[index].id : 'tech_custom_' + Date.now() + Math.random().toString().substr(2,5);
+        newConfig.push({ id: existingId, emoji: emoji, label: label });
+    });
+    
+    try {
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ killchain_icons: JSON.stringify(newConfig) })
+        });
+        if (res.ok) {
+            alert('Kill Chain Icons saved successfully!');
+            killChainIconsConfig = newConfig;
+        } else {
+            alert('Failed to save config.');
+        }
+    } catch (e) { console.error(e); alert('Error saving config.'); }
+}
+
+let workspaceKCIcons = [];
+let defaultWorkspaceKCIcons = [
+    { id: 'tech_goal', emoji: '🚩', label: 'Assessment Goal' },
+    { id: 'tech_vuln', emoji: '🔍', label: 'Vulnerability Scan' },
+    { id: 'tech_phish', emoji: '🎣', label: 'Phishing' },
+    { id: 'tech_driveby', emoji: '🖥️', label: 'Drive-by Compromise' },
+    { id: 'tech_wmi', emoji: '🛠️', label: 'WMI / Scripting' },
+    { id: 'tech_inject', emoji: '💉', label: 'Process Injection' },
+    { id: 'tech_evade', emoji: '🛡️', label: 'Defense Evasion' },
+    { id: 'tech_cred', emoji: '🔑', label: 'Credential Access' },
+    { id: 'tech_c2', emoji: '📡', label: 'Command & Control' }
+];
+
+async function loadWorkspaceKCIcons() {
+    try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.killchain_icons) {
+                workspaceKCIcons = JSON.parse(data.killchain_icons);
+            } else {
+                workspaceKCIcons = defaultWorkspaceKCIcons;
+            }
+        }
+    } catch (e) { 
+        console.error(e); 
+        workspaceKCIcons = defaultWorkspaceKCIcons;
+    }
+    renderWorkspaceKCIcons();
+}
+
+function renderWorkspaceKCIcons() {
+    const section = document.getElementById('attack-icons-section');
+    if (!section) return;
+    
+    // Check if the container exists
+    let grid = section.querySelector('.grid-container');
+    if (!grid) {
+        section.innerHTML = `
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.25rem 0;">
+            <h4 style="font-family: var(--font-title); margin: 0; font-size: 0.9rem; color: var(--text-primary);">Techniques</h4>
+            <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem;"></div>
+        `;
+        grid = section.querySelector('.grid-container');
+    }
+    
+    let html = '';
+    workspaceKCIcons.forEach(icon => {
+        let iconHtml = `<span>${icon.emoji}</span>`;
+        if (icon.emoji.startsWith('/') || icon.emoji.startsWith('http')) {
+            iconHtml = `<img src="${icon.emoji}" style="max-width:24px; max-height:24px; object-fit:contain;" />`;
+        }
+        html += `
+            <button type="button" class="btn btn-secondary" onclick="addStudioElement('${icon.id}')" title="${icon.label}" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                ${iconHtml}
+            </button>
+        `;
+    });
+    
+    // Always append Custom Technique at the bottom
+    html += `
+        <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_generic')" title="Custom Technique" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px; grid-column: span 3;">
+            <span>📝 Custom Technique</span>
+        </button>
+    `;
+    
+    grid.innerHTML = html;
+}
+
+function handleStudioKeyDown(e) {
+    if (document.getElementById('threat-model-view').style.display === 'none') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedNodeId) {
+            studioElements = studioElements.filter(item => item.id !== selectedNodeId);
+            studioFlows = studioFlows.filter(flow => flow.fromId !== selectedNodeId && flow.toId !== selectedNodeId);
+            selectedNodeId = null;
+            renderStudioDiagram();
+            autoSaveDraftLocally();
+            e.preventDefault();
+        }
+    }
+}
+document.addEventListener('keydown', handleStudioKeyDown);

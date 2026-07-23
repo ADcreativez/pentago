@@ -411,6 +411,7 @@ class Project(db.Model):
     location_type = db.Column(db.String(50), default='Remote')
     used_tools = db.Column(EncryptedText)
     threat_model = db.Column(EncryptedText)
+    cyber_kill_chain = db.Column(EncryptedText)
     pentest_activity = db.Column(db.String(50), default='Not Started')
     retest_activity = db.Column(db.String(50), default='Not Started')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -501,6 +502,7 @@ class Project(db.Model):
             'location_type': self.location_type,
             'used_tools': self.used_tools,
             'threat_model': self.threat_model,
+            'cyber_kill_chain': self.cyber_kill_chain,
             'pentest_activity': self.pentest_activity,
             'retest_activity': self.retest_activity,
             'created_at': self.created_at.strftime('%Y-%m-%d'),
@@ -1467,7 +1469,7 @@ def api_projects():
         deferred_cols = (
             defer(Project.description), defer(Project.summary), defer(Project.appendix),
             defer(Project.scope), defer(Project.out_of_scope), defer(Project.access_info),
-            defer(Project.used_tools), defer(Project.threat_model)
+            defer(Project.used_tools), defer(Project.threat_model), defer(Project.cyber_kill_chain)
         )
         if company_id:
             if user.role != 'Admin' and company_id not in [c.id for c in user.allowed_companies]:
@@ -1524,6 +1526,7 @@ def api_projects():
             report_template_id=data.get('report_template_id'),
             used_tools=data.get('used_tools', ''),
             threat_model=data.get('threat_model', ''),
+            cyber_kill_chain=data.get('cyber_kill_chain', ''),
             report_date=data.get('report_date', ''),
             report_author=data.get('report_author', ''),
             change_reference=data.get('change_reference', ''),
@@ -1575,6 +1578,7 @@ def api_project(project_id):
         project.location_type = data.get('location_type', project.location_type)
         project.used_tools = data.get('used_tools', project.used_tools)
         project.threat_model = data.get('threat_model', project.threat_model)
+        project.cyber_kill_chain = data.get('cyber_kill_chain', project.cyber_kill_chain)
         project.pentest_activity = data.get('pentest_activity', project.pentest_activity)
         project.retest_activity = data.get('retest_activity', project.retest_activity)
         project.report_date = data.get('report_date', project.report_date)
@@ -2417,6 +2421,82 @@ def api_report_template_detail(id):
 
 
 # System Settings API
+
+
+@app.route('/api/settings/upload_icon', methods=['POST'])
+@login_required
+@admin_required
+def upload_icon():
+    import os
+    import uuid
+    
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    if file:
+        filename = file.filename
+        ext = os.path.splitext(filename)[1].lower()
+        if ext not in ['.png', '.jpg', '.jpeg', '.gif', '.svg']:
+            return jsonify({'error': 'Invalid file type'}), 400
+            
+        new_filename = f"icon_{uuid.uuid4().hex[:8]}{ext}"
+        save_dir = os.path.join(app.root_path, 'static', 'uploads', 'icons')
+        os.makedirs(save_dir, exist_ok=True)
+        
+        filepath = os.path.join(save_dir, new_filename)
+        file.save(filepath)
+        
+        local_url = f"/static/uploads/icons/{new_filename}"
+        return jsonify({'local_url': local_url})
+
+@app.route('/api/settings/download_icon', methods=['POST'])
+@login_required
+@admin_required
+def download_icon():
+    import requests
+    import os
+    import uuid
+    from urllib.parse import urlparse
+    
+    data = request.json
+    url = data.get('url')
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
+        
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'}
+        response = requests.get(url, stream=True, timeout=10, headers=headers)
+        response.raise_for_status()
+        
+        # Determine extension
+        content_type = response.headers.get('content-type', '')
+        ext = '.png'
+        if 'jpeg' in content_type or 'jpg' in content_type:
+            ext = '.jpg'
+        elif 'svg' in content_type:
+            ext = '.svg'
+        elif 'gif' in content_type:
+            ext = '.gif'
+            
+        filename = f"icon_{uuid.uuid4().hex[:8]}{ext}"
+        save_dir = os.path.join(app.root_path, 'static', 'uploads', 'icons')
+        os.makedirs(save_dir, exist_ok=True)
+        
+        filepath = os.path.join(save_dir, filename)
+        with open(filepath, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+                
+        local_url = f"/static/uploads/icons/{filename}"
+        return jsonify({'local_url': local_url})
+    except Exception as e:
+        print("Error downloading icon:", e)
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/settings', methods=['GET', 'POST'])
 @login_required
 @admin_required

@@ -126,6 +126,7 @@
                     <button class="config-tab-btn" id="tab-logs-btn" onclick="switchConfigSubTab('logs')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Audit Logs</button>
                     <button class="config-tab-btn" id="tab-blocklist-btn" onclick="switchConfigSubTab('blocklist')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">IP Blocklist</button>
                     <button class="config-tab-btn" id="tab-versions-btn" onclick="switchConfigSubTab('versions')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Change Log</button>
+                    <button class="config-tab-btn" id="tab-kcicons-btn" onclick="switchConfigSubTab('kcicons')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Kill Chain Icons</button>
                 </div>
                 
                 <div id="config-users-section" class="config-sub-section">
@@ -208,6 +209,33 @@
                     </div>
                 </div>
 
+                
+                <!-- Config Kill Chain Icons Sub-section -->
+                <div id="config-kcicons-section" class="config-sub-section" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">Cyber Kill Chain Dynamic Icons</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" onclick="addKCIconRow()">+ Add Icon</button>
+                            <button class="btn btn-secondary" onclick="saveKCIcons()" style="background: #10b981; border-color: #10b981; color: white;">💾 Save Configuration</button>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Configure the specific attack techniques (emoji and name) available in the Cyber Kill Chain studio toolbox.</p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">Icon (Emoji)</th>
+                                    <th>Technique Name</th>
+                                    <th style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kcicons-table-body">
+                                <!-- Dynamically populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- App Versions / System Changelog Sub-section -->
                 <div id="config-versions-section" class="config-sub-section" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -243,8 +271,6 @@
             </div>
             
             <!-- Report Templates View -->
-        
-{% endblock %}
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -257,3 +283,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+        
+{% endblock %}

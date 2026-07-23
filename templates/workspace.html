@@ -91,11 +91,11 @@
 
                 <!-- Tools and Actions -->
                 <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: -2rem; margin-bottom: 3rem;">
-                    <button class="btn btn-secondary" id="btn-project-edit-tools" onclick="openUsedToolsModal()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>🔧 Used Tools</span>
-                    </button>
-                    <button class="btn btn-secondary" id="btn-project-draw-threat-model" onclick="createNewDiagramFlow()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; background: #f8fafc;">
+                    <button class="btn btn-secondary" id="btn-project-draw-threat-model" onclick="createNewDiagramFlow('threat')" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; background: #f8fafc;">
                         <span>🎨 Draw Threat Modelling</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-project-draw-kill-chain" onclick="createNewDiagramFlow('killchain')" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; background: #f8fafc;">
+                        <span>⚔️ Draw Cyber Kill Chain</span>
                     </button>
                 </div>
 
@@ -162,8 +162,151 @@
                 <div id="project-threat-models-container" style="margin-top: 2rem;">
                 </div>
 
+                <!-- Dynamic Cyber Kill Chain Container -->
+                <div id="project-killchain-container" style="margin-top: 2rem;">
+                </div>
+
                 <!-- Summary & Appendix Preview Cards removed as they are now in the Workspace Editor -->
             </div>
 
             <!-- Threat Modelling Studio View -->
+            <div id="threat-model-view" class="view-section" style="display: none;">
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Threat Modelling Studio</h2>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary" onclick="goBackToProjectFromThreatModel()">Cancel & Back</button>
+                        <button type="button" class="btn btn-primary" onclick="saveThreatModelDraft()">Save Draft</button>
+                        <button type="button" class="btn btn-primary" style="background: #10b981; border-color: #10b981; color: white;" onclick="publishThreatModelDrawing()">Publish Diagram</button>
+                    </div>
+                </div>
+                <div class="whiteboard-layout" style="display: grid; grid-template-columns: 200px 1fr 200px; gap: 1.5rem; margin-top: 1.5rem;">
+                    <!-- Toolbox panel (Left) -->
+                    <div class="whiteboard-toolbox" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; background: #f8fafc; display: flex; flex-direction: column; gap: 1rem; align-self: start;">
+                        
+                        <div id="threat-elements-section">
+                            <h4 style="font-family: var(--font-title); margin: 0; font-size: 1rem; color: var(--text-primary);">Threat Elements</h4>
+                            
+                            <button type="button" class="btn btn-secondary" onclick="addStudioElement('actor')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px; margin-top: 1rem;">
+                                <span>👤 Actor</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="addStudioElement('process')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px; margin-top: 0.5rem;">
+                                <span>⚙️ Process</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="addStudioElement('datastore')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px; margin-top: 0.5rem;">
+                                <span>💾 Data Store</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="addStudioElement('boundary')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px; margin-top: 0.5rem;">
+                                <span>🔒 Trust Boundary</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="addStudioElement('text')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px; margin-top: 0.5rem;">
+                                <span>📝 Text Label</span>
+                            </button>
+                        </div>
+                        
+                        <div id="generic-icons-section">
+                            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.25rem 0;">
+                            <h4 style="font-family: var(--font-title); margin: 0; font-size: 0.9rem; color: var(--text-primary);">Generic Icons</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('user')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>👤 User</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('server')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>🖥️ Server</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('device')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>📱 Device</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('cloud')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>☁️ Cloud</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('attacker')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>👨‍💻 Hacker</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('virus')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>🦠 Virus</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('switch')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>🎛️ Switch</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('router')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>📶 Router</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('database')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>🗄️ Database</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('firewall')" style="justify-content: center; padding: 0.5rem; font-size: 0.8rem; border-radius: 6px;">
+                                    <span>🧱 Firewall</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="attack-icons-section">
+                            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.25rem 0;">
+                            <h4 style="font-family: var(--font-title); margin: 0; font-size: 0.9rem; color: var(--text-primary);">Techniques</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem;">
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_goal')" title="Assessment Goal" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🚩</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_vuln')" title="Vulnerability Scan" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🔍</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_phish')" title="Phishing" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🎣</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_driveby')" title="Drive-by Compromise" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🖥️</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_wmi')" title="WMI / Scripting" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🛠️</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_inject')" title="Process Injection" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>💉</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_evade')" title="Defense Evasion" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🛡️</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_cred')" title="Credential Access" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>🔑</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_c2')" title="Command & Control" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px;">
+                                    <span>📡</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="addStudioElement('tech_generic')" title="Custom Technique" style="justify-content: center; padding: 0.5rem; font-size: 1.25rem; border-radius: 6px; grid-column: span 3;">
+                                    <span>📝 Custom Technique</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <!-- Canvas workspace (Middle) -->
+                    <div id="studio-canvas-wrapper" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 100%; align-self: start;">
+                        <canvas id="studio-canvas" width="1200" height="700" style="display: block; cursor: crosshair; background: #fafafa; width: 100%; height: auto;"></canvas>
+                    </div>
+
+                    <!-- Toolbox panel (Right) -->
+                    <div class="whiteboard-toolbox" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; background: #f8fafc; display: flex; flex-direction: column; gap: 1rem; align-self: start;">
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.2rem; display: block; color: var(--text-secondary);">Connect Elements</label>
+                            <button type="button" class="btn btn-secondary" id="studio-tool-flow" onclick="setStudioTool('flow')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px;">
+                                <span>➡️ Data Flow Line</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary active" id="studio-tool-select" onclick="setStudioTool('select')" style="justify-content: flex-start; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%; border-radius: 6px;">
+                                <span>👆 Select / Drag</span>
+                            </button>
+                        </div>
+                        
+                        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.25rem 0;">
+                        
+                        <button type="button" class="btn btn-danger" onclick="clearStudioCanvas()" style="padding: 0.5rem; font-size: 0.85rem; justify-content: center; width: 100%; border-color: #fecdd3; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px;">Reset Canvas</button>
+                        
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4; background: #fff; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                            💡 <strong>Tip:</strong> Double-click an element to rename or delete it.
+                        </div>
+                        
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: auto;">
+                            <strong>Draft Status:</strong> <span id="studio-draft-status" style="font-weight: 600; color: #ea580c;">Saved locally</span>
+                        </div>
+                    </div>
+                </div>
+
 {% endblock %}
