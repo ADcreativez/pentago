@@ -42,6 +42,9 @@ echo -e "${GREEN}[*] Installing python packages...${NC}"
 pip install --upgrade pip
 pip install Flask Flask-SQLAlchemy cryptography pyotp gunicorn
 
+echo -e "${GREEN}[*] Running database migrations...${NC}"
+python3 "$APP_DIR/update_db.py"
+
 deactivate
 
 # 4. Correct file permissions for www-data (the web server user)
