@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PentaGO - Pentest Management & Reporting</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Quill Editor -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.4.20">
+    <link rel="stylesheet" href="/static/css/style.css?v=1.6.0">
 </head>
 <body>
 
@@ -50,7 +50,7 @@
         <div class="logo-container" style="flex-direction: column; align-items: center; gap: 0.5rem; position: relative; margin-bottom: 2rem;">
             <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
                 <a href="#" onclick="event.preventDefault(); switchTab('dashboard');" style="display: inline-block; outline: none; text-decoration: none;" title="Go to Dashboard">
-                    <img src="{{ url_for('static', filename='logo.png') }}" alt="PentaGO Logo" style="height: 30px; max-width: 100%; object-fit: contain; display: block; margin: 0 auto 0.25rem auto;">
+                    <img src="/static/logo.png" alt="PentaGO Logo" style="height: 30px; max-width: 100%; object-fit: contain; display: block; margin: 0 auto 0.25rem auto;">
                 </a>
                 <div class="logo-slogan" style="text-align: center; margin-top: 0.25rem; font-size: 0.65rem; line-height: 1.3;">Comprehensive Red Teaming Project Management</div>
             </div>
@@ -175,6 +175,7 @@
   
           <!-- Dynamic Page Container -->
           <div id="page-content">
+              
              <!-- Dashboard View -->
              <div id="dashboard-view" class="view-section">
                  <!-- Hero Banner -->
@@ -315,6 +316,119 @@
             </div>
 
             <!-- Consultants View -->
+            <div id="consultants-view" class="view-section" style="display: none;">
+                <div class="header" style="margin-bottom: 2rem;">
+                    <h2>Team Members</h2>
+                    <button class="btn btn-primary" id="btn-add-member" onclick="openConsultantModal()" style="display: none;">+ Add Member</button>
+                </div>
+
+                <!-- Consultants Table Section -->
+                <div style="margin-bottom: 2.5rem;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Consultants & Engineers</span>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th>Library Contributions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-consultants-table-body">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Project Managers Table Section -->
+                <div style="margin-bottom: 2.5rem;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Project Managers</span>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-pm-table-body">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sales Table Section -->
+                <div style="margin-bottom: 2.5rem;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Sales & Account Managers</span>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-sales-table-body">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consultant Detail View -->
+            <div id="consultant-detail-view" class="view-section" style="display: none;">
+                <a href="#" class="back-link" onclick="switchTab('consultants')">&larr; Back to Members</a>
+                <div class="workspace-header" style="background: #ffffff; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: center;">
+                    <div>
+                        <h2 id="detail-consultant-name" style="font-family: var(--font-title); font-size: 1.8rem; margin: 0;">Member Name</h2>
+                        <div id="detail-consultant-role" style="color: var(--text-secondary); margin-top: 0.25rem; font-weight: 500;">Role</div>
+                        <div id="detail-consultant-email" style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.25rem;">Email</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Project Status Progress</span>
+                        <div style="width: 130px; height: 130px; position: relative;">
+                            <canvas id="consultantProgressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem; font-family: var(--font-title); font-size: 1.3rem;">Assigned Projects & Progress</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Assignment Role</th>
+                                <th>Project Status</th>
+                                <th>Timeline</th>
+                                <th>Open Findings</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-consultant-projects-body">
+                            <!-- Dynamic project list -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Company Detail View -->
             <div id="company-detail-view" class="view-section" style="display: none;">
                 <a href="#" class="back-link" onclick="switchTab('companies')">&larr; Back to Clients</a>
                 <div class="header">
@@ -645,7 +759,135 @@
 
 
             <!-- Config View -->
-            <div id="report-templates-view" class="view-section" style="display: none;">
+            <div id="config-view" class="view-section" style="display: none;">
+                <div class="header">
+                    <h2>System Settings</h2>
+                </div>
+                
+                <!-- Config Tab Controls -->
+                <div class="config-tabs" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
+                    <button class="config-tab-btn active" id="tab-users-btn" onclick="switchConfigSubTab('users')" style="background: none; border: none; border-bottom: 3px solid var(--accent-blue); padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--accent-blue); transition: all 0.2s;">User Management</button>
+                    <button class="config-tab-btn" id="tab-logs-btn" onclick="switchConfigSubTab('logs')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Audit Logs</button>
+                    <button class="config-tab-btn" id="tab-blocklist-btn" onclick="switchConfigSubTab('blocklist')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">IP Blocklist</button>
+                    <button class="config-tab-btn" id="tab-versions-btn" onclick="switchConfigSubTab('versions')" style="background: none; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; font-weight: 600; font-size: 1rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">Change Log</button>
+                </div>
+                
+                <div id="config-users-section" class="config-sub-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">Users</h3>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">+ Add User</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>System Role</th>
+                                    <th>Member Role</th>
+                                    <th>MFA Status</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Config Audit Logs Sub-section -->
+                <div id="config-logs-section" class="config-sub-section" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">Audit Trail</h3>
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <input type="text" id="log-search-input" placeholder="Search logs..." oninput="loadAuditLogs()" style="width: 250px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-sans); font-size: 0.9rem;">
+                            <button class="btn btn-danger" onclick="clearAuditLogs()" style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; border-radius: 6px; height: 38px; cursor: pointer;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                Clear Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>IP Address</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="log-table-body">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Config IP Blocklist Sub-section -->
+                <div id="config-blocklist-section" class="config-sub-section" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">IP Blocklist</h3>
+                        <button class="btn btn-danger" style="background: var(--severity-critical); color: white;" onclick="openBlockIPModal()">+ Block IP</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Reason</th>
+                                    <th>Blocked At</th>
+                                    <th>Expires At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blocklist-table-body">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- App Versions / System Changelog Sub-section -->
+                <div id="config-versions-section" class="config-sub-section" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: var(--font-title); font-size: 1.3rem;">System Changelog (App Update History)</h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="changelog-version-input" placeholder="e.g. 1.0.1" style="width: 100px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-sans); font-size: 0.9rem;">
+                            <input type="text" id="changelog-desc-input" placeholder="Update description..." style="width: 350px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-sans); font-size: 0.9rem;">
+                            <button class="btn btn-primary" onclick="saveChangelog()" style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; border-radius: 6px; height: 38px; cursor: pointer;">
+                                Add Log Record
+                            </button>
+                        </div>
+                    </div>
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; color: #1e3a8a; font-size: 0.9rem; line-height: 1.5;">
+                        <strong>Informasi:</strong> Catatan ini hanya sebagai log/history pembaruan fitur aplikasi. Tidak ada aksi sistematis (seperti restore) yang terjadi saat Anda menyimpan log di sini.
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Version</th>
+                                    <th style="width: 150px;">Date</th>
+                                    <th>Feature Updates / Description</th>
+                                    <th style="width: 80px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="git-log-tbody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Report Templates View -->
+        <div id="report-templates-view" class="view-section" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div>
                     <h2 class="section-title">Report Templates</h2>
@@ -880,7 +1122,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
+
+
+          </div>
 
     <!-- Reference Category Modal -->
     <div id="reference-category-modal" class="modal-overlay">
@@ -2032,11 +2276,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
-
-    <script src="{{ url_for('static', filename='js/cwe-db.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/preview_builder.js') }}?v=1.4.61"></script>
+        <script src="/static/js/cwe-db.js"></script>
+    <script src="/static/js/preview_builder.js?v=1.6.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.4.24"></script>
+    <script src="/static/js/app.js?v=1.6.0"></script>
 
     <!-- System Config Modal -->
     <div id="system-config-modal" class="modal-overlay">

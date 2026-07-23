@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+</head>
+<body>
+    <script>
+        const dirty = '<p class="ql-align-center" style="text-align: center;">Test</p>';
+        const clean = DOMPurify.sanitize(dirty, { ADD_ATTR: ['class', 'style'] });
+        console.log(clean);
+        // We can't see browser console from here, so let's just run it in node using jsdom
+    </script>
+</body>
+</html>

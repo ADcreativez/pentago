@@ -1,5 +1,36 @@
-const ID_EN_DICTIONARY = {
-    // Structural terms & titles
+{
+    "1. RINGKASAN EKSEKUTIF": "1. EXECUTIVE SUMMARY",
+    "1.0. Kesimpulan (Project Summary)": "1.0. Conclusion (Project Summary)",
+    "1.1. Latar Belakang": "1.1. Background",
+    "1.2. Ruang Lingkup": "1.2. Scope of Work",
+    "1.3. Skenario Penetration Testing": "1.3. Penetration Testing Scenario",
+    "1.4. Batasan Pekerjaan": "1.4. Limitations of Work",
+    "Distribusi Tingkat Kerentanan": "Vulnerability Level Distribution",
+    "1.5. Timeline Kegiatan": "1.5. Timeline of Activities",
+    "1.6. OWASP TOP 10 Checklist": "1.6. OWASP TOP 10 Checklist",
+    "1.7. Ringkasan Temuan Celah Keamanan": "1.7. Summary of Vulnerability Findings",
+    "No.": "No.",
+    "Temuan": "Finding",
+    "Nilai CVSS": "CVSS Score",
+    "Klasifikasi Risiko": "Risk Classification",
+    "Status": "Status",
+    "Tidak ada temuan.": "No findings.",
+    "2. METODOLOGI": "2. METHODOLOGY",
+    "2.1. Risk Assessment": "2.1. Risk Assessment",
+    "Severity": "Severity",
+    "Definition": "Definition",
+    "2.2. Penetration Testing Tools": "2.2. Penetration Testing Tools",
+    "Judul Temuan": "Finding Title",
+    "Sistem Terdampak": "Affected System",
+    "CVSS": "CVSS",
+    "Tidak ada temuan kerentanan.": "No vulnerability findings.",
+    "3. LAPORAN TEKNIS": "3. TECHNICAL REPORT",
+    "BAB 4. APPENDIX (CATATAN PENGETESAN)": "CHAPTER 4. APPENDIX",
+    "4.1 Catatan Tambahan": "4.1 Additional Notes",
+    "Versi": "Version",
+    "Penulis": "Author",
+    "VULNERABILITY ASSESSMENT REPORT": "VULNERABILITY ASSESSMENT REPORT",
+    "PENETRATION TESTING": "PENETRATION TESTING",
     "RINGKASAN EKSEKUTIF": "EXECUTIVE SUMMARY",
     "Ringkasan Eksekutif": "Executive Summary",
     "Latar Belakang": "Background",
@@ -20,27 +51,26 @@ const ID_EN_DICTIONARY = {
     "3.3.1.1 Rincian Temuan": "3.3.1.1 Finding Details",
     "DAFTAR ISI": "TABLE OF CONTENTS",
     "PRATINJAU": "PREVIEW",
+    "Bab 1: Ringkasan Eksekutif": "Chapter 1: Executive Summary",
+    "Bab 1: Ringkasan Eksekutif (Executive Summary)": "Chapter 1: Executive Summary",
+    "1.0 Kesimpulan": "1.0 Conclusion",
+    "Bab 2: Metodologi": "Chapter 2: Methodology",
+    "Bab 2: Metodologi (Methodology)": "Chapter 2: Methodology",
+    "Bab 3: Laporan Teknis": "Chapter 3: Technical Report",
+    "Bab 3: Laporan Teknis (Technical Report)": "Chapter 3: Technical Report",
+    "Bab 4: Lampiran": "Chapter 4: Appendix",
+    "Bab 5: Penutup": "Chapter 5: Conclusion",
     "Tutup": "Close",
     "Pembuatan Laporan": "Report Creation",
-    "Sistem Terdampak": "Affected System",
-    "Judul Temuan": "Finding Title",
-    "Nilai CVSS": "CVSS Score",
-    "Klasifikasi Risiko": "Risk Classification",
     "Status Temuan": "Finding Status",
     "Status Retest": "Retest Status",
     "Tidak ada temuan": "No findings",
     "Tidak ada temuan kerentanan": "No vulnerability findings",
-    "Versi": "Version",
-    "Penulis": "Author",
-
-    // Vulnerability Levels
     "Kritis": "Critical",
     "Tinggi": "High",
     "Sedang": "Medium",
     "Rendah": "Low",
     "Informasi": "Info",
-
-    // Month Names
     "Januari": "January",
     "Februari": "February",
     "Maret": "March",
@@ -54,18 +84,11 @@ const ID_EN_DICTIONARY = {
     "November": "November",
     "Desember": "December",
     "dieksekusi oleh": "executed by",
-    
-    // Status and Tables
     "Terbuka": "Open",
     "Selesai": "Fixed",
     "Ditutup": "Closed",
     "Hasil Lulus": "Result Pass",
-    "Definition": "Definition",
     "Overall Risk": "Overall Risk",
-    "No.": "No.",
-    "Temuan": "Finding",
-    "CVSS": "CVSS",
-    "Severity": "Severity",
     "Date": "Date",
     "Version": "Version",
     "Change Reference": "Change Reference",
@@ -83,14 +106,10 @@ const ID_EN_DICTIONARY = {
     "Penilaian": "Assessment",
     "Pengujian": "Testing",
     "Pelaporan": "Reporting",
-    "Tidak ada temuan kerentanan.": "No vulnerability findings.",
-    "Tidak ada temuan.": "No findings.",
-    "Kerentanan tidak dapat dieksploitasi tetapi akan mengurangi permukaan serangan.": "Vulnerabilities cannot be exploited but will reduce the attack surface.",
-    "Kerentanan ada tetapi tidak dapat dieksploitasi atau memerlukan langkah tambahan.": "Vulnerabilities exist but cannot be exploited or require additional steps.",
+    "Kerentanan tidak dapat dieksploitasi tetapi akan mengurangi permukaan serangan.": "Vulnerability cannot be exploited but reduces the attack surface.",
+    "Kerentanan ada tetapi tidak dapat dieksploitasi atau memerlukan langkah tambahan.": "Vulnerability exists but cannot be exploited or requires additional steps.",
     "Eksploitasi sulit tetapi dapat menyebabkan peningkatan hak istimewa dan kehilangan data.": "Exploitation is difficult but can lead to privilege escalation and data loss.",
     "Eksploitasi sangat mudah dan biasanya menghasilkan kompromi tingkat sistem.": "Exploitation is very easy and typically results in system-level compromise.",
-
-    // Common Pentest Terminology
     "celah keamanan": "security vulnerability",
     "celah": "vulnerability",
     "kerentanan": "vulnerability",
@@ -112,8 +131,6 @@ const ID_EN_DICTIONARY = {
     "permintaan HTTP": "HTTP request",
     "tanggapan HTTP": "HTTP response",
     "metode HTTP": "HTTP method",
-    
-    // Exact Sentences from user screenshots
     "Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan ok pada:": "Vulnerability Assessment and Penetration Testing activities were conducted on:",
     "Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada:": "Vulnerability Assessment and Penetration Testing activities were conducted on:",
     "Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan ok pada: 23 Juli 2026.": "Vulnerability Assessment and Penetration Testing activities were conducted on: July 23, 2026.",
@@ -124,8 +141,6 @@ const ID_EN_DICTIONARY = {
     "Pada tahap ini Pentester melanjutkan kegiatan eksploitasi berdasarkan hasil Vulnerability Assessment, untuk mensimulasikan serangan attacker yang sesungguhnya.": "In this stage, the Pentester continues exploitation activities based on the results of the Vulnerability Assessment to simulate attacks of a real attacker.",
     "Pada tahap ini Pentester melanjutkan kegiatan exploitasi berdasarkan hasil Vulnerability Assessment, untuk mensimulasikan serangan attacker yang sesungguhnya.": "In this stage, the Pentester continues exploitation activities based on the results of the Vulnerability Assessment to simulate attacks of a real attacker.",
     "Tahap pertama pengujian dimulai dengan proses pengumpulan informasi intelijen untuk menentukan jenis sistem operasi, tingkat patch, layanan yang berjalan, dll.": "The first stage of testing begins with the intelligence gathering process to determine the type of operating system, patch level, running services, etc.",
-
-    // Common Template Sentences
     "sebagai pihak ketiga melakukan audit keamanan untuk aplikasi milik": "as a third party conducted a security audit for the application owned by",
     "yang diselenggarakan pada": "held on",
     "melalui pengujian penetrasi": "through penetration testing",
@@ -158,27 +173,14 @@ const ID_EN_DICTIONARY = {
     "- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.": "- Operational or disaster issues that are not caused by I3.",
     "PT Inovasi Informatika Indonesia menggunakan framework yang disesuaikan dengan target seperti Open Web Application Security Project (OWASP), Penetration Testing Execution Standard (PTES), dll.": "PT Inovasi Informatika Indonesia uses frameworks tailored to the target such as the Open Web Application Security Project (OWASP), Penetration Testing Execution Standard (PTES), etc.",
     "Pengujian ini mengikuti standar industri seperti OWASP (Open Web Application Security Project) dan PTES (Penetration Testing Execution Standard) dengan tahapan pengumpulan informasi, pemetaan kerentanan, eksploitasi, hingga analisis dampak.": "This testing follows industry standards such as OWASP (Open Web Application Security Project) and PTES (Penetration Testing Execution Standard) with stages of information gathering, vulnerability mapping, exploitation, and impact analysis.",
-    "Planning — Perjanjian antar pihak dan aturan keterlibatan. Information Gathering — Mengumpulkan informasi secara aktif dan pasif. Assessment — Mencari celah (Vulnerability Assessment) dan mensimulasikan serangan. Testing — Melakukan testing (Penetration Testing) berdasarkan OWASP Top 10. Report — Menganalisis data dan menuliskan laporan.": "Planning — Agreement between parties and rules of engagement. Information Gathering — Actively and passively collecting information. Assessment — Finding vulnerabilities (Vulnerability Assessment) and simulating attacks. Testing — Performing testing (Penetration Testing) based on OWASP Top 10. Report — Analyzing data and writing the report.",
+    "Planning \u2014 Perjanjian antar pihak dan aturan keterlibatan. Information Gathering \u2014 Mengumpulkan informasi secara aktif dan pasif. Assessment \u2014 Mencari celah (Vulnerability Assessment) dan mensimulasikan serangan. Testing \u2014 Melakukan testing (Penetration Testing) berdasarkan OWASP Top 10. Report \u2014 Menganalisis data dan menuliskan laporan.": "Planning \u2014 Agreement between parties and rules of engagement. Information Gathering \u2014 Actively and passively collecting information. Assessment \u2014 Finding vulnerabilities (Vulnerability Assessment) and simulating attacks. Testing \u2014 Performing testing (Penetration Testing) based on OWASP Top 10. Report \u2014 Analyzing data and writing the report.",
     "Tidak ada kerentanan yang ada.": "No vulnerabilities exist.",
-    "Kerentanan tidak dapat dieksploitasi tetapi akan mengurangi permukaan serangan.": "Vulnerability cannot be exploited but reduces the attack surface.",
-    "Kerentanan ada tetapi tidak dapat dieksploitasi atau memerlukan langkah tambahan.": "Vulnerability exists but cannot be exploited or requires additional steps.",
-    "Eksploitasi sulit tetapi dapat menyebabkan peningkatan hak istimewa dan kehilangan data.": "Exploitation is difficult but can lead to privilege escalation and data loss.",
-    "Eksploitasi sangat mudah dan biasanya menghasilkan kompromi tingkat sistem.": "Exploitation is very easy and typically results in system-level compromise.",
     "Alat yang digunakan: NMAP, Paramspider, Nikto, Wafw00f, Acunetix, Burpsuite Pro, SQLmap, Dalfox, Slowhttptest.": "Tools used: NMAP, Paramspider, Nikto, Wafw00f, Acunetix, Burpsuite Pro, SQLmap, Dalfox, Slowhttptest.",
     "Bagian ini memuat catatan tambahan terkait pengujian yang dilakukan.": "This section contains additional notes related to the testing performed.",
-    
-    // Cover Page & Chapter 1 Specifics
     "LAPORAN PENILAIAN KERENTANAN": "VULNERABILITY ASSESSMENT REPORT",
     "PENGUJIAN PENETRASI": "PENETRATION TESTING",
     "Kesimpulan (Project Summary)": "Conclusion (Project Summary)",
-    "1.0. Kesimpulan (Project Summary)": "1.0. Conclusion (Project Summary)",
-    "1.1. Latar Belakang": "1.1. Background",
-    "1.2. Ruang Lingkup": "1.2. Scope of Work",
-    "1.3. Skenario Penetration Testing": "1.3. Penetration Testing Scenario",
-    "1.4. Batasan Pekerjaan": "1.4. Limitations of Work",
-    "1.5. Timeline Kegiatan": "1.5. Timeline of Activities",
     "1.6. OWASP TOP 10 Application Security Risk Checklist - 2021": "1.6. OWASP TOP 10 Application Security Risk Checklist - 2021",
-    "1.7. Ringkasan Temuan Celah Keamanan": "1.7. Summary of Vulnerability Findings",
     "Dokumen ini merupakan laporan teknis dari kegiatan Vulnerability Assessment dan Penetration Testing yang dilakukan oleh PT Inovasi Informatika Indonesia (I3) terhadap ": "This document is a technical report of the Vulnerability Assessment and Penetration Testing activities conducted by PT Inovasi Informatika Indonesia (I3) on the ",
     " milik ": " owned by ",
     ". Tujuan dari pengujian ini adalah untuk mengidentifikasi kerentanan keamanan yang ada di dalam sistem yang dapat dimanfaatkan oleh penyerang, serta memberikan rekomendasi perbaikan untuk memitigasi risiko tersebut.": ". The purpose of this testing is to identify security vulnerabilities existing within the system that could be exploited by an attacker, as well as to provide remediation recommendations to mitigate these risks.",
@@ -190,8 +192,6 @@ const ID_EN_DICTIONARY = {
     "Metodologi": "Methodology",
     "Aktivitas kegiatan Vulnerability Assessment dan Penetration Testing dilakukan pada tanggal: ": "Vulnerability Assessment and Penetration Testing activities were conducted on: ",
     "Pengujian penetrasi (Penetration Testing) bertujuan untuk mensimulasikan skenario serangan nyata guna mengidentifikasi kerentanan keamanan pada sistem target sebelum dieksploitasi oleh pihak yang tidak bertanggung jawab.": "Penetration testing aims to simulate real attack scenarios to identify security vulnerabilities on the target system before they are exploited by irresponsible parties.",
-    
-    // Verbs and prepositions
     "ditemukan pada": "found on",
     "memanfaatkan": "exploit",
     "mengakses": "access",
@@ -202,19 +202,15 @@ const ID_EN_DICTIONARY = {
     "mengirimkan": "send",
     "menampilkan": "display",
     "mengidentifikasi": "identify",
-    
-    // General Nouns
     "pengguna": "user",
     "penyerang": "attacker",
     "aplikasi": "application",
     "sistem": "system",
     "informasi": "information",
-    "kredensial": "credentials",
     "halaman": "page",
     "parameter": "parameter",
     "permintaan": "request",
     "tanggapan": "response",
-    "kesalahan konfigurasi": "misconfiguration",
     "perbaikan": "remediation",
     "rekomendasi": "recommendation",
     "solusi": "solution",
@@ -222,8 +218,6 @@ const ID_EN_DICTIONARY = {
     "deskripsi": "description",
     "tabel": "table",
     "gambar": "figure",
-    
-    // Connective words
     " karena ": " because ",
     " untuk ": " to ",
     " pada ": " on ",
@@ -234,27 +228,4 @@ const ID_EN_DICTIONARY = {
     " tidak ": " not ",
     " dapat ": " can ",
     " akan ": " will "
-};
-
-function localTranslateText(text) {
-    if (!text) return '';
-    let translated = text;
-    // Sort keys by length descending to replace longer sentences/phrases first
-    const keys = Object.keys(ID_EN_DICTIONARY).sort((a, b) => b.length - a.length);
-    for (const key of keys) {
-        // Safe escaping for regex
-        const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(escapedKey, 'gi');
-        translated = translated.replace(regex, (match) => {
-            // Match case
-            if (match === match.toUpperCase()) {
-                return ID_EN_DICTIONARY[key].toUpperCase();
-            }
-            if (match[0] === match[0].toUpperCase()) {
-                return ID_EN_DICTIONARY[key][0].toUpperCase() + ID_EN_DICTIONARY[key].slice(1);
-            }
-            return ID_EN_DICTIONARY[key];
-        });
-    }
-    return translated;
 }

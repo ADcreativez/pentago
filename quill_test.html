@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+</head>
+<body>
+    <div id="editor"><p>test text</p></div>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script>
+        var quill = new Quill('#editor', {theme: 'snow', modules: {toolbar: [[{align: []}]]}});
+        quill.formatText(0, 5, 'align', 'center');
+        setTimeout(() => {
+            console.log(document.querySelector('#editor .ql-editor').innerHTML);
+            const fs = require('fs'); // in phantom/puppeteer this wouldn't work but we can just node it if we had jsdom
+        }, 1000);
+    </script>
+</body>
+</html>

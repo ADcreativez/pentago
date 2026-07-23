@@ -11,11 +11,41 @@ import json
 import pyotp
 
 app = Flask(__name__)
+
+# --- Translation Logic Setup ---
+try:
+    with open('dictionary_id_en.json', 'r') as f:
+        ID_EN_DICTIONARY = json.load(f)
+    # Sort keys by length descending to replace longer phrases first
+    sorted_keys = sorted(ID_EN_DICTIONARY.keys(), key=len, reverse=True)
+    TRANSLATION_PATTERNS = []
+    for key in sorted_keys:
+        escaped = re.escape(key)
+        TRANSLATION_PATTERNS.append((re.compile(escaped, re.IGNORECASE), key, ID_EN_DICTIONARY[key]))
+except Exception as e:
+    print("Warning: Could not load dictionary_id_en.json:", e)
+    TRANSLATION_PATTERNS = []
+
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'pentago.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'connect_args': {
+        'timeout': 15
+    }
+}
 app.config['SECRET_KEY'] = 'pentago-secret-key-12345'
 db = SQLAlchemy(app)
+
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.close()
 
 with app.app_context():
     try:
@@ -563,6 +593,21 @@ class Finding(db.Model):
             'created_at': self.created_at.strftime('%Y-%m-%d')
         }
 
+
+
+class SystemSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(EncryptedText)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'key': self.key,
+            'value': self.value,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class SystemChangelog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1173,6 +1218,27 @@ def import_framework_excel():
 def index():
     return render_template('index.html')
 
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/workspace/<int:project_id>')
+def workspace(project_id):
+    # Optional: We could check if user has access to project_id here!
+    return render_template('workspace.html', project_id=project_id)
+
+@app.route('/companies')
+@app.route('/projects')
+@app.route('/findings')
+@app.route('/consultants')
+@app.route('/report-templates')
+@app.route('/testing-guide')
+@app.route('/framework')
+@app.route('/reference')
+@app.route('/config')
+def serve_spa():
+    return render_template('index.html')
+
 # API Routes
 @app.route('/api/dashboard', methods=['GET'])
 @login_required
@@ -1282,6 +1348,12 @@ def get_dashboard_stats():
     })
 
 # Company CRUD
+@app.route('/admin')
+@login_required
+@admin_required
+def admin():
+    return render_template('admin.html', active_page='admin')
+
 @app.route('/api/companies', methods=['GET', 'POST'])
 @login_required
 def api_companies():
@@ -2342,6 +2414,361 @@ def api_report_template_detail(id):
         db.session.commit()
         return jsonify({'message': 'Deleted'})
 
+
+
+# System Settings API
+@app.route('/api/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_settings():
+    if request.method == 'GET':
+        settings = SystemSettings.query.all()
+        return jsonify({s.key: s.value for s in settings})
+    else:
+        data = request.json
+        for key, value in data.items():
+            setting = SystemSettings.query.filter_by(key=key).first()
+            if setting:
+                setting.value = value
+                setting.updated_at = datetime.utcnow()
+            else:
+                setting = SystemSettings(key=key, value=value)
+                db.session.add(setting)
+        db.session.commit()
+        log_audit("UPDATE_SETTINGS", "Updated system settings")
+        return jsonify({'message': 'Settings updated successfully'})
+
+# AI Translation API
+
+import json
+import re
+
+def strip_base64_images(html_str, image_store):
+    if not html_str:
+        return html_str
+    
+    # Regex to match src="data:image/...;base64,..."
+    pattern = r'src=["\'](data:image/[^;]+;base64,[^"\']+)["\']'
+    
+    def replacer(match):
+        base64_data = match.group(1)
+        placeholder = f"[[IMG_PLACEHOLDER_{len(image_store)}]]"
+        image_store[placeholder] = base64_data
+        return f'src="{placeholder}"'
+        
+    return re.sub(pattern, replacer, str(html_str))
+
+def restore_base64_images(html_str, image_store):
+    if not html_str:
+        return html_str
+    for placeholder, base64_data in image_store.items():
+        html_str = html_str.replace(placeholder, base64_data)
+    return html_str
+
+@app.route('/api/translate_report_data', methods=['POST'])
+@login_required
+def translate_report_data():
+    try:
+        data = request.json
+        project = data.get('project', {})
+        findings = data.get('findings', [])
+        structure = data.get('structure', [])
+        
+        api_key_setting = SystemSettings.query.filter_by(key='gemini_api_key').first()
+        if not api_key_setting or not api_key_setting.value:
+            return jsonify({'error': 'Gemini API Key is not configured in System Settings.'}), 400
+
+        image_store = {}
+        strings_to_translate = []
+        mapping = [] # to remember where to put the translated string back
+
+        # Helper to queue a string for translation
+        def queue_for_translation(obj, key, field_path):
+            val = obj.get(key)
+            if val and isinstance(val, str) and val.strip():
+                stripped_val = strip_base64_images(val, image_store)
+                strings_to_translate.append(stripped_val)
+                mapping.append((obj, key))
+
+        # Project fields (standard text)
+        project_text_fields = [
+            'assignment_target', 'access_info', 'scope_of_work', 
+            'header_text', 'cover_title_2', 'footer_text', 'report_date',
+            'summary', 'description', 'methodology', 'out_of_scope', 
+            'flow_description', 'appendix'
+        ]
+        for k in project_text_fields:
+            queue_for_translation(project, k, 'project')
+
+        # Handle technical_report (JSON)
+        tech_report_raw = project.get('technical_report')
+        tech_report_parsed = None
+        if tech_report_raw and isinstance(tech_report_raw, str):
+            try:
+                tech_report_parsed = json.loads(tech_report_raw)
+                if isinstance(tech_report_parsed, list):
+                    for sec in tech_report_parsed:
+                        queue_for_translation(sec, 'title', 'tech_report')
+                        queue_for_translation(sec, 'content', 'tech_report')
+                        subs = sec.get('subsections') or sec.get('subchapters') or []
+                        for sub in subs:
+                            queue_for_translation(sub, 'title', 'tech_report')
+                            queue_for_translation(sub, 'content', 'tech_report')
+                elif isinstance(tech_report_parsed, dict):
+                    queue_for_translation(tech_report_parsed, 'intro', 'tech_report')
+                    subs = tech_report_parsed.get('subsections') or tech_report_parsed.get('subchapters') or []
+                    for sub in subs:
+                        queue_for_translation(sub, 'title', 'tech_report')
+                        queue_for_translation(sub, 'content', 'tech_report')
+            except Exception:
+                queue_for_translation(project, 'technical_report', 'project')
+
+        # Handle risk_assessment (JSON)
+        risk_assessment_raw = project.get('risk_assessment')
+        risk_assessment_parsed = None
+        if risk_assessment_raw and isinstance(risk_assessment_raw, str):
+            try:
+                risk_assessment_parsed = json.loads(risk_assessment_raw)
+                if isinstance(risk_assessment_parsed, list):
+                    for r in risk_assessment_parsed:
+                        queue_for_translation(r, 'severity', 'risk')
+                        queue_for_translation(r, 'def', 'risk')
+            except Exception:
+                pass
+        # Handle change_reference (JSON)
+        change_ref_raw = project.get('change_reference')
+        change_ref_parsed = None
+        if change_ref_raw and isinstance(change_ref_raw, str):
+            try:
+                change_ref_parsed = json.loads(change_ref_raw)
+                if isinstance(change_ref_parsed, list):
+                    for rev in change_ref_parsed:
+                        queue_for_translation(rev, 'reference', 'change_ref')
+            except Exception:
+                pass
+                
+        # Findings fields
+        for f in findings:
+            for k in ['title', 'vulnerability_name', 'description', 'impact', 'recommendation', 'proof_of_concept']:
+                queue_for_translation(f, k, 'finding')
+                
+        # Structure fields
+        for s in structure:
+            queue_for_translation(s, 'title', 'structure')
+            queue_for_translation(s, 'content', 'structure')
+            
+            # Handle both 'subsections' and 'subchapters' naming conventions
+            subs = s.get('subsections') or s.get('subchapters') or []
+            for sub in subs:
+                queue_for_translation(sub, 'title', 'structure')
+                queue_for_translation(sub, 'content', 'structure')
+
+        if not strings_to_translate:
+            return jsonify({'project': project, 'findings': findings, 'structure': structure})
+
+        from google import genai
+        from google.genai import types
+        
+        client = genai.Client(api_key=api_key_setting.value)
+        
+        prompt = """
+You are an expert penetration testing report translator.
+Translate the following JSON array of HTML strings from Indonesian to English.
+CRITICAL INSTRUCTIONS:
+1. Return ONLY a valid JSON array of strings in the exact same order as the input.
+2. PRESERVE ALL HTML TAGS, attributes, inline styles, and classes exactly as they are. DO NOT REMOVE ANY HTML TAGS.
+3. PRESERVE all placeholders like [[IMG_PLACEHOLDER_0]] exactly as they are.
+4. Translate EVERY SINGLE WORD of the text content inside the HTML tags into professional English.
+5. Do NOT wrap the JSON output in markdown backticks. Return the raw JSON array.
+"""
+        
+        # We process in batches to avoid overwhelming the model or hitting output limits
+        BATCH_SIZE = 20
+        translated_strings = []
+        
+        for i in range(0, len(strings_to_translate), BATCH_SIZE):
+            batch = strings_to_translate[i:i+BATCH_SIZE]
+            
+            from google.genai.types import HarmCategory, HarmBlockThreshold, SafetySetting
+            safety_settings = [
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
+            ]
+            
+            try:
+                import time
+                retries = 3
+                for attempt in range(retries):
+                    try:
+                        response = client.models.generate_content(
+                            model='gemini-2.5-flash',
+                            contents=[prompt, json.dumps(batch)],
+                            config=types.GenerateContentConfig(
+                                temperature=0.1,
+                                max_output_tokens=8192,
+                                response_mime_type="application/json",
+                                safety_settings=safety_settings
+                            )
+                        )
+                        batch_result = json.loads(response.text)
+                        if not isinstance(batch_result, list) or len(batch_result) != len(batch):
+                            raise ValueError("Mismatch length or not a list")
+                        translated_strings.extend(batch_result)
+                        break
+                    except Exception as e:
+                        if "429" in str(e) or "Too Many Requests" in str(e):
+                            if attempt < retries - 1:
+                                time.sleep(5)
+                                continue
+                        raise e
+                time.sleep(2) # delay between batches
+            except Exception as e:
+                print(f"Translation failed for a batch (Safety/API Error): {e}")
+                translated_strings.extend(batch)
+
+        # Restore mapping and images
+        for i, trans_str in enumerate(translated_strings):
+            obj, key = mapping[i]
+            restored = restore_base64_images(trans_str, image_store)
+            obj[key] = restored
+            print(f"[TRANSLATE DEBUG] {key}: {restored[:100]}")
+
+        # Repack JSON fields if we parsed them
+        if tech_report_parsed is not None:
+            project['technical_report'] = json.dumps(tech_report_parsed)
+        if risk_assessment_parsed is not None:
+            project['risk_assessment'] = json.dumps(risk_assessment_parsed)
+        if change_ref_parsed is not None:
+            project['change_reference'] = json.dumps(change_ref_parsed)
+
+        return jsonify({'project': project, 'findings': findings, 'structure': structure})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/translate', methods=['POST'])
+@login_required
+def translate_api():
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        text = data['text']
+        if not text:
+            return jsonify({'translated': ''})
+            
+        translated = text
+        
+        # If it looks like HTML, parse it safely
+        if '<' in text and '>' in text:
+            from bs4 import BeautifulSoup, Comment
+            from deep_translator import GoogleTranslator
+            
+            soup = BeautifulSoup(text, 'html.parser')
+            text_nodes = []
+            
+            for text_node in soup.find_all(string=True):
+                if isinstance(text_node, Comment):
+                    continue
+                if text_node.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
+                    continue
+                original_text = text_node.string
+                if not original_text or not original_text.strip():
+                    continue
+                text_nodes.append(text_node)
+            
+            # Hybrid Translation: Use local dict first, then Google Translate for the rest
+            to_google_translate = []
+            node_map = [] # To keep track of which node needs Google Translate
+            
+            for node in text_nodes:
+                orig = node.string
+                clean = orig.strip()
+                
+                # Check exact match in dict
+                exact = next((v for k, v in ID_EN_DICTIONARY.items() if k.lower() == clean.lower()), None)
+                if exact:
+                    # Replace only the non-whitespace part
+                    new_text = orig.replace(clean, exact)
+                    node.replace_with(new_text)
+                    continue
+                
+                # Check if it has actual letters to translate
+                if not any(c.isalpha() for c in clean):
+                    continue
+                
+                # If it's a short text, try regex patterns
+                if len(clean.split()) < 4:
+                    node_translated = orig
+                    for pattern, key, value in TRANSLATION_PATTERNS:
+                        def repl(match):
+                            m = match.group(0)
+                            if m == m.upper():
+                                return value.upper()
+                            if m and m[0] == m[0].upper():
+                                return value[0].upper() + value[1:] if value else value
+                            return value
+                        node_translated = pattern.sub(repl, node_translated)
+                    
+                    if node_translated != orig:
+                        node.replace_with(node_translated)
+                        continue
+                
+                # If still here, it needs Google Translate (e.g. user finding descriptions)
+                to_google_translate.append(clean)
+                node_map.append((node, orig, clean))
+            
+            # Batch translate with Google Translate
+            if to_google_translate:
+                try:
+                    print(f"[TRANSLATE DEBUG] Sending {len(to_google_translate)} nodes to Google Translate")
+                    translator = GoogleTranslator(source='id', target='en')
+                    # GoogleTranslator handles batches safely, but we chunk it just in case
+                    batch_size = 25
+                    translated_batch = []
+                    for i in range(0, len(to_google_translate), batch_size):
+                        chunk = to_google_translate[i:i + batch_size]
+                        print(f"[TRANSLATE DEBUG] Translating chunk of {len(chunk)} items...")
+                        try:
+                            res = translator.translate_batch(chunk)
+                            translated_batch.extend(res)
+                        except Exception as batch_e:
+                            print(f"[TRANSLATE DEBUG] Batch failed: {batch_e}. Falling back to individual.")
+                            for text_item in chunk:
+                                try:
+                                    res_item = translator.translate(text_item)
+                                    translated_batch.append(res_item if res_item else text_item)
+                                except Exception as single_e:
+                                    print(f"[TRANSLATE DEBUG] Single failed: {single_e}")
+                                    translated_batch.append(text_item)
+                    
+                    for i, translated_text in enumerate(translated_batch):
+                        node, orig, clean = node_map[i]
+                        if translated_text and translated_text != clean:
+                            new_text = orig.replace(clean, translated_text)
+                            node.replace_with(new_text)
+                except Exception as e:
+                    print("GoogleTranslator fatal error:", e)
+                    
+            translated = str(soup)
+        else:
+            # Simple text (not HTML)
+            from deep_translator import GoogleTranslator
+            try:
+                translated = GoogleTranslator(source='id', target='en').translate(text)
+            except:
+                pass # fallback to original
+
+        return jsonify({'translated': translated})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,4 +1,4 @@
-let activeTab = window.location.pathname === '/' ? 'dashboard' : window.location.pathname.substring(1);
+let activeTab = 'dashboard';
 let currentCompanyId = null;
 let currentProjectId = null;
 let currentProject = null;
@@ -106,15 +106,6 @@ function checkAuth() {
                 renderSidebarNav();
                 checkAdminUI();
                 switchTab(activeTab);
-                
-                // If we are on a workspace endpoint, open the project automatically
-                if (window.location.pathname.startsWith('/workspace/')) {
-                    const parts = window.location.pathname.split('/');
-                    const pid = parseInt(parts[2]);
-                    if (!isNaN(pid)) {
-                        viewProject(pid);
-                    }
-                }
                 
                 startMfaCountdown(currentUser);
             } else {
@@ -390,7 +381,6 @@ function updateBellNotificationStatus() {
             viewedIds = JSON.parse(stored);
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
     }
     
@@ -492,37 +482,7 @@ function toggleSidebar() {
 }
 
 function switchTab(tab) {
-    // Cross-endpoint navigation support for Admin
-    if (['config', 'consultants'].includes(tab)) {
-        if (window.location.pathname !== '/admin') {
-            window.location.href = '/admin?tab=' + tab;
-            return;
-        }
-    }
-
     activeTab = tab;
-    
-    // Check if the target view exists in the current DOM
-    // If not, we are on a different HTML page (like workspace.html) and need to reload
-    let targetView = document.getElementById(tab + '-view');
-    
-    // Special case for dashboard which might be its own page or in index.html
-    if (!targetView) {
-        // Prevent infinite loop by checking if we are already on the target path
-        if (window.location.pathname !== '/' + tab) {
-            window.location.href = '/' + tab;
-        } else {
-            renderSidebarNav();
-        }
-        return;
-    }
-
-    // Update URL to match endpoint without reloading the page
-    if (tab === 'dashboard') {
-        history.pushState(null, '', '/dashboard');
-    } else {
-        history.pushState(null, '', '/' + tab);
-    }
     
     // Re-render sidebar to highlight active menu
     renderSidebarNav();
@@ -1257,7 +1217,6 @@ async function generateConsolidatedReport() {
             alert('Consolidated Preview Builder is not loaded yet.');
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert('Error generating consolidated report.');
     }
@@ -1443,10 +1402,6 @@ async function deleteProject(id) {
 }
 
 async function viewProject(projectId) {
-    if (!window.location.pathname.startsWith('/workspace/')) {
-        window.location.href = '/workspace/' + projectId;
-        return;
-    }
     currentProjectId = projectId;
     const resProj = await fetch(`/api/projects/${projectId}`);
     const p = await resProj.json();
@@ -6122,12 +6077,6 @@ async function deleteChecklistItem(rowIndex) {
 
 // --- Admin visibility control ---
 function checkAdminUI() {
-    // Show System Config only for Admin
-    const navSysConfig = document.getElementById('nav-system-config');
-    if (navSysConfig) {
-        navSysConfig.style.display = (currentUser && currentUser.role === 'Admin') ? 'flex' : 'none';
-    }
-
     const isAdmin = currentUser && currentUser.role === 'Admin';
     document.querySelectorAll('.admin-only-ui').forEach(el => {
         el.style.display = isAdmin ? '' : 'none';
@@ -6162,7 +6111,6 @@ async function handleGuideExcelUpload(event) {
             alert(`Gagal mengimport: ${result.error}`);
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert(`Error: ${e.message}`);
     }
@@ -6556,7 +6504,6 @@ async function handleFrameworkExcelUpload(event) {
             alert(`Gagal mengimport: ${result.error}`);
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert(`Error: ${e.message}`);
     }
@@ -6751,7 +6698,6 @@ async function saveReferencesDataBackend() {
         }
         cacheStore.references = null;
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert("Failed to save references to server: " + e.message);
     }
@@ -6961,7 +6907,7 @@ function renderMarkdownToHtml(txt, imgCounterObj = { val: 0 }) {
         }
         parsedHtml = marked.parse(preparedTxt, { renderer: renderer });
         if (typeof DOMPurify !== 'undefined') {
-            parsedHtml = DOMPurify.sanitize(parsedHtml, { ADD_ATTR: ['class', 'style'] });
+            parsedHtml = DOMPurify.sanitize(parsedHtml);
         }
     } else {
         parsedHtml = txt.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
@@ -7484,12 +7430,6 @@ async function disableMfa() {
 
 // openReportPreview - renders and opens preview window
 async function openReportPreview(lang = 'id') {
-    const previewWin = window.open('', '_blank');
-    if (!previewWin) {
-        alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
-        return;
-    }
-    previewWin.document.write('<html><head><title>Loading...</title></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h2>Menyiapkan pratinjau... Harap tunggu.</h2></body></html>');
 
     // Sync all active Quill editors to window.currentTechReport before preview
     if (window.currentTechReport && window.chapterEditors) {
@@ -7543,27 +7483,41 @@ async function openReportPreview(lang = 'id') {
             if (window.currentTechReport) {
                 p.technical_report = JSON.stringify(window.currentTechReport);
             }
-            // Build with selected language to allow hardcoded structural translations
             previewHtml = _buildPreviewDocument(p, findings, null, structure, lang, false, spacingMode);
             
-            // If English is requested, translate the remaining content using the backend API
             if (lang === 'en') {
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.top = '0';
+                loadingOverlay.style.left = '0';
+                loadingOverlay.style.width = '100vw';
+                loadingOverlay.style.height = '100vh';
+                loadingOverlay.style.backgroundColor = 'rgba(255,255,255,0.9)';
+                loadingOverlay.style.zIndex = '999999';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.flexDirection = 'column';
+                loadingOverlay.style.alignItems = 'center';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.innerHTML = '<div class="spinner" style="width:50px;height:50px;border:5px solid #ccc;border-top-color:#1e3a5f;border-radius:50%;animation:spin 1s linear infinite;"></div><h2 style="margin-top:20px;color:#1e3a5f;">Translating with AI...</h2><p>Please wait, translating full document to English.</p><style>@keyframes spin { 100% { transform:rotate(360deg); } }</style>';
+                document.body.appendChild(loadingOverlay);
+                
                 try {
-                    const trRes = await fetch('/api/translate', {
+                    const resp = await fetch('/api/translate_html', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: previewHtml })
+                        body: JSON.stringify({ html: previewHtml })
                     });
-                    const trData = await trRes.json();
-                    if (trData.translated) {
-                        previewHtml = trData.translated;
+                    const resData = await resp.json();
+                    if (resData.translated) {
+                        previewHtml = resData.translated;
                     }
                 } catch(e) {
                     console.error("Translation API failed:", e);
                 }
+                
+                document.body.removeChild(loadingOverlay);
             }
         } catch(e) {
-            if(previewWin) previewWin.close();
             alert("Error invoking _buildPreviewDocument: " + e.toString());
             return;
         }
@@ -7582,20 +7536,18 @@ async function openReportPreview(lang = 'id') {
         } catch(e) {}
 
         if (!previewHtml) {
-            if(previewWin) previewWin.close();
             alert("Galat internal: Hasil dokumen pratinjau kosong. Type: " + (typeof previewHtml));
             return;
         }
 
         // Use Blob to avoid document.write issues with massive Base64 strings
         const blob = new Blob([previewHtml], { type: 'text/html' });
-        if(previewWin) {
-            previewWin.document.open();
-            previewWin.document.write(previewHtml);
-            previewWin.document.close();
+        const url = URL.createObjectURL(blob);
+        const w = window.open(url, '_blank');
+        if (!w) {
+            alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
         }
     } catch(err) {
-        if(previewWin) previewWin.close();
         console.error('Error inside openReportPreview:', err);
         alert("Gagal membangun dokumen pratinjau: " + err.message);
     }
@@ -7863,43 +7815,10 @@ window.initWorkspaceEditors = function() {
             [{ 'direction': 'rtl' }],                         // text direction
             [{ 'align': [] }],
             ['blockquote', 'code-block'],
-            ['link', 'image', 'video', 'formula', 'table', 'caption', 'row-add', 'row-del', 'col-add', 'col-del', 'tick-green', 'tick-red'],
+            ['link', 'image', 'video', 'formula', 'table'],
             ['clean']                                         // remove formatting button
         ],
         handlers: {
-            caption: function() {
-                const range = this.quill.getSelection(true);
-                if (range) {
-                    this.quill.insertText(range.index, '\n[caption: Judul Gambar Anda di Sini]\n');
-                    this.quill.setSelection(range.index + 11, 25);
-                }
-            },
-            'tick-green': function() {
-                const range = this.quill.getSelection(true);
-                if (range) {
-                    this.quill.clipboard.dangerouslyPasteHTML(range.index, '<span style="color:#16a34a; font-weight:bold; font-size:1.1rem;">&#10003;</span>');
-                    this.quill.setSelection(range.index + 1);
-                }
-            },
-            'tick-red': function() {
-                const range = this.quill.getSelection(true);
-                if (range) {
-                    this.quill.clipboard.dangerouslyPasteHTML(range.index, '<span style="color:#dc2626; font-weight:bold; font-size:1.1rem;">&#10003;</span>');
-                    this.quill.setSelection(range.index + 1);
-                }
-            },
-            'row-add': function() {
-                this.quill.getModule('table').insertRowBelow();
-            },
-            'row-del': function() {
-                this.quill.getModule('table').deleteRow();
-            },
-            'col-add': function() {
-                this.quill.getModule('table').insertColumnRight();
-            },
-            'col-del': function() {
-                this.quill.getModule('table').deleteColumn();
-            },
             table: function() {
                 const rowsStr = prompt("Masukkan jumlah baris (contoh: 3):", "3");
                 if (rowsStr === null) return;
@@ -8180,7 +8099,6 @@ async function saveReportTemplate(event) {
             alert("Error: " + data.message);
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert("Failed to save report template.");
     }
@@ -8203,16 +8121,9 @@ async function deleteReportTemplate(id) {
 
 
 async function previewReportTemplate(id) {
-    const previewWin = window.open('', '_blank');
-    if (!previewWin) {
-        alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
-        return;
-    }
-    previewWin.document.write('<html><head><title>Loading...</title></head><body style="font-family:sans-serif;text-align:center;padding:50px;"><h2>Menyiapkan pratinjau... Harap tunggu.</h2></body></html>');
     try {
         const res = await fetch(`/api/report_templates/${id}`);
         if (!res.ok) {
-            if(previewWin) previewWin.close();
             alert("Failed to load template data.");
             return;
         }
@@ -8259,20 +8170,18 @@ async function previewReportTemplate(id) {
         // Call the exact same preview builder used by the real report
         const previewHtml = _buildPreviewDocument(dummyProject, [], tpl, structure, 'id', false, 1.4);
         if (!previewHtml) {
-            if(previewWin) previewWin.close();
             alert("Galat internal: Hasil dokumen pratinjau kosong (undefined).");
             return;
         }
         
         const blob = new Blob([previewHtml], { type: 'text/html' });
-        if(previewWin) {
-            previewWin.document.open();
-            previewWin.document.write(previewHtml);
-            previewWin.document.close();
+        const url = URL.createObjectURL(blob);
+        const previewWin = window.open(url, '_blank');
+        if (!previewWin) {
+            alert("Tab baru diblokir oleh browser. Izinkan popup untuk melihat pratinjau.");
         }
         
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert("Error generating template preview.");
     }
@@ -8769,77 +8678,8 @@ async function toggleReportApproval() {
             alert('Error: ' + (err.message || 'Failed to update approval status.'));
         }
     } catch (e) {
-        if(previewWin) previewWin.close();
         console.error(e);
         alert('Error: An error occurred while updating approval status.');
     }
 }
 
-
-
-// --- System Configuration Logic ---
-function openSystemConfigModal() {
-    const dropdown = document.getElementById('top-nav-profile-box');
-    if (dropdown) dropdown.classList.remove('open');
-    if (!currentUser || currentUser.role !== 'Admin') {
-        alert("Unauthorized: Only Admin can access System Config");
-        return;
-    }
-    
-    // Fetch current settings
-    fetch('/api/settings')
-        .then(res => res.json())
-        .then(data => {
-            if (data.gemini_api_key) {
-                document.getElementById('config-gemini-key').value = data.gemini_api_key;
-            } else {
-                document.getElementById('config-gemini-key').value = '';
-            }
-            const modal = document.getElementById('system-config-modal');
-            modal.classList.add('active');
-            modal.style.opacity = '1';
-            modal.style.pointerEvents = 'all';
-        })
-        .catch(err => {
-            console.error("Failed to load settings", err);
-            alert("Failed to load system settings.");
-        });
-}
-
-function closeSystemConfigModal() {
-    const modal = document.getElementById('system-config-modal');
-    modal.classList.remove('active');
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-}
-
-function saveSystemConfig(event) {
-    event.preventDefault();
-    if (!currentUser || currentUser.role !== 'Admin') return;
-    
-    const apiKey = document.getElementById('config-gemini-key').value.trim();
-    
-    const btn = document.getElementById('btn-save-sysconfig');
-    const oldText = btn.innerHTML;
-    btn.innerHTML = 'Saving...';
-    btn.disabled = true;
-
-    fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gemini_api_key: apiKey })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("System configuration saved successfully.");
-        closeSystemConfigModal();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error saving configuration.");
-    })
-    .finally(() => {
-        btn.innerHTML = oldText;
-        btn.disabled = false;
-    });
-}

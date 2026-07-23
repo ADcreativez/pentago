@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="{{ url_for('static', filename='js/preview_builder.js') }}?v=1.7.0"></script>
+            <div id="project-detail-view" class="view-section" style="display: none;">
+                <a href="#" class="back-link" id="project-back-link" onclick="switchTab('projects')">&larr; Back</a>
+                
+                <div class="workspace-header" style="background: #ffffff; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+                    <div style="min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2 id="detail-project-name" style="font-family: var(--font-title); font-size: 1.8rem; margin: 0; word-break: break-word;">Project Name</h2>
+                            <div>
+                                <span id="detail-project-status" class="badge badge-status">In Progress</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1.25rem; font-size: 0.95rem; line-height: 1.6; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 2rem;">
+                            <div><strong>Company:</strong> <span id="detail-project-company">-</span></div>
+                            <div><strong>Pentest Member:</strong> <span id="detail-project-pentester" style="font-weight: 600; color: var(--accent-blue);">-</span></div>
+                            
+                            <div><strong>Project Manager:</strong> <span id="detail-project-pm" style="font-weight: 600; color: #d97706;">-</span></div>
+                            <div><strong>Retest Member:</strong> <span id="detail-project-retester" style="font-weight: 600; color: var(--accent-purple);">-</span></div>
+
+                            <div><strong>Sales Member:</strong> <span id="detail-project-sales" style="font-weight: 600; color: #0284c7;">-</span></div>
+                            <div><strong>Timeline:</strong> <span id="detail-project-timeline">-</span></div>
+                            
+                            <div><strong>Location:</strong> <span id="detail-project-location" style="font-weight: 600;">-</span></div>
+                            <div><strong>Overall Risk Rating:</strong> <span id="detail-project-risk-score" class="badge">-</span></div>
+                            
+                            <div><strong>Methodology:</strong> <span id="detail-project-methodology" style="font-weight: 600; color: #16a34a;">-</span></div>
+                            <div><strong>Access Info:</strong> <span id="detail-project-access">-</span></div>
+                            
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                                <strong>Pentest Activity:</strong>
+                                <select id="detail-project-pentest-activity" onchange="updateProjectActivity('pentest_activity', this.value)" style="padding: 0.2rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-sans); background: #ffffff; color: var(--text-primary); font-weight: 600;">
+                                    <option value="Not Started">Not Started</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                                <strong>Retest Activity:</strong>
+                                <select id="detail-project-retest-activity" onchange="updateProjectActivity('retest_activity', this.value)" style="padding: 0.2rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-sans); background: #ffffff; color: var(--text-primary); font-weight: 600;">
+                                    <option value="Not Started">Not Started</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            
+                            <div style="margin-top: 0.25rem; min-width: 0;"><strong>Scope:</strong> <span id="detail-project-scope" style="font-family: monospace; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; display: inline-block; max-width: 100%;"></span></div>
+                            <div style="margin-top: 0.25rem; min-width: 0;"><strong>Out of Scope:</strong> <span id="detail-project-out-of-scope" style="font-family: monospace; background: #ffe4e6; color: #b91c1c; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; display: inline-block; max-width: 100%;"></span></div>
+                        </div>
+                        <p id="detail-project-desc" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;"></p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: start;">
+                        <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Project Severity</span>
+                        <div style="width: 100%; max-width: 220px; height: 180px; position: relative;">
+                            <canvas id="projectSeverityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Findings Table List -->
+                <div class="header" style="border: none; margin-bottom: 1rem; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.3rem; margin: 0;">Vulnerabilities / Findings</h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn btn-secondary" id="btn-copy-findings-table" onclick="copyFindingsTableToClipboard()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            📋 Copy Table
+                        </button>
+                        <button class="btn btn-primary" id="btn-add-finding-to-project">+ Add Finding</button>
+                    </div>
+                </div>
+                <div class="table-container" style="margin-bottom: 3rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Affected System</th>
+                                <th>CVSS Score</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Retest Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-project-findings-body">
+                            <!-- Dynamic findings list -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tools and Actions -->
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: -2rem; margin-bottom: 3rem;">
+                    <button class="btn btn-secondary" id="btn-project-edit-tools" onclick="openUsedToolsModal()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🔧 Used Tools</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-project-draw-threat-model" onclick="createNewDiagramFlow()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; background: #f8fafc;">
+                        <span>🎨 Draw Threat Modelling</span>
+                    </button>
+                </div>
+
+                <!-- SysReptor-Style Detailed Reports Display -->
+                                <div class="header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.4rem; font-weight: 700;">Pentest Report Workspace Preview</h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select id="report-spacing-selector" style="padding: 0.3rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-sans); background: #ffffff; color: var(--text-primary);">
+                            <option value="1.0" selected>Spasi 1.0 (Rapat)</option>
+                            <option value="1.2">Spasi 1.2 (Normal)</option>
+                            <option value="1.4">Spasi 1.4 (Ideal)</option>
+                            <option value="1.6">Spasi 1.6 (Renggang)</option>
+                            <option value="1.8">Spasi 1.8 (Sangat Renggang)</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="openReportPreview('id')" style="font-weight: 600;">📄 Preview ID</button>
+                        <button class="btn btn-secondary" onclick="openReportPreview('en')" style="font-weight: 600;">📄 Preview EN</button>
+                        <button class="btn btn-secondary" onclick="saveCurrentProjectAsTemplate()" style="font-weight: 600; color: #10b981; border-color: #10b981;">➕ Save as Template</button>
+                        <button class="btn btn-secondary" id="btn-approve-report" onclick="toggleReportApproval()" style="font-weight: 600; display: none; color: #2563eb; border-color: #2563eb;">✔️ Approve Report</button>
+                    </div>
+                </div>
+                
+                <div id="sysreptor-cover-container">
+                    <!-- Dynamic Cover Page goes here -->
+                </div>
+
+                <div id="project-doc-control-card" class="sysreptor-report-card" style="margin-top: 2rem;">
+                    <div class="sysreptor-report-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Document Control (Revision & Approvals)</span>
+                        <button class="btn btn-secondary" onclick="saveDocumentControl()" style="font-size:0.78rem;padding:0.25rem 0.65rem;height:28px; display:inline-flex; align-items:center;">💾 Save</button>
+                    </div>
+                    <div class="sysreptor-content" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                            <!-- Revision History -->
+                            <div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;">Revision History</h4>
+                                    <button class="btn btn-primary" onclick="addRevisionRow()" style="font-size:0.75rem;padding:0.2rem 0.5rem;height:24px;">+ Add Revision</button>
+                                </div>
+                                <div id="revision-rows-container">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+                            <!-- Approvals -->
+                            <div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;">Approvals</h4>
+                                    <button class="btn btn-primary" onclick="addApprovalRow()" style="font-size:0.75rem;padding:0.2rem 0.5rem;height:24px;">+ Add Approval</button>
+                                </div>
+                                <div id="approval-rows-container">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sysreptor-report-cards-container">
+                    <!-- Dynamic SysReptor report tables go here -->
+                </div>
+
+                <!-- Tools Preview Card removed as it is covered in 2.2 -->
+
+                <!-- Dynamic Threat Model Diagram Cards Container -->
+                <div id="project-threat-models-container" style="margin-top: 2rem;">
+                </div>
+
+                <!-- Summary & Appendix Preview Cards removed as they are now in the Workspace Editor -->
+            </div>
+
+            <!-- Threat Modelling Studio View -->
+{% endblock %}

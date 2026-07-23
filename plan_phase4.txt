@@ -1,0 +1,5 @@
+We are going to extract the Admin and Settings view.
+1. Create /admin and /settings in app.py
+2. Create templates/admin.html and templates/settings.html
+3. Extract logic to static/js/admin.js and static/js/settings.js
+4. Remove them from index.html and app.js
