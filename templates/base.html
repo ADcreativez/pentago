@@ -365,6 +365,14 @@
                     </span>
                 </div>
                 <div class="form-group">
+                    <label for="project-customer-pic">Customer PIC</label>
+                    <input type="text" id="project-customer-pic" class="form-control" placeholder="e.g. John Doe (IT Manager)">
+                </div>
+                <div class="form-group">
+                    <label for="project-mandays">Mandays</label>
+                    <input type="number" step="0.1" id="project-mandays" class="form-control" placeholder="e.g. 5.5">
+                </div>
+                <div class="form-group">
                     <label for="project-name-input">Project Name</label>
                     <input type="text" id="project-name-input" class="form-control" required>
                 </div>
@@ -1408,6 +1416,46 @@
                         <button type="submit" class="btn btn-primary">Save Template</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Detail Modal -->
+    <div id="stat-detail-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 800px; width: 95%;">
+            <div class="modal-header">
+                <h3 id="stat-detail-modal-title" style="margin: 0; font-family: var(--font-title); font-size: 1.25rem; color: var(--text-primary);">Detail Data</h3>
+                <button class="close-btn" onclick="closeStatDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1rem 0;">
+                <div class="table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead id="stat-detail-thead">
+                        </thead>
+                        <tbody id="stat-detail-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeStatDetailModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consultant Projects Modal -->
+    <div id="consultant-projects-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 500px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="consultant-projects-title">Consultant Projects</h3>
+                <button type="button" class="close-btn" onclick="closeConsultantProjectsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul id="consultant-projects-list" style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                </ul>
+            </div>
+            <div class="modal-footer" style="margin-top: 1rem; text-align: right;">
+                <button type="button" class="btn btn-secondary" onclick="closeConsultantProjectsModal()">Close</button>
             </div>
         </div>
     </div>

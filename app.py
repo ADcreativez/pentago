@@ -428,6 +428,8 @@ class Project(db.Model):
     header_text = db.Column(db.String(250))
     footer_text = db.Column(db.String(250))
     cover_title_2 = db.Column(db.String(250), default='')
+    customer_pic = db.Column(db.String(150))
+    mandays = db.Column(db.Float, default=0.0)
     main_cover_logo = db.Column(db.String(500), default='')
     technical_report = db.Column(db.Text)
     is_approved = db.Column(db.Boolean, default=False)
@@ -524,6 +526,8 @@ class Project(db.Model):
             'header_text': self.header_text,
             'footer_text': self.footer_text,
             'cover_title_2': self.cover_title_2,
+            'customer_pic': self.customer_pic,
+            'mandays': self.mandays,
             'main_cover_logo': self.main_cover_logo,
             'technical_report': self.technical_report,
             'is_approved': self.is_approved
@@ -1287,6 +1291,7 @@ def get_dashboard_stats():
     total_projects = len(projects)
     total_findings = len(findings)
     open_findings = len([f for f in findings if f.status == 'Open'])
+    retest_pending_projects = len([p for p in projects if p.retest_activity != 'Completed'])
 
     # Get status breakdown
     proj_status = {'In Progress': 0, 'Completed': 0, 'Retest Pending': 0, 'Retest Completed': 0}
@@ -1325,9 +1330,11 @@ def get_dashboard_stats():
             c_projects = [p for p in c_projects if (p.start_date and p.start_date.startswith(selected_year)) or (not p.start_date and p.created_at and p.created_at.strftime('%Y') == selected_year)]
             
         status_counts = {'In Progress': 0, 'Completed': 0, 'Retest Pending': 0, 'Retest Completed': 0}
+        projects_by_status = {'In Progress': [], 'Completed': [], 'Retest Pending': [], 'Retest Completed': []}
         for p in c_projects:
             if p.status in status_counts:
                 status_counts[p.status] += 1
+                projects_by_status[p.status].append({'id': p.id, 'name': p.name})
                 
         consultants_progress.append({
             'id': c.id,
@@ -1335,7 +1342,8 @@ def get_dashboard_stats():
             'role': c.role or 'Cybersecurity Consultant',
             'email': c.email or '-',
             'total_projects': len(c_projects),
-            'status_counts': status_counts
+            'status_counts': status_counts,
+            'projects_by_status': projects_by_status
         })
 
     return jsonify({
@@ -1343,6 +1351,12 @@ def get_dashboard_stats():
         'total_projects': total_projects,
         'total_findings': total_findings,
         'open_findings': open_findings,
+        'retest_pending_projects': retest_pending_projects,
+        'companies_list': [c.to_dict() for c in companies],
+        'projects_list': [p.to_dict() for p in projects],
+        'open_findings_list': [f.to_dict() for f in findings if f.status == 'Open'],
+        'retest_pending_projects_list': [p.to_dict() for p in projects if p.retest_activity != 'Completed'],
+        'consultants_list': [c.to_dict() for c in consultants],
         'project_statuses': proj_status,
         'severity_distribution': severity_dist,
         'consultants_progress': consultants_progress,
@@ -1531,6 +1545,8 @@ def api_projects():
             report_author=data.get('report_author', ''),
             change_reference=data.get('change_reference', ''),
             client_approver_name=data.get('client_approver_name', ''),
+            customer_pic=data.get('customer_pic', ''),
+            mandays=float(data.get('mandays') or 0.0),
             cover_logo=data.get('cover_logo', ''),
             client_logo=data.get('client_logo', ''),
             header_text=data.get('header_text', ''),
@@ -1585,6 +1601,13 @@ def api_project(project_id):
         project.report_author = data.get('report_author', project.report_author)
         project.change_reference = data.get('change_reference', project.change_reference)
         project.client_approver_name = data.get('client_approver_name', project.client_approver_name)
+        project.customer_pic = data.get('customer_pic', project.customer_pic)
+        
+        try:
+            project.mandays = float(data.get('mandays', project.mandays) or 0.0)
+        except (ValueError, TypeError):
+            pass
+            
         project.cover_logo = data.get('cover_logo', project.cover_logo)
         project.client_logo = data.get('client_logo', project.client_logo)
         project.auditor_logo = data.get('auditor_logo', project.auditor_logo)

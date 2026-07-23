@@ -25,28 +25,35 @@
                  
                  <!-- Stat Cards -->
                  <div class="dashboard-stats">
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('companies')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0e8ff; color: #5c67f2;">🏢</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Total Clients</div>
                              <div class="dash-stat-value" id="stat-companies">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('projects')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0e7ff; color: #6366f1;">📋</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Active Projects</div>
                              <div class="dash-stat-value" id="stat-projects">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('findings')">
                          <div class="dash-stat-icon-wrapper" style="background: #ffe4e6; color: #e11d48;">⚠️</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Open Findings</div>
                              <div class="dash-stat-value" id="stat-findings">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('retest')">
+                         <div class="dash-stat-icon-wrapper" style="background: #fffbeb; color: #d97706;">⏳</div>
+                         <div class="dash-stat-info">
+                             <div class="dash-stat-label">Retest Pending</div>
+                             <div class="dash-stat-value" id="stat-retest">0</div>
+                         </div>
+                     </div>
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('members')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0f7fa; color: #00acc1;">👥</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Members</div>

@@ -200,28 +200,35 @@
                  
                  <!-- Stat Cards -->
                  <div class="dashboard-stats">
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('companies')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0e8ff; color: #5c67f2;">🏢</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Total Clients</div>
                              <div class="dash-stat-value" id="stat-companies">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('projects')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0e7ff; color: #6366f1;">📋</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Active Projects</div>
                              <div class="dash-stat-value" id="stat-projects">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('findings')">
                          <div class="dash-stat-icon-wrapper" style="background: #ffe4e6; color: #e11d48;">⚠️</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Open Findings</div>
                              <div class="dash-stat-value" id="stat-findings">0</div>
                          </div>
                      </div>
-                     <div class="dash-stat-card">
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('retest')">
+                         <div class="dash-stat-icon-wrapper" style="background: #fffbeb; color: #d97706;">⏳</div>
+                         <div class="dash-stat-info">
+                             <div class="dash-stat-label">Retest Pending</div>
+                             <div class="dash-stat-value" id="stat-retest">0</div>
+                         </div>
+                     </div>
+                     <div class="dash-stat-card" style="cursor: pointer;" onclick="showStatDetails('members')">
                          <div class="dash-stat-icon-wrapper" style="background: #e0f7fa; color: #00acc1;">👥</div>
                          <div class="dash-stat-info">
                              <div class="dash-stat-label">Members</div>
@@ -362,8 +369,10 @@
                         </div>
                         <div style="margin-bottom: 1.25rem; font-size: 0.95rem; line-height: 1.6; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 2rem;">
                             <div><strong>Company:</strong> <span id="detail-project-company">-</span></div>
-                            <div><strong>Pentest Member:</strong> <span id="detail-project-pentester" style="font-weight: 600; color: var(--accent-blue);">-</span></div>
+                            <div><strong>Customer PIC:</strong> <span id="detail-project-customer-pic" style="font-weight: 500;">-</span></div>
                             
+                            <div><strong>Mandays:</strong> <span id="detail-project-mandays" style="font-weight: 500;">-</span></div>
+                            <div><strong>Pentest Member:</strong> <span id="detail-project-pentester" style="font-weight: 600; color: var(--accent-blue);">-</span></div>
                             <div><strong>Project Manager:</strong> <span id="detail-project-pm" style="font-weight: 600; color: #d97706;">-</span></div>
                             <div><strong>Retest Member:</strong> <span id="detail-project-retester" style="font-weight: 600; color: var(--accent-purple);">-</span></div>
 
@@ -1066,6 +1075,14 @@
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         Only Admin / Team Leader can change this
                     </span>
+                </div>
+                <div class="form-group">
+                    <label for="project-customer-pic">Customer PIC</label>
+                    <input type="text" id="project-customer-pic" class="form-control" placeholder="e.g. John Doe (IT Manager)">
+                </div>
+                <div class="form-group">
+                    <label for="project-mandays">Mandays</label>
+                    <input type="number" step="0.1" id="project-mandays" class="form-control" placeholder="e.g. 5.5">
                 </div>
                 <div class="form-group">
                     <label for="project-name-input">Project Name</label>
@@ -2115,5 +2132,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Consultant Projects Modal -->
+    <div id="consultant-projects-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 500px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="consultant-projects-title">Consultant Projects</h3>
+                <button type="button" class="close-btn" onclick="closeConsultantProjectsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul id="consultant-projects-list" style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                </ul>
+            </div>
+            <div class="modal-footer" style="margin-top: 1rem; text-align: right;">
+                <button type="button" class="btn btn-secondary" onclick="closeConsultantProjectsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

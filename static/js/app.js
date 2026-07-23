@@ -598,6 +598,7 @@ async function loadDashboard() {
         document.getElementById('stat-companies').innerText = stats.total_companies;
         document.getElementById('stat-projects').innerText = stats.total_projects;
         document.getElementById('stat-findings').innerText = stats.open_findings;
+        if(document.getElementById('stat-retest')) document.getElementById('stat-retest').innerText = stats.retest_pending_projects || 0;
         
         const consultants = stats.consultants_progress || [];
         document.getElementById('stat-consultants').innerText = consultants.length;
@@ -713,18 +714,17 @@ async function loadDashboard() {
                         if (c.total_projects === 0) {
                             breakdownHTML = '<span style="color: var(--text-secondary); font-style: italic; font-size: 0.85rem;">No active assignments</span>';
                         } else {
-                            if (counts['In Progress'] > 0) {
-                                breakdownHTML += `<span class="badge status-inprogress" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-right: 0.5rem; font-weight: 600;">In Progress: ${counts['In Progress']}</span>`;
-                            }
-                            if (counts['Completed'] > 0) {
-                                breakdownHTML += `<span class="badge status-completed" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-right: 0.5rem; font-weight: 600;">Completed: ${counts['Completed']}</span>`;
-                            }
-                            if (counts['Retest Pending'] > 0) {
-                                breakdownHTML += `<span class="badge status-retestpending" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-right: 0.5rem; font-weight: 600;">Retest Pending: ${counts['Retest Pending']}</span>`;
-                            }
-                            if (counts['Retest Completed'] > 0) {
-                                breakdownHTML += `<span class="badge status-retestcompleted" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-right: 0.5rem; font-weight: 600;">Retest Completed: ${counts['Retest Completed']}</span>`;
-                            }
+                            const renderBadge = (status, cssClass) => {
+                                if (counts[status] > 0) {
+                                    const encodedProjects = encodeURIComponent(JSON.stringify(c.projects_by_status[status] || []));
+                                    breakdownHTML += `<span class="badge ${cssClass}" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-right: 0.5rem; font-weight: 600; cursor: pointer;" onclick="showConsultantProjectsByStatus('${c.name}', '${status}', '${encodedProjects}')" title="Click to view projects">${status}: ${counts[status]}</span>`;
+                                }
+                            };
+                            
+                            renderBadge('In Progress', 'status-inprogress');
+                            renderBadge('Completed', 'status-completed');
+                            renderBadge('Retest Pending', 'status-retestpending');
+                            renderBadge('Retest Completed', 'status-retestcompleted');
                         }
 
                         tbodyHTML += `
@@ -982,6 +982,7 @@ async function viewCompany(companyId) {
                 <td>${p.project_type || '-'}</td>
                 <td>${p.start_date || '-'}</td>
                 <td>${p.end_date || '-'}</td>
+                <td>${p.mandays || '-'}</td>
                 <td><strong style="color: var(--text-secondary); font-size: 0.85rem;">${p.pentest_consultant_name || '-'}</strong></td>
                 <td>
                     <div>${p.active_findings} / ${p.total_findings}</div>
@@ -1116,6 +1117,7 @@ async function loadProjects() {
                             <th>Project Type</th>
                             <th>Start Date</th>
                             <th>End Date</th>
+                            <th>Mandays</th>
                             <th>Consultant</th>
                             <th>Open Findings</th>
                             <th>Risk Score</th>
@@ -1138,6 +1140,7 @@ async function loadProjects() {
                         <td>${p.project_type || '-'}</td>
                         <td>${p.start_date || '-'}</td>
                         <td>${p.end_date || '-'}</td>
+                        <td>${p.mandays || '-'}</td>
                         <td><strong style="color: var(--text-secondary); font-size: 0.85rem;">${p.pentest_consultant_name || '-'}</strong></td>
                         <td>
                             <div>${p.active_findings} / ${p.total_findings}</div>
@@ -1299,6 +1302,12 @@ async function openProjectModal() {
     document.getElementById('project-access').value = '';
     document.getElementById('project-location').value = 'Remote';
     document.getElementById('project-po-number').value = '';
+    if (document.getElementById('project-customer-pic')) {
+        document.getElementById('project-customer-pic').value = '';
+    }
+    if (document.getElementById('project-mandays')) {
+        document.getElementById('project-mandays').value = '';
+    }
     document.getElementById('project-type-input').value = 'Project Based';
     document.getElementById('project-modal-title').innerText = 'Add Project';
     await populateCompanySelect('project-company', currentCompanyId);
@@ -1339,9 +1348,19 @@ async function saveProject(e) {
     const access_info = document.getElementById('project-access').value;
     const location_type = document.getElementById('project-location').value;
     const po_number = document.getElementById('project-po-number').value;
+    
+    let customer_pic = '';
+    if (document.getElementById('project-customer-pic')) {
+        customer_pic = document.getElementById('project-customer-pic').value;
+    }
+    let mandays = 0.0;
+    if (document.getElementById('project-mandays')) {
+        mandays = parseFloat(document.getElementById('project-mandays').value) || 0.0;
+    }
+    
     const project_type = document.getElementById('project-type-input').value;
 
-    const payload = { company_id, name, status, start_date, end_date, description, summary, appendix, pentest_consultant_id, retest_consultant_id, project_manager_id, sales_id, methodology, scope, out_of_scope, access_info, location_type, po_number, project_type };
+    const payload = { company_id, name, status, start_date, end_date, description, summary, appendix, pentest_consultant_id, retest_consultant_id, project_manager_id, sales_id, methodology, scope, out_of_scope, access_info, location_type, po_number, customer_pic, mandays, project_type };
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/projects/${id}` : '/api/projects';
 
@@ -1384,6 +1403,12 @@ async function editProject(id, focusField = null) {
     document.getElementById('project-access').value = p.access_info || '';
     document.getElementById('project-location').value = p.location_type || 'Remote';
     document.getElementById('project-po-number').value = p.po_number || '';
+    if (document.getElementById('project-customer-pic')) {
+        document.getElementById('project-customer-pic').value = p.customer_pic || '';
+    }
+    if (document.getElementById('project-mandays')) {
+        document.getElementById('project-mandays').value = p.mandays || '';
+    }
     document.getElementById('project-type-input').value = p.project_type || 'Project Based';
     await populateCompanySelect('project-company', p.company_id);
     await populateConsultantSelect('project-pentester', p.pentest_consultant_id);
@@ -1481,6 +1506,9 @@ async function viewProject(projectId) {
     document.getElementById('detail-project-status').innerText = p.status;
     document.getElementById('detail-project-status').className = `badge badge-status ${getStatusBadgeClass(p.status)}`;
     document.getElementById('detail-project-company').innerText = p.company_name || 'No Company';
+    document.getElementById('detail-project-customer-pic').innerText = p.customer_pic || '-';
+    const mandaysEl = document.getElementById('detail-project-mandays');
+    if (mandaysEl) mandaysEl.innerText = p.mandays || '-';
     document.getElementById('detail-project-timeline').innerText = `${p.start_date || '-'} s/d ${p.end_date || '-'}`;
     document.getElementById('detail-project-location').innerText = p.location_type || '-';
     document.getElementById('detail-project-methodology').innerText = p.methodology || '-';
@@ -9238,3 +9266,95 @@ function handleStudioKeyDown(e) {
     }
 }
 document.addEventListener('keydown', handleStudioKeyDown);
+
+window.showConsultantProjectsByStatus = function(name, status, encodedProjects) {
+    const projects = JSON.parse(decodeURIComponent(encodedProjects));
+    document.getElementById('consultant-projects-title').innerText = `${name} - ${status} Projects`;
+    const list = document.getElementById('consultant-projects-list');
+    list.innerHTML = '';
+    
+    if (projects.length === 0) {
+        list.innerHTML = '<li style="color: var(--text-secondary); font-style: italic;">No projects found.</li>';
+    } else {
+        projects.forEach(p => {
+            list.innerHTML += `<li style="padding: 0.5rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+                <a href="#" onclick="closeConsultantProjectsModal(); viewProject(${p.id}); event.preventDefault();" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">${p.name}</a>
+            </li>`;
+        });
+    }
+    document.getElementById('consultant-projects-modal').classList.add('active');
+};
+
+window.closeConsultantProjectsModal = function() {
+    document.getElementById('consultant-projects-modal').classList.remove('active');
+};
+
+window.showStatDetails = function(type) {
+    const stats = cacheStore.dashboard && cacheStore.dashboard[currentDashboardYear];
+    if (!stats) return;
+
+    let title = '';
+    let thead = '';
+    let tbody = '';
+
+    if (type === 'companies') {
+        title = 'Total Clients';
+        thead = '<tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);"><th style="padding: 0.75rem 1rem; font-weight: 600;">Client Name</th><th style="padding: 0.75rem 1rem; font-weight: 600;">Industry</th></tr>';
+        (stats.companies_list || []).forEach(c => {
+            tbody += `<tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 0.75rem 1rem;">${c.name}</td>
+                <td style="padding: 0.75rem 1rem;">${c.industry || '-'}</td>
+            </tr>`;
+        });
+    } else if (type === 'projects') {
+        title = 'Active Projects';
+        thead = '<tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);"><th style="padding: 0.75rem 1rem; font-weight: 600;">Project Name</th><th style="padding: 0.75rem 1rem; font-weight: 600;">Status</th></tr>';
+        (stats.projects_list || []).forEach(p => {
+            tbody += `<tr style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="closeStatDetailModal(); viewProject(${p.id});">
+                <td style="padding: 0.75rem 1rem;"><a href="#" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">${p.name}</a></td>
+                <td style="padding: 0.75rem 1rem;">${p.status}</td>
+            </tr>`;
+        });
+    } else if (type === 'findings') {
+        title = 'Open Findings';
+        thead = '<tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);"><th style="padding: 0.75rem 1rem; font-weight: 600;">Finding Title</th><th style="padding: 0.75rem 1rem; font-weight: 600;">Severity</th></tr>';
+        (stats.open_findings_list || []).forEach(f => {
+            tbody += `<tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 0.75rem 1rem;">${f.title}</td>
+                <td style="padding: 0.75rem 1rem;">${f.severity}</td>
+            </tr>`;
+        });
+    } else if (type === 'retest') {
+        title = 'Retest Pending Projects';
+        thead = '<tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);"><th style="padding: 0.75rem 1rem; font-weight: 600;">Project Name</th><th style="padding: 0.75rem 1rem; font-weight: 600;">Retest Activity</th></tr>';
+        (stats.retest_pending_projects_list || []).forEach(p => {
+            tbody += `<tr style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="closeStatDetailModal(); viewProject(${p.id});">
+                <td style="padding: 0.75rem 1rem;"><a href="#" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">${p.name}</a></td>
+                <td style="padding: 0.75rem 1rem;">${p.retest_activity || 'Not Started'}</td>
+            </tr>`;
+        });
+    } else if (type === 'members') {
+        title = 'Members';
+        thead = '<tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);"><th style="padding: 0.75rem 1rem; font-weight: 600;">Name</th><th style="padding: 0.75rem 1rem; font-weight: 600;">Role</th></tr>';
+        (stats.consultants_list || []).forEach(c => {
+            tbody += `<tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 0.75rem 1rem;">${c.name}</td>
+                <td style="padding: 0.75rem 1rem;">${c.role}</td>
+            </tr>`;
+        });
+    }
+
+    if (tbody === '') {
+        tbody = `<tr><td colspan="2" style="padding: 1rem; text-align: center; color: var(--text-secondary); font-style: italic;">No data available.</td></tr>`;
+    }
+
+    document.getElementById('stat-detail-modal-title').innerText = title;
+    document.getElementById('stat-detail-thead').innerHTML = thead;
+    document.getElementById('stat-detail-tbody').innerHTML = tbody;
+    
+    document.getElementById('stat-detail-modal').classList.add('active');
+};
+
+window.closeStatDetailModal = function() {
+    document.getElementById('stat-detail-modal').classList.remove('active');
+};
