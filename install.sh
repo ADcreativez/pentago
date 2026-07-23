@@ -85,7 +85,7 @@ NGINX_CONF="/etc/nginx/sites-available/pentago"
 
 cat <<EOF > "$NGINX_CONF"
 server {
-    listen 80;
+    listen 8080;
     server_name _;
 
     location / {
@@ -114,8 +114,9 @@ systemctl restart nginx
 
 # 7. Configure Firewall (UFW)
 echo -e "${GREEN}[*] Setting up firewall rules...${NC}"
-# Allow standard HTTP (80) and HTTPS (443) traffic through Nginx
+# Allow standard HTTP (80) and 8080 traffic through Nginx
 ufw allow 'Nginx Full'
+ufw allow 8080/tcp
 # Also allow SSH so you don't lock yourself out of the server
 ufw allow OpenSSH || ufw allow 22/tcp
 
