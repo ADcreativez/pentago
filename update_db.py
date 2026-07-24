@@ -11,16 +11,32 @@ def update_db():
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
-    columns_to_add = [
+    columns_to_add_project = [
         ("customer_pic", "VARCHAR(150)"),
         ("mandays", "FLOAT DEFAULT 0.0")
     ]
     
-    for col_name, col_type in columns_to_add:
+    for col_name, col_type in columns_to_add_project:
         try:
             c.execute(f"ALTER TABLE project ADD COLUMN {col_name} {col_type};")
             conn.commit()
-            print(f"Success: Column '{col_name}' added.")
+            print(f"Success: Column '{col_name}' added to project.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e).lower():
+                print(f"Info: Column '{col_name}' already exists in project.")
+            else:
+                print(f"Error adding '{col_name}' to project: {e}")
+                
+    # Add sales_name to company table
+    try:
+        c.execute("ALTER TABLE company ADD COLUMN sales_name VARCHAR(150);")
+        conn.commit()
+        print("Success: Column 'sales_name' added to company.")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e).lower():
+            print("Info: Column 'sales_name' already exists in company.")
+        else:
+            print(f"Error adding 'sales_name' to company: {e}")
         except sqlite3.OperationalError as e:
             if "duplicate column name" in str(e).lower():
                 print(f"Info: Column '{col_name}' already exists.")
