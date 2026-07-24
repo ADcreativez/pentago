@@ -67,6 +67,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/venv/bin"
+Environment="HOME=$APP_DIR"
 ExecStart=$APP_DIR/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5001 app:app
 
 [Install]
