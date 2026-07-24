@@ -37,11 +37,6 @@ def update_db():
             print("Info: Column 'sales_name' already exists in company.")
         else:
             print(f"Error adding 'sales_name' to company: {e}")
-        except sqlite3.OperationalError as e:
-            if "duplicate column name" in str(e).lower():
-                print(f"Info: Column '{col_name}' already exists.")
-            else:
-                print(f"Error adding '{col_name}': {e}")
                 
     conn.close()
 
