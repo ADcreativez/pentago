@@ -80,13 +80,29 @@ systemctl start pentago
 systemctl enable pentago
 
 # 6. Configure Nginx Reverse Proxy
-echo -e "${GREEN}[*] Configuring Nginx reverse proxy...${NC}"
+echo -e "${GREEN}[*] Configuring Nginx reverse proxy with HTTPS...${NC}"
+
+# Generate self-signed certificate if it doesn't exist
+CERT_DIR="/etc/ssl/pentago"
+if [ ! -d "$CERT_DIR" ]; then
+    mkdir -p "$CERT_DIR"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$CERT_DIR/pentago.key" \
+        -out "$CERT_DIR/pentago.crt" \
+        -subj "/C=ID/ST=State/L=City/O=Pentago/CN=pentago.gembox.com"
+fi
+
 NGINX_CONF="/etc/nginx/sites-available/pentago"
 
 cat <<EOF > "$NGINX_CONF"
 server {
-    listen 8443;
+    listen 8443 ssl;
     server_name _;
+
+    ssl_certificate $CERT_DIR/pentago.crt;
+    ssl_certificate_key $CERT_DIR/pentago.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
     location / {
         proxy_pass http://127.0.0.1:5001;
