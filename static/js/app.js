@@ -494,8 +494,8 @@ function toggleSidebar() {
 function switchTab(tab) {
     // Cross-endpoint navigation support for Admin
     if (['config', 'consultants'].includes(tab)) {
-        if (window.location.pathname !== '/admin') {
-            window.location.href = '/admin?tab=' + tab;
+        if (window.location.pathname !== '/settings') {
+            window.location.href = '/settings?tab=' + tab;
             return;
         }
     }
@@ -3825,7 +3825,7 @@ function saveChangePassword(e) {
     
     if (targetUserId) {
         // Admin reset call
-        fetch(`/api/admin/users/${targetUserId}`, {
+        fetch(`/api/settings/users/${targetUserId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: newPassword })
@@ -3904,7 +3904,7 @@ function switchConfigSubTab(subtab) {
 }
 
 function loadUsers() {
-    fetch('/api/admin/users')
+    fetch('/api/settings/users')
         .then(res => res.json())
         .then(users => {
             globalUsersList = users;
@@ -3964,7 +3964,7 @@ async function adminToggleUserStatus(userId, currentDisabledState) {
     if (!confirm(`Apakah Anda yakin ingin ${action} user ini?`)) return;
     
     try {
-        await fetch(`/api/admin/users/${userId}`, {
+        await fetch(`/api/settings/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_disabled: !currentDisabledState })
@@ -3979,7 +3979,7 @@ async function adminResetMfa(userId) {
     if (!confirm('Apakah Anda yakin ingin me-reset MFA untuk user ini? User harus men-scan ulang QR code MFA.')) return;
     
     try {
-        await fetch(`/api/admin/users/${userId}`, {
+        await fetch(`/api/settings/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reset_mfa: true })
@@ -4141,7 +4141,7 @@ function saveUser(e) {
     
     if (userId) {
         // Edit Mode
-        fetch(`/api/admin/users/${userId}`, {
+        fetch(`/api/settings/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -4162,7 +4162,7 @@ function saveUser(e) {
         
         const createPayload = { username, password, ...payload };
         
-        fetch('/api/admin/users', {
+        fetch('/api/settings/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(createPayload)
@@ -4181,7 +4181,7 @@ function saveUser(e) {
 
 function deleteUser(userId, username) {
     if (!confirm(`Are you sure you want to delete user: ${username}?`)) return;
-    fetch(`/api/admin/users/${userId}`, {
+    fetch(`/api/settings/users/${userId}`, {
         method: 'DELETE'
     })
     .then(async res => {
@@ -4196,7 +4196,7 @@ function deleteUser(userId, username) {
 
 function loadAuditLogs() {
     const searchVal = document.getElementById('log-search-input').value;
-    const url = `/api/admin/audit-logs${searchVal ? `?search=${encodeURIComponent(searchVal)}` : ''}`;
+    const url = `/api/settings/audit-logs${searchVal ? `?search=${encodeURIComponent(searchVal)}` : ''}`;
     
     fetch(url)
         .then(res => res.json())
@@ -4226,7 +4226,7 @@ function loadAuditLogs() {
 function clearAuditLogs() {
     if (!confirm('Apakah Anda yakin ingin menghapus semua audit log? Tindakan ini tidak dapat dibatalkan.')) return;
     
-    fetch('/api/admin/audit-logs', { method: 'DELETE' })
+    fetch('/api/settings/audit-logs', { method: 'DELETE' })
         .then(res => res.json())
         .then(data => {
             alert(data.message || 'Audit logs cleared successfully');
@@ -4254,7 +4254,7 @@ function getLogActionBadgeClass(action) {
 // --- IP Blocklist JS Handlers ---
 
 function loadBlocklist() {
-    fetch('/api/admin/blocklist')
+    fetch('/api/settings/blocklist')
         .then(res => res.json())
         .then(blocks => {
             const tbody = document.getElementById('blocklist-table-body');
@@ -4311,7 +4311,7 @@ function saveBlockedIP(e) {
         body.expires_in = parseInt(expires_val);
     }
     
-    fetch('/api/admin/blocklist', {
+    fetch('/api/settings/blocklist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -4329,7 +4329,7 @@ function saveBlockedIP(e) {
 
 function unblockIP(blockId, ipAddress) {
     if (!confirm(`Are you sure you want to unblock IP: ${ipAddress}?`)) return;
-    fetch(`/api/admin/blocklist/${blockId}`, {
+    fetch(`/api/settings/blocklist/${blockId}`, {
         method: 'DELETE'
     })
     .then(async res => {
@@ -7799,7 +7799,7 @@ async function loadGitLogs() {
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading logs...</td></tr>';
     try {
-        const res = await fetch('/api/admin/changelogs');
+        const res = await fetch('/api/settings/changelogs');
         const data = await res.json();
         tbody.innerHTML = '';
         if (data && data.length > 0) {
@@ -7834,7 +7834,7 @@ async function saveChangelog() {
     }
     
     try {
-        const res = await fetch('/api/admin/changelogs', {
+        const res = await fetch('/api/settings/changelogs', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ version, description })
@@ -7854,7 +7854,7 @@ async function saveChangelog() {
 async function deleteChangelog(id) {
     if (!confirm('Hapus log pencatatan ini?')) return;
     try {
-        const res = await fetch(`/api/admin/changelogs/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/settings/changelogs/${id}`, { method: 'DELETE' });
         if (res.ok) {
             loadGitLogs();
         } else {

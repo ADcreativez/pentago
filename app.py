@@ -1364,7 +1364,7 @@ def get_dashboard_stats():
     })
 
 # Company CRUD
-@app.route('/admin')
+@app.route('/settings')
 @login_required
 @admin_required
 def admin():
@@ -2167,7 +2167,7 @@ def api_change_password():
 
 # --- Admin APIs ---
 
-@app.route('/api/admin/users', methods=['GET', 'POST'])
+@app.route('/api/settings/users', methods=['GET', 'POST'])
 @admin_required
 def api_admin_users():
     if request.method == 'GET':
@@ -2210,7 +2210,7 @@ def api_admin_users():
         log_audit('CREATE_USER', f'Created user {username} with role {role}')
         return jsonify(new_user.to_dict()), 201
 
-@app.route('/api/admin/users/<int:user_id>', methods=['PUT', 'DELETE'])
+@app.route('/api/settings/users/<int:user_id>', methods=['PUT', 'DELETE'])
 @admin_required
 def api_admin_user_detail(user_id):
     user = User.query.get_or_404(user_id)
@@ -2286,7 +2286,7 @@ def api_admin_user_detail(user_id):
         log_audit('DELETE_USER', f'Deleted user account: {username}')
         return jsonify({'message': 'User deleted successfully'})
 
-@app.route('/api/admin/audit-logs', methods=['GET', 'DELETE'])
+@app.route('/api/settings/audit-logs', methods=['GET', 'DELETE'])
 @admin_required
 def api_admin_audit_logs():
     if request.method == 'GET':
@@ -2309,7 +2309,7 @@ def api_admin_audit_logs():
         log_audit('CLEAR_LOGS', f'Audit logs were cleared by {session.get("username")}')
         return jsonify({'message': 'Audit logs cleared successfully'})
 
-@app.route('/api/admin/blocklist', methods=['GET', 'POST'])
+@app.route('/api/settings/blocklist', methods=['GET', 'POST'])
 @admin_required
 def api_admin_blocklist():
     if request.method == 'GET':
@@ -2342,7 +2342,7 @@ def api_admin_blocklist():
         db.session.commit()
         return jsonify(block_entry.to_dict()), 201
 
-@app.route('/api/admin/blocklist/<int:block_id>', methods=['DELETE'])
+@app.route('/api/settings/blocklist/<int:block_id>', methods=['DELETE'])
 @admin_required
 def api_admin_blocklist_delete(block_id):
     block = BlockedIP.query.get_or_404(block_id)
@@ -2358,7 +2358,7 @@ def api_admin_blocklist_delete(block_id):
     return jsonify({'message': f'IP {ip} unblocked successfully'})
 
 # System Changelog APIs
-@app.route('/api/admin/changelogs', methods=['GET', 'POST'])
+@app.route('/api/settings/changelogs', methods=['GET', 'POST'])
 @login_required
 def api_changelogs():
     if request.method == 'GET':
@@ -2375,7 +2375,7 @@ def api_changelogs():
         db.session.commit()
         return jsonify(log.to_dict())
 
-@app.route('/api/admin/changelogs/<int:id>', methods=['DELETE'])
+@app.route('/api/settings/changelogs/<int:id>', methods=['DELETE'])
 @login_required
 def api_changelog_delete(id):
     log = SystemChangelog.query.get_or_404(id)

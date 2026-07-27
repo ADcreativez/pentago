@@ -11329,3 +11329,27 @@ INFO:werkzeug:127.0.0.1 - - [23/Jul/2026 23:08:57] "GET /api/projects HTTP/1.1" 
 INFO:werkzeug:127.0.0.1 - - [23/Jul/2026 23:09:15] "GET /api/dashboard?year=all HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [23/Jul/2026 23:09:21] "GET /api/dashboard?year=2025 HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [23/Jul/2026 23:09:24] "GET /api/dashboard?year=2026 HTTP/1.1" 200 -
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/scratch_check.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/app.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/app.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/update_db.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/update_db.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
+INFO:werkzeug: * Detected change in '/Users/macbookpro/ErwanzCode/Pentago/update_db.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 408-799-136
