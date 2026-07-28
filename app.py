@@ -772,6 +772,33 @@ with app.app_context():
         db.session.commit()
     except Exception:
         db.session.rollback()
+        
+    # Additional robust migrations
+    try:
+        db.session.execute(text("ALTER TABLE company ADD COLUMN created_at DATETIME"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE company ADD COLUMN sales_name VARCHAR(150)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN used_tools TEXT"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN threat_model TEXT"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN cyber_kill_chain TEXT"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
     try:
         db.session.execute(text("ALTER TABLE finding_template ADD COLUMN custom_fields TEXT"))
         db.session.commit()

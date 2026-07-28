@@ -762,7 +762,14 @@ async function loadCompanies() {
     let companies = cacheStore.companies;
     if (!companies) {
         const res = await fetch('/api/companies');
+        if (res.status === 401) {
+            handleLogout();
+            return;
+        }
         companies = await res.json();
+        if (!Array.isArray(companies)) {
+            companies = [];
+        }
         cacheStore.companies = companies;
     }
     const container = document.getElementById('companies-grouped-container');
