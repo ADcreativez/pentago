@@ -1380,8 +1380,12 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     let currentChunkHeight = 30; // base margin space
 
     flowItems.forEach(item => {
-        // Use 820 as threshold to pack content securely without overlapping the footer
-        if (currentChunkHeight + item.height > 750 && currentChunk.length > 0) {
+        // Adjust threshold based on spacing. If 'rapat' (<= 1.0), allow up to 900px to ensure at least 3/4 page is filled
+        let threshold = 750;
+        if (spacingMult <= 1.0) threshold = 920;
+        else if (spacingMult <= 1.2) threshold = 820;
+
+        if (currentChunkHeight + item.height > threshold && currentChunk.length > 0) {
             pageChunks.push(currentChunk);
             currentChunk = [item];
             currentChunkHeight = 30 + item.height;
