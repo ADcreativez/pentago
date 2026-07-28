@@ -1091,7 +1091,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             
             let affectedHtml = '-';
             if (f.affected_system) {
-                const parts = f.affected_system.split(/[\n,\s]+/).filter(Boolean);
+                const parts = f.affected_system.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
                 if (parts.length > 0) {
                     affectedHtml = '<ul style="margin: 0; padding-left: 15px; text-align: left; list-style-type: disc;">' + 
                         parts.map(p => '<li style="margin-bottom: 2px;">' + p + '</li>').join('') + 
