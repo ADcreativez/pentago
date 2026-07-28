@@ -1019,7 +1019,14 @@ async function loadProjects() {
     let projects = cacheStore.projects;
     if (!projects) {
         const res = await fetch('/api/projects');
+        if (res.status === 401) {
+            handleLogout();
+            return;
+        }
         projects = await res.json();
+        if (!Array.isArray(projects)) {
+            projects = [];
+        }
         cacheStore.projects = projects;
     }
     
