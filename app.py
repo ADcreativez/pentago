@@ -790,6 +790,11 @@ with app.app_context():
     except Exception:
         db.session.rollback()
     try:
+        db.session.execute(text("ALTER TABLE project ADD COLUMN report_template_id INTEGER"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
         db.session.execute(text("ALTER TABLE project ADD COLUMN threat_model TEXT"))
         db.session.commit()
     except Exception:
