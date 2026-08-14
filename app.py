@@ -1762,6 +1762,9 @@ def api_export_secure_pdf(project_id):
         out_io.seek(0)
         
         safe_name = "".join([c if c.isalnum() else "_" for c in project.name])
+        
+        log_audit('DOWNLOAD_SECURE_REPORT', f"Downloaded secure PDF report for project: {project.name}")
+        
         return send_file(
             out_io,
             mimetype='application/pdf',
