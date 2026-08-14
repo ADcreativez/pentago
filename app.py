@@ -562,6 +562,8 @@ class Finding(db.Model):
     finding_status = db.Column(db.String(50), default='Open') # Open, Closed
     retest_evidence = db.Column(EncryptedText)
     custom_fields = db.Column(EncryptedText)
+    page_break_before = db.Column(db.Integer, default=0) # 0 or 1
+    extra_spacing = db.Column(db.Integer, default=0) # in pixels
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -596,6 +598,8 @@ class Finding(db.Model):
             'finding_status': self.finding_status,
             'retest_evidence': self.retest_evidence,
             'custom_fields': self.custom_fields,
+            'page_break_before': self.page_break_before,
+            'extra_spacing': self.extra_spacing,
             'created_at': self.created_at.strftime('%Y-%m-%d')
         }
 
@@ -1824,7 +1828,9 @@ def api_findings():
             status=data.get('status', 'Open'),
             finding_status=data.get('finding_status', 'Open'),
             retest_evidence=data.get('retest_evidence', ''),
-            custom_fields=data.get('custom_fields', '')
+            custom_fields=data.get('custom_fields', ''),
+            page_break_before=data.get('page_break_before', 0),
+            extra_spacing=data.get('extra_spacing', 0)
         )
         db.session.add(finding)
         db.session.commit()
@@ -1873,6 +1879,8 @@ def api_finding(finding_id):
         finding.finding_status = data.get('finding_status', finding.finding_status)
         finding.retest_evidence = data.get('retest_evidence', finding.retest_evidence)
         finding.custom_fields = data.get('custom_fields', finding.custom_fields)
+        finding.page_break_before = data.get('page_break_before', finding.page_break_before)
+        finding.extra_spacing = data.get('extra_spacing', finding.extra_spacing)
         db.session.commit()
         log_audit('UPDATE_FINDING', f"Updated finding: {finding.title} (Status: {finding.finding_status}, Retest Status: {finding.status})")
         return jsonify(finding.to_dict())

@@ -2282,6 +2282,11 @@ async function openFindingModal(mode = 'project') {
     document.getElementById('finding-retest-evidence').value = '';
     const customContainer = document.getElementById('custom-fields-container');
     if (customContainer) customContainer.innerHTML = '';
+    
+    const pageBreakCheckbox = document.getElementById('finding-page-break');
+    if (pageBreakCheckbox) pageBreakCheckbox.checked = false;
+    const extraSpacingInput = document.getElementById('finding-extra-spacing');
+    if (extraSpacingInput) extraSpacingInput.value = '';
 
     selectDefaultCvss();
 
@@ -2470,6 +2475,12 @@ async function editFinding(id) {
     document.getElementById('finding-reference').value = f.reference || '';
     document.getElementById('finding-step-reproduce').value = f.step_reproduce || '';
     document.getElementById('finding-retest-evidence').value = f.retest_evidence || '';
+    
+    const pageBreakCheckbox = document.getElementById('finding-page-break');
+    if (pageBreakCheckbox) pageBreakCheckbox.checked = f.page_break_before === 1 || f.page_break_before === true;
+    const extraSpacingInput = document.getElementById('finding-extra-spacing');
+    if (extraSpacingInput) extraSpacingInput.value = f.extra_spacing || '';
+
 
     populateDynamicRows('cwe', f.cwe || '');
     populateDynamicRows('mitre', f.mitre_attack || '');
@@ -2604,11 +2615,17 @@ async function saveFinding(e) {
     });
     const custom_fields = JSON.stringify(customFields);
 
+    const pageBreakCheckbox = document.getElementById('finding-page-break');
+    const page_break_before = pageBreakCheckbox ? (pageBreakCheckbox.checked ? 1 : 0) : 0;
+    
+    const extraSpacingInput = document.getElementById('finding-extra-spacing');
+    const extra_spacing = extraSpacingInput ? (parseInt(extraSpacingInput.value) || 0) : 0;
+
     let payload = {
         title, description, exploitation, impact, solution, reference, step_reproduce,
         cwe, mitre_attack, iso_27001, nist_control, ptes_phase,
         cvss_version: version, cvss_vector: vector, cvss_score: score, severity,
-        custom_fields
+        custom_fields, page_break_before, extra_spacing
     };
 
     let url = '';

@@ -1283,6 +1283,23 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 }
             };
 
+            if (f.page_break_before === 1 || f.page_break_before === true) {
+                flowItems.push({
+                    type: 'page_break',
+                    height: 0,
+                    html: ''
+                });
+            }
+            
+            if (f.extra_spacing && parseInt(f.extra_spacing) > 0) {
+                const spc = parseInt(f.extra_spacing);
+                flowItems.push({
+                    type: 'spacing',
+                    height: spc,
+                    html: `<div style="height:${spc}px; width:100%;"></div>`
+                });
+            }
+
             flowItems.push({
                 type: 'heading',
                 height: 40,
@@ -1466,9 +1483,18 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
 
     flowItems.forEach(item => {
         // Adjust threshold based on user spacing preference to minimize empty space while preventing overflow.
-        let threshold = 665; // Default (Longgar)
-        if (spacingMult <= 1.0) threshold = 765; // Rapat
-        else if (spacingMult <= 1.2) threshold = 725; // Normal
+        let threshold = 760; // Default (Longgar)
+        if (spacingMult <= 1.0) threshold = 860; // Rapat
+        else if (spacingMult <= 1.2) threshold = 810; // Normal
+
+        if (item.type === 'page_break') {
+            if (currentChunk.length > 0) {
+                pageChunks.push(currentChunk);
+            }
+            currentChunk = [];
+            currentChunkHeight = 30;
+            return;
+        }
 
         if (currentChunkHeight + item.height > threshold && currentChunk.length > 0) {
             pageChunks.push(currentChunk);
