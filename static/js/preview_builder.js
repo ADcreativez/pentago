@@ -1568,7 +1568,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                         chunkHtml += `</tbody></table>`;
                     }
                     const tableMarginTop = inTable ? '10px' : '0px';
-                    chunkHtml += `<table style="width:100%; border-collapse:collapse; table-layout:fixed; word-wrap:break-word; font-family:'Arimo',Arial, sans-serif; font-size:9.5pt; border:1.5px solid #000; margin-bottom:1.5rem; background:#fff; margin-top:${tableMarginTop};"><tbody>`;
+                    chunkHtml += `<table style="width:100%; border-collapse:collapse; table-layout:fixed; word-wrap:break-word; font-family:'Arimo',Arial, sans-serif; font-size:9.5pt; border:1.5px solid #000; margin-bottom:1.5rem; margin-top:${tableMarginTop};"><tbody>`;
                     inTable = true;
                     currentTableFindingIdx = item.findingIdx;
                 }
@@ -1693,9 +1693,13 @@ window.onbeforeprint = function(event) {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    opacity: 0.08;
-    z-index: 9999;
+    opacity: 0.1;
+    z-index: 0;
     pointer-events: none;
+}
+.page-watermark > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* ── Page Header (non-cover) ── */
