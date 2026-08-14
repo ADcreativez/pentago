@@ -1776,7 +1776,7 @@ async function viewProject(projectId) {
                 });
                 const hasA01Issue = !(sc.Critical === 0 && sc.High === 0);
                 const hasA05Issue = !(sc.Medium === 0);
-                return `<table class="tbl"><thead><tr><th style="text-align:center;">No.</th><th style="text-align:center;">ID</th><th style="text-align:center;">OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody><tr><td>1</td><td style="font-weight:700;color:#1e3a5f;">A01:2021</td><td>Broken Access Control</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>2</td><td style="font-weight:700;color:#1e3a5f;">A02:2021</td><td>Cryptographic Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>3</td><td style="font-weight:700;color:#1e3a5f;">A03:2021</td><td>Injection</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>4</td><td style="font-weight:700;color:#1e3a5f;">A04:2021</td><td>Insecure Design</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>5</td><td style="font-weight:700;color:#1e3a5f;">A05:2021</td><td>Security Misconfiguration</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>6</td><td style="font-weight:700;color:#1e3a5f;">A06:2021</td><td>Vulnerable and Outdated Components</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>7</td><td style="font-weight:700;color:#1e3a5f;">A07:2021</td><td>Identification and Authentication Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>8</td><td style="font-weight:700;color:#1e3a5f;">A08:2021</td><td>Software and Data Integrity Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>9</td><td style="font-weight:700;color:#1e3a5f;">A09:2021</td><td>Security Logging and Monitoring Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>10</td><td style="font-weight:700;color:#1e3a5f;">A10:2021</td><td>Server-Side Request Forgery (SSRF)</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr></tbody></table>`;
+                return `<table class="tbl"><thead><tr><td style="text-align:center;font-weight:700;background-color:#1e3a5f;color:white;">No.</td><td style="text-align:center;font-weight:700;background-color:#1e3a5f;color:white;">ID</td><td style="text-align:center;font-weight:700;background-color:#1e3a5f;color:white;">OWASP Testing Name</td><td style="text-align:center;font-weight:700;background-color:#1e3a5f;color:white;">Result Pass</td><td style="text-align:center;font-weight:700;background-color:#1e3a5f;color:white;">Issues</td></tr></thead><tbody><tr><td>1</td><td style="font-weight:700;color:#1e3a5f;">A01:2021</td><td>Broken Access Control</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA01Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>2</td><td style="font-weight:700;color:#1e3a5f;">A02:2021</td><td>Cryptographic Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>3</td><td style="font-weight:700;color:#1e3a5f;">A03:2021</td><td>Injection</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>4</td><td style="font-weight:700;color:#1e3a5f;">A04:2021</td><td>Insecure Design</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>5</td><td style="font-weight:700;color:#1e3a5f;">A05:2021</td><td>Security Misconfiguration</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '-' : '<span style="color:#16a34a;">&#10003;</span>'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${hasA05Issue ? '<span style="color:#dc2626;">&#10003;</span>' : '-'}</td></tr><tr><td>6</td><td style="font-weight:700;color:#1e3a5f;">A06:2021</td><td>Vulnerable and Outdated Components</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>7</td><td style="font-weight:700;color:#1e3a5f;">A07:2021</td><td>Identification and Authentication Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>8</td><td style="font-weight:700;color:#1e3a5f;">A08:2021</td><td>Software and Data Integrity Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>9</td><td style="font-weight:700;color:#1e3a5f;">A09:2021</td><td>Security Logging and Monitoring Failures</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr><tr><td>10</td><td style="font-weight:700;color:#1e3a5f;">A10:2021</td><td>Server-Side Request Forgery (SSRF)</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;"><span style="color:#16a34a;">&#10003;</span></td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">-</td></tr></tbody></table>`;
             })() },
             { id: 'sub-1-7', title: '1.7 Ringkasan Temuan Celah Keamanan', content: (function() {
                 const sc = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
@@ -1792,7 +1792,7 @@ async function viewProject(projectId) {
 
                 let rowsHTML = findings.map((f, idx) => `
                 <tr>
-                    <td style="text-align:center;">${idx + 1}</td>
+                    <td style="text-align:center;">F${(idx + 1).toString().padStart(2, '0')}</td>
                     <td><strong>${f.title}</strong></td>
                     <td style="text-align:center;font-weight:700;color:${f.severity === 'Critical' ? '#7c3aed' : f.severity === 'High' ? '#dc2626' : f.severity === 'Medium' ? '#d97706' : f.severity === 'Low' ? '#16a34a' : '#0284c7'};">${(f.cvss_score || 0).toFixed(1)}</td>
                     <td><span class="badge badge-${f.severity.toLowerCase()}" style="font-weight:bold; font-size:11px;">${f.severity.toUpperCase()}</span></td>
@@ -2014,7 +2014,7 @@ async function viewProject(projectId) {
             reportsHTML += `
                 <div class="sysreptor-report-card">
                     <div class="sysreptor-report-title">
-                        <span>${idx + 1}. ${f.title}</span>
+                        <span>F${(idx + 1).toString().padStart(2, '0')}. ${f.title}</span>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <button class="btn-helper" onclick="copyFindingToClipboard(this, ${f.id})" style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; height: 28px; font-size: 0.75rem; background: #ffffff; color: var(--accent-blue); border-color: rgba(15, 98, 254, 0.2); cursor: pointer; border-radius: 4px; padding: 0.25rem 0.5rem;">
                                 📋 Copy Finding
@@ -2708,82 +2708,33 @@ function calculateCvss() {
     let score = 0.0;
     let vector = '';
 
-    if (version === 'v3.1') {
-        const { AV, AC, PR, UI, S, C, I, A } = cvss3Metrics;
-        if (!AV || !AC || !PR || !UI || !S || !C || !I || !A) {
-            document.getElementById('cvss-vector-display').innerText = 'Select all CVSS v3.1 metrics';
-            return;
-        }
-
-        // Coefficients
-        const avVal = { N: 0.85, A: 0.62, L: 0.55, P: 0.20 }[AV];
-        const acVal = { L: 0.77, H: 0.44 }[AC];
-        const uiVal = { N: 0.85, R: 0.62 }[UI];
-        const cVal = { N: 0.0, L: 0.22, H: 0.56 }[C];
-        const iVal = { N: 0.0, L: 0.22, H: 0.56 }[I];
-        const aVal = { N: 0.0, L: 0.22, H: 0.56 }[A];
-        
-        let prVal = 0.0;
-        if (S === 'U') {
-            prVal = { N: 0.85, L: 0.62, H: 0.27 }[PR];
-        } else {
-            prVal = { N: 0.85, L: 0.68, H: 0.50 }[PR];
-        }
-
-        const iss = 1 - (1 - cVal) * (1 - iVal) * (1 - aVal);
-        let impact = 0.0;
-        if (S === 'U') {
-            impact = 6.42 * iss;
-        } else {
-            impact = 7.52 * (iss - 0.029) - 3.25 * Math.pow(iss - 0.02, 15);
-        }
-
-        const exploitability = 8.22 * avVal * acVal * prVal * uiVal;
-        
-        if (impact <= 0) {
-            score = 0.0;
-        } else {
-            if (S === 'U') {
-                score = Math.min(10, impact + exploitability);
-            } else {
-                score = Math.min(10, 1.08 * (impact + exploitability));
+    try {
+        if (version === 'v3.1') {
+            const { AV, AC, PR, UI, S, C, I, A } = cvss3Metrics;
+            if (!AV || !AC || !PR || !UI || !S || !C || !I || !A) {
+                document.getElementById('cvss-vector-display').innerText = 'Select all CVSS v3.1 metrics';
+                return;
             }
-            // Round Up 1 decimal
-            score = Math.ceil(score * 10) / 10;
-        }
-
-        vector = `CVSS:3.1/AV:${AV}/AC:${AC}/PR:${PR}/UI:${UI}/S:${S}/C:${C}/I:${I}/A:${A}`;
-    } else {
-        // CVSS v4.0 simplified exact baseline score
-        const { AV4, AC4, AT4, PR4, UI4, VC4, VI4, VA4 } = cvss4Metrics;
-        if (!AV4 || !AC4 || !AT4 || !PR4 || !UI4 || !VC4 || !VI4 || !VA4) {
-            document.getElementById('cvss-vector-display').innerText = 'Select all CVSS v4.0 metrics';
-            return;
-        }
-
-        // Standard simplified mapping for CVSS v4.0 Base Score calculation
-        const avVal = { N: 1.0, A: 0.8, L: 0.5, P: 0.2 }[AV4];
-        const acVal = { L: 1.0, H: 0.7 }[AC4];
-        const atVal = { N: 1.0, P: 0.8 }[AT4];
-        const prVal = { N: 1.0, L: 0.8, H: 0.5 }[PR4];
-        const uiVal = { N: 1.0, P: 0.8, A: 0.6 }[UI4];
-
-        // Impact Value
-        const vcVal = { H: 0.56, L: 0.22, N: 0.0 }[VC4];
-        const viVal = { H: 0.56, L: 0.22, N: 0.0 }[VI4];
-        const vaVal = { H: 0.45, L: 0.15, N: 0.0 }[VA4];
-
-        const baseImpact = vcVal + viVal + vaVal;
-        const exploitability = avVal * acVal * atVal * prVal * uiVal;
-
-        if (baseImpact === 0) {
-            score = 0.0;
+            vector = `CVSS:3.1/AV:${AV}/AC:${AC}/PR:${PR}/UI:${UI}/S:${S}/C:${C}/I:${I}/A:${A}`;
+            if (typeof CVSSLib !== 'undefined') {
+                const cvssObj = new CVSSLib.CVSS31(vector);
+                score = cvssObj.Score();
+            }
         } else {
-            score = Math.min(10.0, (baseImpact * 6.5) + (exploitability * 2.5));
-            score = Math.round(score * 10) / 10;
+            const { AV4, AC4, AT4, PR4, UI4, VC4, VI4, VA4 } = cvss4Metrics;
+            if (!AV4 || !AC4 || !AT4 || !PR4 || !UI4 || !VC4 || !VI4 || !VA4) {
+                document.getElementById('cvss-vector-display').innerText = 'Select all CVSS v4.0 metrics';
+                return;
+            }
+            vector = `CVSS:4.0/AV:${AV4}/AC:${AC4}/AT:${AT4}/PR:${PR4}/UI:${UI4}/VC:${VC4}/VI:${VI4}/VA:${VA4}`;
+            if (typeof CVSSLib !== 'undefined') {
+                const cvssObj = new CVSSLib.CVSS40(vector);
+                score = cvssObj.Score();
+            }
         }
-
-        vector = `CVSS:4.0/AV:${AV4}/AC:${AC4}/AT:${AT4}/PR:${PR4}/UI:${UI4}/VC:${VC4}/VI:${VI4}/VA:${VA4}`;
+    } catch (e) {
+        console.error("CVSS Calculation Error:", e);
+        score = 0.0;
     }
 
     document.getElementById('cvss-vector-display').innerText = vector;
@@ -8041,7 +7992,8 @@ window.initWorkspaceEditors = function() {
                 }
             });
             if (sec.content) {
-                window.chapterEditors[secEditorId].root.innerHTML = sec.content;
+                let safeContent = sec.content.replace(/<th/g, '<td style="font-weight:700;background-color:#1e3a5f;color:white;text-align:center;"').replace(/<\/th>/g, '</td>');
+                window.chapterEditors[secEditorId].clipboard.dangerouslyPasteHTML(safeContent);
             }
         }
         
@@ -8059,7 +8011,8 @@ window.initWorkspaceEditors = function() {
                         }
                     });
                     if (sub.content) {
-                        window.chapterEditors[editorId].root.innerHTML = sub.content;
+                        let safeContent = sub.content.replace(/<th/g, '<td style="font-weight:700;background-color:#1e3a5f;color:white;text-align:center;"').replace(/<\/th>/g, '</td>');
+                        window.chapterEditors[editorId].clipboard.dangerouslyPasteHTML(safeContent);
                     }
                 }
             });
@@ -8195,22 +8148,80 @@ function renderRtStructureEditor() {
     
     let html = '';
     templateStructure.forEach((sec, sIdx) => {
+        const secEditorId = 'rt-editor-' + sec.id;
         html += `
         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
-                <input type="text" class="form-control" value="${sec.title}" onchange="rtUpdateSectionTitle(${sIdx}, this.value)" style="font-weight: 600; font-size: 0.95rem; width: 80%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem; gap: 0.5rem;">
+                <input type="text" class="form-control" value="${sec.title}" onchange="rtUpdateSectionTitle(${sIdx}, this.value)" style="font-weight: 600; font-size: 0.95rem; flex: 1;">
+                <button type="button" class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="rtMoveChapterUp(${sIdx})" title="Naikkan Posisi">↑</button>
+                <button type="button" class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="rtMoveChapterDown(${sIdx})" title="Turunkan Posisi">↓</button>
                 <button type="button" class="btn btn-action-delete" onclick="rtDeleteSection(${sIdx})">Delete Chapter</button>
             </div>
+            <div id="${secEditorId}" style="min-height: 150px; background: #fff; margin-bottom: 1rem; border-radius: 0 0 6px 6px;"></div>
             <div style="padding-left: 1.5rem; margin-top: 1rem;">
         `;
         
         if (sec.subsections) {
             sec.subsections.forEach((sub, subIdx) => {
+                const subEditorId = 'rt-editor-' + sub.id;
+                
+                let subContentArea = '';
+                if (sub.id === 'sub-1-7' || sub.title.toLowerCase().includes('ringkasan temuan')) {
+                    subContentArea = `
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; text-align:center; margin-bottom: 1rem;">
+                        <h4 style="margin-top:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Ringkasan Temuan Otomatis</h4>
+                        <p style="margin-bottom:0; font-size:0.9rem; color:#475569; line-height:1.5;">Tabel ringkasan temuan ini dibuat secara otomatis berdasarkan database kerentanan (Findings). Tidak perlu diisi pada Template.</p>
+                    </div>`;
+                } else if (sub.id === 'sub-2-1' || sub.title.toLowerCase().includes('tabel risk assessment standar')) {
+                    subContentArea = `
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; text-align:center; margin-bottom: 1rem;">
+                        <h4 style="margin-top:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Tabel Risk Assessment Standar</h4>
+                        <p style="margin-bottom:0; font-size:0.9rem; color:#475569; line-height:1.5;">Tabel ini berisi definisi penilaian risiko standar CVSS (0.0 s.d 10.0). Tidak perlu diedit secara manual pada Template.</p>
+                    </div>`;
+                } else if (sub.id === 'sub-2-2' || sub.title.toLowerCase().includes('penetration testing tools')) {
+                    const toolsText = window.parseToolsTable ? window.parseToolsTable(sub.content) : '';
+                    subContentArea = `
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; text-align:center; margin-bottom: 1rem;">
+                        <h4 style="margin-top:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">Edit Penetration Testing Tools</h4>
+                        <p style="margin-bottom:0.5rem; font-size:0.8rem; color:#64748b;">Masukkan nama tools dipisahkan dengan tanda koma ( , ).</p>
+                        <textarea class="form-control" style="height:100px; font-family:var(--font-sans);" oninput="rtUpdateToolsTable(${sIdx}, ${subIdx}, this.value)">${toolsText}</textarea>
+                    </div>`;
+                } else if (sub.id === 'sub-1-2' || sub.title.toLowerCase().includes('ruang lingkup')) {
+                    const scopeData = window.parseScopeTable ? window.parseScopeTable(sub.content) : { device: '', url: '', detail: '', methodology: '' };
+                    subContentArea = `
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; display:flex; flex-direction:column; gap:1rem; margin-bottom: 1rem;">
+                        <h4 style="margin:0; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem; text-align:center;">Edit Ruang Lingkup (Scope)</h4>
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Perangkat / Aplikasi</label>
+                            <input type="text" class="form-control" value="${scopeData.device}" oninput="rtUpdateScopeTable(${sIdx}, ${subIdx}, 'device', this.value)">
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">URL / IP Target</label>
+                            <input type="text" class="form-control" value="${scopeData.url}" oninput="rtUpdateScopeTable(${sIdx}, ${subIdx}, 'url', this.value)">
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Detail Perangkat</label>
+                            <input type="text" class="form-control" value="${scopeData.detail}" oninput="rtUpdateScopeTable(${sIdx}, ${subIdx}, 'detail', this.value)">
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.85rem; color:#1e3a5f; margin-bottom:0.4rem;">Metodologi</label>
+                            <input type="text" class="form-control" value="${scopeData.methodology}" oninput="rtUpdateScopeTable(${sIdx}, ${subIdx}, 'methodology', this.value)">
+                        </div>
+                    </div>`;
+                } else {
+                    subContentArea = `<div id="${subEditorId}" style="min-height: 100px; background: #fff; border-radius: 0 0 6px 6px;"></div>`;
+                }
+                
                 html += `
-                <div style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <span style="color:var(--text-secondary);">↳</span>
-                    <input type="text" class="form-control" value="${sub.title}" onchange="rtUpdateSubsectionTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; flex: 1;">
-                    <button type="button" class="btn-helper" style="color:var(--severity-critical); border-color:var(--severity-critical); padding: 0.25rem 0.5rem; font-size:0.75rem;" onclick="rtDeleteSubsection(${sIdx}, ${subIdx})">x</button>
+                <div style="display:flex; flex-direction:column; margin-bottom: 1rem; background: #f8fafc; padding: 0.75rem; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <div style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="color:var(--text-secondary);">↳</span>
+                        <input type="text" class="form-control" value="${sub.title}" onchange="rtUpdateSubsectionTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; flex: 1;">
+                        <button type="button" class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="rtMoveSubchapterUp(${sIdx}, ${subIdx})" title="Naikkan Posisi">↑</button>
+                        <button type="button" class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="rtMoveSubchapterDown(${sIdx}, ${subIdx})" title="Turunkan Posisi">↓</button>
+                        <button type="button" class="btn-helper" style="color:var(--severity-critical); border-color:var(--severity-critical); padding: 0.25rem 0.5rem; font-size:0.75rem;" onclick="rtDeleteSubsection(${sIdx}, ${subIdx})">x</button>
+                    </div>
+                    ${subContentArea}
                 </div>
                 `;
             });
@@ -8224,7 +8235,65 @@ function renderRtStructureEditor() {
     });
     
     container.innerHTML = html;
+
+    // Initialize Quill editors
+    const quillConfig = {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'clean']
+            ]
+        }
+    };
+
+    templateStructure.forEach((sec, sIdx) => {
+        const secEditorId = 'rt-editor-' + sec.id;
+        const el = document.getElementById(secEditorId);
+        if (el) {
+            const q = new Quill(el, quillConfig);
+            if (sec.content) q.clipboard.dangerouslyPasteHTML(sec.content);
+            q.on('text-change', () => {
+                templateStructure[sIdx].content = q.root.innerHTML === '<p><br></p>' ? '' : q.root.innerHTML;
+            });
+        }
+        
+        if (sec.subsections) {
+            sec.subsections.forEach((sub, subIdx) => {
+                const subEditorId = 'rt-editor-' + sub.id;
+                const subEl = document.getElementById(subEditorId);
+                if (subEl) {
+                    const qs = new Quill(subEl, quillConfig);
+                    if (sub.content) qs.clipboard.dangerouslyPasteHTML(sub.content);
+                    qs.on('text-change', () => {
+                        templateStructure[sIdx].subsections[subIdx].content = qs.root.innerHTML === '<p><br></p>' ? '' : qs.root.innerHTML;
+                    });
+                }
+            });
+        }
+    });
 }
+
+window.rtUpdateToolsTable = function(sIdx, subIdx, val) {
+    const tools = val.split(',');
+    const col1 = tools.slice(0, 4).map(t => `<div>${t.trim()}</div>`).join('');
+    const col2 = tools.slice(4, 9).map(t => `<div>${t.trim()}</div>`).join('');
+    const col3 = tools.slice(9).map(t => `<div>${t.trim()}</div>`).join('');
+    
+    const newTable = `<table class="tbl"><thead><tr><th>Information Gathering</th><th>Assessment</th><th>Exploit/Tools</th></tr></thead><tbody><tr><td>${col1}</td><td>${col2}</td><td>${col3}</td></tr></tbody></table>`;
+    templateStructure[sIdx].subsections[subIdx].content = newTable;
+};
+
+window.rtUpdateScopeTable = function(sIdx, subIdx, field, val) {
+    const currentContent = templateStructure[sIdx].subsections[subIdx].content;
+    const scopeData = window.parseScopeTable ? window.parseScopeTable(currentContent) : { device: '', url: '', detail: '', methodology: '' };
+    scopeData[field] = val;
+    
+    const newTable = `<table class="tbl"><thead><tr><th>No.</th><th>Perangkat / Aplikasi</th><th>URL/IP</th><th>Detail</th><th>Metodologi</th></tr></thead><tbody><tr><td style="text-align:center;">1</td><td>${scopeData.device}</td><td><code>${scopeData.url}</code></td><td>${scopeData.detail}</td><td>${scopeData.methodology}</td></tr></tbody></table>`;
+    templateStructure[sIdx].subsections[subIdx].content = newTable;
+};
 
 function rtAddSection() {
     const newId = 'sec-' + Date.now();
@@ -8260,6 +8329,47 @@ function rtDeleteSubsection(sIdx, subIdx) {
         renderRtStructureEditor();
     }
 }
+
+window.rtMoveChapterUp = function(sIdx) {
+    if (sIdx > 0) {
+        const temp = templateStructure[sIdx];
+        templateStructure[sIdx] = templateStructure[sIdx - 1];
+        templateStructure[sIdx - 1] = temp;
+        renderRtStructureEditor();
+    }
+};
+
+window.rtMoveChapterDown = function(sIdx) {
+    if (sIdx < templateStructure.length - 1) {
+        const temp = templateStructure[sIdx];
+        templateStructure[sIdx] = templateStructure[sIdx + 1];
+        templateStructure[sIdx + 1] = temp;
+        renderRtStructureEditor();
+    }
+};
+
+window.rtMoveSubchapterUp = function(sIdx, subIdx) {
+    if (subIdx > 0) {
+        const subs = templateStructure[sIdx].subsections;
+        const temp = subs[subIdx];
+        subs[subIdx] = subs[subIdx - 1];
+        subs[subIdx - 1] = temp;
+        renderRtStructureEditor();
+    }
+};
+
+window.rtMoveSubchapterDown = function(sIdx, subIdx) {
+    const subs = templateStructure[sIdx].subsections;
+    if (subIdx < subs.length - 1) {
+        const temp = subs[subIdx];
+        subs[subIdx] = subs[subIdx + 1];
+        subs[subIdx + 1] = temp;
+        renderRtStructureEditor();
+    }
+};
+
+let rtContentEditor = null;
+// Removed sub-modal functions as editors are now inline
 
 async function saveReportTemplate(event) {
     if (event) event.preventDefault();
@@ -8428,6 +8538,8 @@ window.renderWorkspaceChapters = function() {
                     <input type="text" class="form-control" value="${sec.title}" onchange="wsUpdateChapterTitle(${sIdx}, this.value)" style="font-size: 1.1rem; font-weight:bold; color: #1e3a8a; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
                 </div>
                 <div style="display:flex; align-items:center; gap:0.5rem;">
+                    ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsMoveChapterUp(${sIdx})" title="Naikkan Posisi">↑</button>` : ''}
+                    ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsMoveChapterDown(${sIdx})" title="Turunkan Posisi">↓</button>` : ''}
                     ${canEditProject(currentProject) ? `<button class="btn-helper" id="btn-edit-${sec.id}" style="color:#0f62fe; border-color:#0f62fe; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsToggleEdit('${sec.id}', ${hasTable})">✏️ Edit</button>` : ''}
                     ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteChapter(${sIdx})">Delete Chapter</button>` : ''}
                 </div>
@@ -8450,7 +8562,7 @@ window.renderWorkspaceChapters = function() {
         
         if (sec.subsections) {
             sec.subsections.forEach((sub, subIdx) => {
-                const subHasTable = sub.content && sub.content.includes('<table class="tbl"');
+                const subHasTable = sub.id !== 'sub-1-6' && sub.content && sub.content.includes('<table class="tbl"');
                 html += `
                 <div style="margin-bottom: 1.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" id="card-sub-${sub.id}" data-editing="false">
                     <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 1rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0;">
@@ -8459,6 +8571,8 @@ window.renderWorkspaceChapters = function() {
                             <input type="text" class="form-control" value="${sub.title}" onchange="wsUpdateSubchapterTitle(${sIdx}, ${subIdx}, this.value)" style="font-size: 0.95rem; font-weight:600; color: #334155; border:1px solid transparent; background:transparent; padding:0.2rem 0.5rem; flex:1;">
                         </div>
                         <div style="display:flex; align-items:center; gap:0.5rem;">
+                            ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsMoveSubchapterUp(${sIdx}, ${subIdx})" title="Naikkan Posisi">↑</button>` : ''}
+                            ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#64748b; border-color:#64748b; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsMoveSubchapterDown(${sIdx}, ${subIdx})" title="Turunkan Posisi">↓</button>` : ''}
                             ${canEditProject(currentProject) ? `<button class="btn-helper" id="btn-edit-${sub.id}" style="color:#0f62fe; border-color:#0f62fe; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsToggleEdit('${sub.id}', ${subHasTable})">✏️ Edit</button>` : ''}
                             ${canEditProject(currentProject) ? `<button class="btn-helper" style="color:#ef4444; border-color:#ef4444; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="wsDeleteSubchapter(${sIdx}, ${subIdx})">Delete Sub</button>` : ''}
                         </div>
@@ -8521,7 +8635,7 @@ window.wsToggleEdit = function(id, isTable) {
         cardEl.setAttribute('data-editing', 'false');
         let newContent = '';
         
-        if (id === 'sub-1-6' || id === 'sub-1-2' || id === 'sub-2-2' || id === 'sub-2-1' || id === 'sub-1-7') {
+        if (id === 'sub-1-2' || id === 'sub-2-2' || id === 'sub-2-1' || id === 'sub-1-7') {
             newContent = getReportSectionContent(id);
         } else {
             const qEditor = window.chapterEditors['editor-' + id];
@@ -8548,53 +8662,7 @@ window.wsToggleEdit = function(id, isTable) {
         if (editorWrapper) editorWrapper.style.display = 'block';
         if (btn) btn.innerHTML = '👁️ View';
         
-        if (id === 'sub-1-6') {
-            const content = getReportSectionContent(id);
-            const state = parseOwaspState(content);
-            const owaspNames = {
-                'A01': 'Broken Access Control',
-                'A02': 'Cryptographic Failures',
-                'A03': 'Injection',
-                'A04': 'Insecure Design',
-                'A05': 'Security Misconfiguration',
-                'A06': 'Vulnerable and Outdated Components',
-                'A07': 'Identification and Authentication Failures',
-                'A08': 'Software and Data Integrity Failures',
-                'A09': 'Security Logging and Monitoring Failures',
-                'A10': 'Server-Side Request Forgery (SSRF)'
-            };
-            
-            let checklistHtml = `
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 1.5rem; max-width: 750px; margin: 0 auto;">
-                <h4 style="margin-top:0; margin-bottom:1rem; font-family:var(--font-title); color:var(--text-primary); font-size:1.05rem;">OWASP Top 10 Checklist Editor</h4>
-                <div style="display:flex; flex-direction:column; gap:0.75rem;">
-            `;
-            
-            for (let i = 1; i <= 10; i++) {
-                const key = 'A' + (i < 10 ? '0' + i : i);
-                const currentVal = state[key] || 'pass';
-                checklistHtml += `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:0.75rem 1rem; border:1px solid #e2e8f0; border-radius:6px;">
-                    <div style="font-weight:600; color:#1e3a5f; flex:1; font-size:0.9rem;">
-                        <span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:8px; font-family:monospace;">${key}:2021</span>
-                        ${owaspNames[key]}
-                    </div>
-                    <div style="display:flex; gap:1.5rem; align-items:center;">
-                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-weight:600; color:#16a34a; font-size:0.85rem; margin:0;">
-                            <input type="radio" name="owasp-radio-${key}" value="pass" ${currentVal === 'pass' ? 'checked' : ''} onchange="wsUpdateOwaspRow('${key}', 'pass')">
-                            Pass (✓)
-                        </label>
-                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-weight:600; color:#dc2626; font-size:0.85rem; margin:0;">
-                            <input type="radio" name="owasp-radio-${key}" value="issue" ${currentVal === 'issue' ? 'checked' : ''} onchange="wsUpdateOwaspRow('${key}', 'issue')">
-                            Issue (✗)
-                        </label>
-                    </div>
-                </div>
-                `;
-            }
-            checklistHtml += `</div></div>`;
-            editorWrapper.innerHTML = checklistHtml;
-        } else if (id === 'sub-1-2') {
+        if (id === 'sub-1-2') {
             const content = getReportSectionContent(id);
             const scopeData = parseScopeTable(content);
             let scopeHtml = `
@@ -8661,7 +8729,8 @@ window.wsToggleEdit = function(id, isTable) {
                     }
                 });
                 const content = getReportSectionContent(id);
-                window.chapterEditors[editorId].root.innerHTML = content;
+                let safeContent = content.replace(/<th/g, '<td style="font-weight:700;background-color:#1e3a5f;color:white;text-align:center;"').replace(/<\/th>/g, '</td>');
+                window.chapterEditors[editorId].clipboard.dangerouslyPasteHTML(safeContent);
             }
         }
     }
@@ -8691,58 +8760,6 @@ window.updateReportSectionContent = function(id, content) {
     });
 };
 
-window.parseOwaspState = function(content) {
-    const state = {};
-    if (!content) return state;
-    for (let i = 1; i <= 10; i++) {
-        const key = 'A' + (i < 10 ? '0' + i : i);
-        const id = key + ':2021';
-        if (content.includes(id)) {
-            const parts = content.split(id);
-            if (parts.length > 1) {
-                const afterId = parts[1].split('</tr>')[0];
-                if (afterId.includes('color:#dc2626') || afterId.includes('color: rgb(220, 38, 38)') || afterId.includes('color:red') || afterId.includes('color: red')) {
-                    state[key] = 'issue';
-                } else {
-                    state[key] = 'pass';
-                }
-            }
-        } else {
-            state[key] = 'pass';
-        }
-    }
-    return state;
-};
-
-window.wsUpdateOwaspRow = function(key, status) {
-    const content = getReportSectionContent('sub-1-6');
-    const state = parseOwaspState(content);
-    state[key] = status;
-    
-    const owaspNames = {
-        'A01': 'Broken Access Control',
-        'A02': 'Cryptographic Failures',
-        'A03': 'Injection',
-        'A04': 'Insecure Design',
-        'A05': 'Security Misconfiguration',
-        'A06': 'Vulnerable and Outdated Components',
-        'A07': 'Identification and Authentication Failures',
-        'A08': 'Software and Data Integrity Failures',
-        'A09': 'Security Logging and Monitoring Failures',
-        'A10': 'Server-Side Request Forgery (SSRF)'
-    };
-    
-    let newTable = `<table class="tbl"><thead><tr><th style="text-align:center;">No.</th><th style="text-align:center;">ID</th><th style="text-align:center;">OWASP Testing Name</th><th style="text-align:center;">Result Pass</th><th style="text-align:center;">Issues</th></tr></thead><tbody>`;
-    for (let i = 1; i <= 10; i++) {
-        const k = 'A' + (i < 10 ? '0' + i : i);
-        const name = owaspNames[k];
-        const isPass = (state[k] || 'pass') === 'pass';
-        newTable += `<tr><td>${i}</td><td style="font-weight:700;color:#1e3a5f;">${k}:2021</td><td>${name}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${isPass ? '<span style="color:#16a34a;">&#10003;</span>' : '-'}</td><td style="text-align:center;font-size:1.1rem;font-weight:bold;">${isPass ? '-' : '<span style="color:#dc2626;">&#10003;</span>'}</td></tr>`;
-    }
-    newTable += `</tbody></table>`;
-    
-    updateReportSectionContent('sub-1-6', newTable);
-};
 
 window.parseScopeTable = function(content) {
     if (!content) return { device: '', url: '', detail: '', methodology: '' };
@@ -8820,6 +8837,44 @@ window.wsAddSubchapter = function(sIdx) {
 window.wsDeleteSubchapter = function(sIdx, subIdx) {
     if (confirm('Delete this sub-chapter?')) {
         window.currentTechReport[sIdx].subsections.splice(subIdx, 1);
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsMoveChapterUp = function(sIdx) {
+    if (sIdx > 0) {
+        const temp = window.currentTechReport[sIdx];
+        window.currentTechReport[sIdx] = window.currentTechReport[sIdx - 1];
+        window.currentTechReport[sIdx - 1] = temp;
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsMoveChapterDown = function(sIdx) {
+    if (sIdx < window.currentTechReport.length - 1) {
+        const temp = window.currentTechReport[sIdx];
+        window.currentTechReport[sIdx] = window.currentTechReport[sIdx + 1];
+        window.currentTechReport[sIdx + 1] = temp;
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsMoveSubchapterUp = function(sIdx, subIdx) {
+    if (subIdx > 0) {
+        const subs = window.currentTechReport[sIdx].subsections;
+        const temp = subs[subIdx];
+        subs[subIdx] = subs[subIdx - 1];
+        subs[subIdx - 1] = temp;
+        window.renderWorkspaceChapters();
+    }
+};
+
+window.wsMoveSubchapterDown = function(sIdx, subIdx) {
+    const subs = window.currentTechReport[sIdx].subsections;
+    if (subIdx < subs.length - 1) {
+        const temp = subs[subIdx];
+        subs[subIdx] = subs[subIdx + 1];
+        subs[subIdx + 1] = temp;
         window.renderWorkspaceChapters();
     }
 };

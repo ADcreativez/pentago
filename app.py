@@ -1260,6 +1260,10 @@ def index():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.context_processor
+def inject_dictionary():
+    return dict(dictionary=ID_EN_DICTIONARY)
+
 @app.route('/workspace/<int:project_id>')
 def workspace(project_id):
     # Optional: We could check if user has access to project_id here!
@@ -1549,6 +1553,14 @@ def api_projects():
         company_id = data.get('company_id')
         if user.role != 'Admin' and company_id not in [c.id for c in user.allowed_companies]:
             return jsonify({'message': 'Unauthorized to create project for this client'}), 403
+        # Get template structure if selected
+        report_template_id = data.get('report_template_id')
+        technical_report_data = None
+        if report_template_id:
+            tpl = ReportTemplate.query.get(report_template_id)
+            if tpl and tpl.structure:
+                technical_report_data = tpl.structure
+
         project = Project(
             company_id=company_id,
             name=data['name'],
@@ -1569,7 +1581,8 @@ def api_projects():
             out_of_scope=data.get('out_of_scope', ''),
             access_info=data.get('access_info', ''),
             location_type=data.get('location_type', 'Remote'),
-            report_template_id=data.get('report_template_id'),
+            report_template_id=report_template_id,
+            technical_report=technical_report_data,
             used_tools=data.get('used_tools', ''),
             threat_model=data.get('threat_model', ''),
             cyber_kill_chain=data.get('cyber_kill_chain', ''),

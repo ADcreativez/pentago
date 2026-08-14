@@ -227,5 +227,15 @@
     " adalah ": " is ",
     " tidak ": " not ",
     " dapat ": " can ",
-    " akan ": " will "
+    " akan ": " will ",
+    "1.0 Kesimpulan (Project Summary)": "1.0 Conclusion (Project Summary)",
+    "1.1 Latar Belakang": "1.1 Background",
+    "1.2 Ruang Lingkup": "1.2 Scope of Work",
+    "1.3 Skenario Penetration Testing": "1.3 Penetration Testing Scenario",
+    "1.4 Batasan Pekerjaan": "1.4 Scope Limitations",
+    "1.5 Timeline Kegiatan": "1.5 Activity Timeline",
+    "1.7 Ringkasan Temuan Celah Keamanan": "1.7 Vulnerability Findings Summary",
+    "Bab 3: Laporan Teknis (Findings)": "Chapter 3: Technical Report (Findings)",
+    "3.1 Intelligence Gathering": "3.1 Intelligence Gathering",
+    "3.2 Vulnerability Assessment": "3.2 Vulnerability Assessment"
 }

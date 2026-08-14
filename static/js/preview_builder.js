@@ -89,6 +89,39 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 
                 // Keep the Quill alignment classes intact so that the CSS rules can apply them
                 // Apply auto-numbering for [caption: ...] even in rich text
+                // Also enforce table styles for any tables from Quill
+                const tables = doc.querySelectorAll('table');
+                tables.forEach(table => {
+                    if (!table.classList.contains('tbl')) table.classList.add('tbl');
+                    const rows = Array.from(table.querySelectorAll('tr'));
+                    let headerRow = null;
+                    for (let r of rows) {
+                        // Skip completely empty rows that Quill sometimes generates
+                        if (r.textContent.trim().length > 0) {
+                            headerRow = r;
+                            break;
+                        } else {
+                            r.parentNode.removeChild(r);
+                        }
+                    }
+                    
+                    if (headerRow) {
+                        const cells = headerRow.querySelectorAll('td, th');
+                        cells.forEach(cell => {
+                            // Convert back to TH for the preview so .tbl th CSS applies perfectly
+                            const th = doc.createElement('th');
+                            th.innerHTML = cell.innerHTML;
+                            // Strip any inner inline styles for color/background-color from spans that Quill might have added
+                            const spans = th.querySelectorAll('span');
+                            spans.forEach(s => {
+                                s.style.backgroundColor = '';
+                                s.style.color = '';
+                            });
+                            cell.parentNode.replaceChild(th, cell);
+                        });
+                    }
+                });
+
                 let tempHtml = doc.body.innerHTML;
                 tempHtml = tempHtml.replace(/\[caption:\s*(.+?)\]/gi, (match, captionText) => {
                     const counterValue = isDryRun ? 999 : (captionCounter++);
@@ -117,7 +150,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         if (!html) return 0;
         const cleanText = html.replace(/<[^>]*>/g, '').trim();
         // Base text height estimation
-        let h = Math.max(30, Math.ceil(cleanText.length / 100) * 24 * spacingMult);
+        let h = Math.max(30, Math.ceil(cleanText.length / 80) * 30 * spacingMult);
 
         const h2Count = (html.match(/<h2/g) || []).length;
         const h3Count = (html.match(/<h3/g) || []).length;
@@ -142,6 +175,56 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             h += 180;
         }
         return h;
+    };
+
+    const pushDynamicContent = (htmlStr, defaultType = 'general') => {
+        if (!htmlStr) return;
+        if (htmlStr.indexOf('<table') === -1) {
+            flowItems.push({ type: defaultType, height: estimateHtmlHeight(htmlStr), html: htmlStr });
+            return;
+        }
+        try {
+            const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
+            let currentGeneralHtml = '';
+            Array.from(doc.body.childNodes).forEach(node => {
+                if (node.nodeType === 1 && node.tagName.toLowerCase() === 'table') {
+                    if (currentGeneralHtml.trim()) {
+                        flowItems.push({ type: defaultType, height: estimateHtmlHeight(currentGeneralHtml), html: currentGeneralHtml });
+                        currentGeneralHtml = '';
+                    }
+                    let theadHtml = '';
+                    const thead = node.querySelector('thead');
+                    if (thead) {
+                        theadHtml = `<thead>${thead.innerHTML}</thead>`;
+                    } else {
+                        const firstRow = node.querySelector('tr');
+                        if (firstRow && firstRow.querySelector('th')) {
+                            theadHtml = `<thead>${firstRow.outerHTML}</thead>`;
+                            firstRow.parentNode.removeChild(firstRow);
+                        }
+                    }
+                    const rows = Array.from(node.querySelectorAll('tr'));
+                    rows.forEach(r => {
+                        if (r.parentNode && r.parentNode.tagName && r.parentNode.tagName.toLowerCase() === 'thead') return;
+                        const rowHeight = Math.max(40, Math.ceil((r.textContent.length||50)/80)*20 + 20);
+                        flowItems.push({
+                            type: 'dynamic_table_row',
+                            height: rowHeight,
+                            html: r.outerHTML,
+                            theadHtml: theadHtml,
+                            tableClass: node.className || 'tbl'
+                        });
+                    });
+                } else {
+                    currentGeneralHtml += (node.nodeType === 1 ? node.outerHTML : node.textContent);
+                }
+            });
+            if (currentGeneralHtml.trim()) {
+                flowItems.push({ type: defaultType, height: estimateHtmlHeight(currentGeneralHtml), html: currentGeneralHtml });
+            }
+        } catch (e) {
+            flowItems.push({ type: defaultType, height: estimateHtmlHeight(htmlStr), html: htmlStr });
+        }
     };
 
     // Simple markdown → HTML
@@ -263,7 +346,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         
         <!-- Center: Bordered Header Box -->
         <div style="width:70%;display:flex;flex-direction:column;align-items:center;">
-            <table style="width:100%;border-collapse:collapse;border:1px solid #000;font-family:'Arimo',Arial,sans-serif;font-size:7.5pt;text-align:center;line-height:1.3;">
+            <table style="width:80%;border-collapse:collapse;border:1px solid #000;font-family:'Arimo',Arial,sans-serif;font-size:7.5pt;text-align:center;line-height:1.3;">
                 <tr>
                     <td style="border:1px solid #000;padding:6px;font-weight:bold;text-transform:uppercase;color:#333;">
                         ${reportTitle}<br>
@@ -305,7 +388,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             const auditorLogoHtml = hasAuditorLogo ? `<img src="${headerLogoSrc}" height="35" style="height:35px; width:auto;">` : '';
             
             const centerTableHtml = `
-                <table style="width:100%;border-collapse:collapse;border:1px solid #000;font-family:'Arimo',Arial,sans-serif;font-size:7.5pt;text-align:center;line-height:1.3;">
+                <table style="width:80%;margin:0 auto;border-collapse:collapse;border:1px solid #000;font-family:'Arimo',Arial,sans-serif;font-size:7.5pt;text-align:center;line-height:1.3;">
                     <tr>
                         <td style="border:1px solid #000;padding:6px;font-weight:bold;text-transform:uppercase;color:#333;">
                             ${reportTitle}<br>
@@ -664,16 +747,29 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     }
 
     // --- BAB 1 ---
-    const execSummaryPart1 = `
+    const pushGeneralItem = (htmlStr) => {
+        flowItems.push({
+            type: 'general',
+            height: estimateHtmlHeight(htmlStr),
+            html: htmlStr
+        });
+    };
+
+    // --- BAB 1 ---
+    pushGeneralItem(`
     <h2 class="sh-blue">${tr(workspaceDocs['title_sec-1'] || "1. RINGKASAN EKSEKUTIF")}</h2>
     <h3 class="ssh">${tr(workspaceDocs['title_sub-1-0'] || "1.0. Kesimpulan (Project Summary)")}</h3>
     <div class="tb">
         ${workspaceDocs['sub-1-0'] !== undefined ? renderContent(workspaceDocs['sub-1-0']) : (p.summary ? renderContent(p.summary) : `<p>${defaultIntro}</p>`)}
     </div>
+    `);
 
+    pushGeneralItem(`
     <h3 class="ssh">${tr(workspaceDocs['title_sub-1-1'] || "1.1. Latar Belakang")}</h3>
     <div class="tb">${workspaceDocs['sub-1-1'] !== undefined ? renderContent(workspaceDocs['sub-1-1']) : (renderContent(bgText) || renderContent(p.description))}</div>
+    `);
 
+    pushGeneralItem(`
     <h3 class="ssh">${tr(workspaceDocs['title_sub-1-2'] || "1.2. Ruang Lingkup")}</h3>
     ${workspaceDocs['sub-1-2'] !== undefined ? renderContent(workspaceDocs['sub-1-2']) : `
     <table class="tbl">
@@ -688,18 +784,17 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             </tr>
         </tbody>
     </table>`}
+    `);
 
+    pushGeneralItem(`
     <h3 class="ssh">${tr(workspaceDocs['title_sub-1-3'] || "1.3. Skenario Penetration Testing")}</h3>
     <div class="tb">${workspaceDocs['sub-1-3'] !== undefined ? renderContent(workspaceDocs['sub-1-3']) : renderContent(p.access_info || (lang === 'en' ? 'Pentester performs scanning related to OS, port, and open vulnerabilities as an internet user, application user, and also as an admin.' : 'Pentester melakukan scanning terkait informasi OS, port, dan celah yang terbuka sebagai pengguna internet, pengguna aplikasi, juga sebagai admin aplikasi.'))}</div>
+    `);
 
+    pushGeneralItem(`
     <h3 class="ssh">${tr(workspaceDocs['title_sub-1-4'] || "1.4. Batasan Pekerjaan")}</h3>
     <div class="tb">${workspaceDocs['sub-1-4'] !== undefined ? renderContent(workspaceDocs['sub-1-4']) : renderContent(p.out_of_scope || (lang === 'en' ? 'Delivery of services described in the scope of work does not cover the following:\n- Vulnerability Assessment & Penetration Testing of systems outside the systems listed in this document.\n- Operational or disaster issues not caused by I3.' : 'Pengantaran jasa yang dijelaskan pada ruang lingkup pekerjaan tidak mencakupi hal-hal berikut ini:\n- Vulnerability Assessment & Penetration Testing terhadap sistem di luar sistem yang tercantum di dokumen ini.\n- Masalah operasional atau disaster, yang bukan disebabkan oleh I3.'))}</div>
-    `;
-    flowItems.push({
-        type: 'general',
-        height: estimateHtmlHeight(execSummaryPart1),
-        html: execSummaryPart1
-    });
+    `);
 
     let findingsChartHtml = '';
     if (findings && findings.length > 0) {
@@ -745,11 +840,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
 
     if (workspaceDocs['sub-1-6'] !== undefined) {
         const owaspChecklistHtml = `<h3 class="ssh">${tr(workspaceDocs['title_sub-1-6'] || "1.6. OWASP TOP 10 Checklist")}</h3>${renderContent(workspaceDocs['sub-1-6'])}`;
-        flowItems.push({
-            type: 'general',
-            height: estimateHtmlHeight(owaspChecklistHtml),
-            html: owaspChecklistHtml
-        });
+        pushDynamicContent(owaspChecklistHtml, 'general');
     } else {
         const titleHtml = `<h3 class="ssh">${tr(owaspTitle)}</h3>`;
         flowItems.push({
@@ -789,27 +880,22 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     }
 
     const chartTitleHtml = `<h3 class="ssh">${tr(workspaceDocs['title_sub-1-7'] || "1.7. Ringkasan Temuan Celah Keamanan")}</h3>`;
+    const riskBadgeHtml = `<div style="text-align:center; margin-top: 20px; margin-bottom: 25px;"><div class="risk-overall" style="border-color:${overallColor};color:${overallColor}; font-size:10pt; padding:6px 16px;">Overall Risk: <strong style="text-transform:uppercase;">${overallRisk}</strong></div></div>`;
+    const chartAndBadgeHtml = (findingsChartHtml || '') + riskBadgeHtml;
+    
     if (workspaceDocs['sub-1-7'] !== undefined) {
-        const customFindingsHtml = chartTitleHtml + (findingsChartHtml || '') + renderContent(workspaceDocs['sub-1-7']);
+        const customFindingsHtml = chartTitleHtml + chartAndBadgeHtml + renderContent(workspaceDocs['sub-1-7']);
         flowItems.push({
             type: 'general',
             height: estimateHtmlHeight(customFindingsHtml) + 50,
             html: customFindingsHtml
         });
     } else {
-        if (findingsChartHtml) {
-            flowItems.push({
-                type: 'general',
-                height: estimateHtmlHeight(chartTitleHtml + findingsChartHtml),
-                html: chartTitleHtml + findingsChartHtml
-            });
-        } else {
-            flowItems.push({
-                type: 'general',
-                height: estimateHtmlHeight(chartTitleHtml),
-                html: chartTitleHtml
-            });
-        }
+        flowItems.push({
+            type: 'general',
+            height: estimateHtmlHeight(chartTitleHtml + chartAndBadgeHtml) + 50,
+            html: chartTitleHtml + chartAndBadgeHtml
+        });
 
         if (findings && findings.length > 0) {
             const theadHtml = `<thead><tr><th>${tr("No.")}</th><th>${tr("Temuan")}</th><th>${tr("Nilai CVSS")}</th><th>${tr("Klasifikasi Risiko")}</th><th>${tr("Status")}</th></tr></thead>`;
@@ -817,7 +903,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             findings.forEach((f, idx) => {
                 const isLastChunk = (idx === findings.length - 1);
                 const rowHtml = `<tr>
-                    <td style="text-align:center;">${idx + 1}</td>
+                    <td style="text-align:center;">F${(idx + 1).toString().padStart(2, '0')}</td>
                     <td><strong>${f.title}</strong></td>
                     <td style="text-align:center;font-weight:700;color:${sevColor[f.severity]||'#475569'};">${(f.cvss_score||0).toFixed(1)}</td>
                     <td><span class="svb" style="background:${sevBg[f.severity]||'#f8fafc'};color:${sevColor[f.severity]||'#475569'};">${f.severity?.toUpperCase()}</span></td>
@@ -830,10 +916,9 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                     html: rowHtml,
                     theadHtml: theadHtml
                 });
-                
+                    
                 if (isLastChunk) {
                     let tableChunkHtml = `
-                    <div class="risk-overall" style="border-color:${overallColor};color:${overallColor};">Overall Risk: <strong>${overallRisk}</strong></div>
                     <div class="tb" style="margin-top:1rem;"><p>${lang === 'en' ? 'The main part of this report explains each risk in detail, followed by recommendations on technical resolution steps.' : 'Bagian utama dari laporan ini menjelaskan setiap risiko yang ada secara rinci, diikuti dengan rekomendasi tentang langkah-langkah penyelesaian teknis.'}</p></div>
                     `;
                     flowItems.push({
@@ -846,15 +931,14 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         } else {
             const theadHtml = `<thead><tr><th>${tr("No.")}</th><th>${tr("Temuan")}</th><th>${tr("Nilai CVSS")}</th><th>${tr("Klasifikasi Risiko")}</th><th>${tr("Status")}</th></tr></thead>`;
             const rowHtml = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${tr("Tidak ada temuan.")}</td></tr>`;
-        flowItems.push({
-            type: 'exec_row',
-            height: 50,
-            html: rowHtml,
-            theadHtml: theadHtml
-        });
-        
+            flowItems.push({
+                type: 'exec_row',
+                height: 50,
+                html: rowHtml,
+                theadHtml: theadHtml
+            });
+
         const tableChunkHtml = `
-        <div class="risk-overall" style="border-color:${overallColor};color:${overallColor};">Overall Risk: <strong>${overallRisk}</strong></div>
         <div class="tb" style="margin-top:1rem;"><p>${lang === 'en' ? 'The main part of this report explains each risk in detail, followed by recommendations on technical resolution steps.' : 'Bagian utama dari laporan ini menjelaskan setiap risiko yang ada secara rinci, diikuti dengan rekomendasi tentang langkah-langkah penyelesaian teknis.'}</p></div>
         `;
         flowItems.push({
@@ -1101,7 +1185,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
 
             return `
             <tr>
-                <td style="border: 1px solid #000; padding: 8px 10px; text-align: center;">${i+1}</td>
+                <td style="border: 1px solid #000; padding: 8px 10px; text-align: center;">F${(i+1).toString().padStart(2, '0')}</td>
                 <td style="border: 1px solid #000; padding: 8px 10px;"><strong>${f.title}</strong></td>
                 <td style="border: 1px solid #000; padding: 8px 10px; font-family: monospace; font-size: 8pt; word-break: break-all;">${affectedHtml}</td>
                 <td style="border: 1px solid #000; padding: 8px 10px; text-align: center; font-weight: 700; color: ${sc};">${(f.cvss_score||0).toFixed(1)}</td>
@@ -1181,7 +1265,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                     case 'reference':
                     case 'references':
                         const refCount = str.split('\n').filter(r => r.trim()).length;
-                        return Math.max(50, refCount * 22 + 20);
+                        return Math.max(50, refCount * 45 + 30);
                     case 'poc':
                         const isImg = str.startsWith('data:image/') || str.startsWith('http://') || str.startsWith('https://');
                         if (isImg) return 340; 
@@ -1202,7 +1286,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             flowItems.push({
                 type: 'heading',
                 height: 40,
-                html: `<h3 class="ssh" style="border-left-color:${sc}; font-size:11pt; font-weight:800; margin-top:1.8rem;">3.3.1.${idx+1} ${f.title}</h3>`
+                html: `<h3 class="ssh" style="border-left-color:${sc}; font-size:11pt; font-weight:800; margin-top:1.8rem;">3.3.1.${idx+1} (F${(idx + 1).toString().padStart(2, '0')}) ${f.title}</h3>`
             });
 
             const splitMarkdownToRows = (label, labelEn, mdContent, typeKey) => {
@@ -1243,7 +1327,8 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
             let rowsData = [
                 { type: 'title', val: f.title, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Finding Title" : "Judul Temuan"}</td><td style="padding:8px 12px; border:1px solid #000; font-weight:bold; font-size:10pt;">${f.title}</td></tr>` },
                 { type: 'affected', val: f.affected_system, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Affected System" : "Sistem Terdampak"}</td><td style="padding:8px 12px; border:1px solid #000; color:#0f62fe; text-decoration:underline; font-weight:500; font-family:monospace; word-break:break-all;">${f.affected_system || '-'}</td></tr>` },
-                { type: 'cvss', val: f.cvss_vector, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "CVSS Calculator" : "Kalkulator CVSS"}</td><td style="padding:8px 12px; border:1px solid #000; font-weight:500;"><div style="font-weight:bold; margin-bottom:4px;">${f.cvss_version || 'CVSS v3.1'}</div><div style="font-family:monospace; font-size:8.5pt; margin-bottom:4px; word-break:break-all;"><strong>Vector:</strong> ${f.cvss_vector || '-'}</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;"><strong>Score:</strong> ${(f.cvss_score || 0).toFixed(1)} <span style="background-color: ${sevBg[f.severity] || '#eff6ff'}; color: ${sevColor[f.severity] || '#0284c7'}; padding: 3px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${sevColor[f.severity]}33;">${f.severity || 'Info'}</span></div></td></tr>` },
+                { type: 'severity', val: f.severity, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Severity" : "Tingkat Risiko"}</td><td style="padding:8px 12px; border:1px solid #000;"><span style="background-color: ${sevBg[f.severity] || '#eff6ff'}; color: ${sevColor[f.severity] || '#0284c7'}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${sevColor[f.severity]}33;">${f.severity || 'Info'}</span></td></tr>` },
+                { type: 'cvss', val: f.cvss_vector, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "CVSS Calculator" : "Kalkulator CVSS"}</td><td style="padding:8px 12px; border:1px solid #000; font-weight:500;"><div style="font-weight:bold; margin-bottom:4px;">${f.cvss_version || 'CVSS v3.1'}</div><div style="font-family:monospace; font-size:8.5pt; margin-bottom:4px; word-break:break-all;"><strong>Vector:</strong> ${f.cvss_vector || '-'}</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;"><strong>Score:</strong> ${(f.cvss_score || 0).toFixed(1)}</div></td></tr>` },
                 { type: 'status', val: f.finding_status || f.status, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Finding Status" : "Status Temuan"}</td><td style="padding:8px 12px; border:1px solid #000;">${(() => { const val = f.finding_status || f.status || 'Open'; const isOp = val.toLowerCase() === 'open'; return `<span style="background-color: ${isOp ? '#def7ec' : '#e0f2fe'}; color: ${isOp ? '#03543f' : '#0369a1'}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${isOp ? 'rgba(16, 185, 129, 0.2)' : 'rgba(14, 165, 233, 0.2)'};">${val}</span>`; })()}</td></tr>` },
                 { type: 'retest_status', val: f.status || f.finding_status, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left;">${lang === "en" ? "Retest Status" : "Status Retest"}</td><td style="padding:8px 12px; border:1px solid #000;">${(() => { const val = f.status || f.finding_status || 'Open'; const valL = val.toLowerCase(); const bg = valL === 'open' ? '#def7ec' : (valL === 'fixed' || valL === 'closed' ? '#e0f2fe' : '#fef3c7'); const fg = valL === 'open' ? '#03543f' : (valL === 'fixed' || valL === 'closed' ? '#0369a1' : '#b45309'); const bd = valL === 'open' ? 'rgba(16, 185, 129, 0.2)' : (valL === 'fixed' || valL === 'closed' ? 'rgba(14, 165, 233, 0.2)' : 'rgba(245, 158, 11, 0.2)'); return `<span style="background-color: ${bg}; color: ${fg}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 8.5pt; display: inline-block; border: 1px solid ${bd};">${val}</span>`; })()}</td></tr>` },
                 ...splitMarkdownToRows("Deskripsi", "Description", f.description, 'description'),
@@ -1252,7 +1337,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 ...splitMarkdownToRows("Dampak", "Impact", f.impact, 'impact'),
                 { type: 'script_payload', val: f.script_payload, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "Script/Payload" : "Skrip/Payload"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.script_payload ? `<pre style="font-family:'Courier New', monospace; font-size:8pt; background:#f1f5f9; padding:6px 10px; border:1px solid #cbd5e1; border-radius:3px; overflow-x:auto; margin:0;"><code>${f.script_payload}</code></pre>` : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
                 ...splitMarkdownToRows("Rekomendasi/Solusi", "Solution", f.solution, 'solution'),
-                { type: 'reference', val: f.reference, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "References" : "Referensi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${f.reference ? `<ul style="margin:0; padding-left:1.2rem;">${f.reference.split('\n').filter(r=>r.trim()).map(r=>`<li><a href="${r.trim()}" style="color:#0f62fe; word-break:break-all;" target="_blank">${r.trim()}</a></li>`).join('')}</ul>` : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
+                { type: 'reference', val: f.reference, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "References" : "Referensi"}</td><td style="padding:8px 12px; border:1px solid #000; line-height:1.6;">${f.reference ? `<ul style="margin:0; padding-left:1.2rem;">${f.reference.split('\n').filter(r=>r.trim()).map(r=>{ let t = r.trim().replace(/^[-*•\u2022]\s*/, ''); t = t.replace(/(https?:\/\/[^\s]+)/gi, '<a href="$1" style="color:#0f62fe; word-break:break-all;" target="_blank">$1</a>'); return `<li style="margin-bottom:4px;"><span style="word-break:break-word;">${t}</span></li>`; }).join('')}</ul>` : '<p style="color:#94a3b8;font-style:italic;">-</p>'}</td></tr>` },
                 ...splitMarkdownToRows("Langkah Reproduksi", "Steps to Reproduce", f.step_reproduce, 'step_reproduce'),
                 { type: 'cwe', val: f.cwe, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">CWE (Common Weakness Enumeration)</td><td style="padding:8px 12px; border:1px solid #000;">${f.cwe ? `<ul style="margin:0; padding-left:1.2rem;">${f.cwe.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
                 { type: 'mitre_attack', val: f.mitre_attack, html: `<tr><td style="background:${sc}; color:#fff; font-weight:bold; padding:8px 12px; border:1px solid #000; width:20%; text-align:left; vertical-align:top;">${lang === "en" ? "MITRE ATT&CK Technique" : "Teknik MITRE ATT&CK"}</td><td style="padding:8px 12px; border:1px solid #000;">${f.mitre_attack ? `<ul style="margin:0; padding-left:1.2rem;">${f.mitre_attack.split('\\n').filter(r=>r.trim()).map(r=>`<li>${r.trim()}</li>`).join('')}</ul>` : '-'}</td></tr>` },
@@ -1380,10 +1465,10 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
     let currentChunkHeight = 30; // base margin space
 
     flowItems.forEach(item => {
-        // Adjust threshold based on spacing. If 'rapat' (<= 1.0), allow up to 900px to ensure at least 3/4 page is filled
-        let threshold = 750;
-        if (spacingMult <= 1.0) threshold = 920;
-        else if (spacingMult <= 1.2) threshold = 820;
+        // Adjust threshold based on user spacing preference to minimize empty space while preventing overflow.
+        let threshold = 665; // Default (Longgar)
+        if (spacingMult <= 1.0) threshold = 765; // Rapat
+        else if (spacingMult <= 1.2) threshold = 725; // Normal
 
         if (currentChunkHeight + item.height > threshold && currentChunk.length > 0) {
             pageChunks.push(currentChunk);
@@ -1451,12 +1536,16 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
         let inTable = false;
         let inOwaspTable = false;
         let inExecTable = false;
+        let inDynamicTable = false;
+        let currentDynamicThead = '';
+        let currentDynamicClass = 'tbl';
         let currentTableFindingIdx = -1;
 
         const closeAllTables = () => {
             if (inTable) { chunkHtml += `</tbody></table>`; inTable = false; }
             if (inOwaspTable) { chunkHtml += `</tbody></table>`; inOwaspTable = false; }
             if (inExecTable) { chunkHtml += `</tbody></table>`; inExecTable = false; }
+            if (inDynamicTable) { chunkHtml += `</tbody></table>`; inDynamicTable = false; }
         };
 
         chunkItems.forEach(item => {
@@ -1473,7 +1562,7 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 closeAllTables();
                 chunkHtml += item.html;
             } else if (item.type === 'row') {
-                if (inOwaspTable || inExecTable) closeAllTables();
+                if (inOwaspTable || inExecTable || inDynamicTable) closeAllTables();
                 if (!inTable || currentTableFindingIdx !== item.findingIdx) {
                     if (inTable) {
                         chunkHtml += `</tbody></table>`;
@@ -1485,17 +1574,26 @@ function _buildPreviewDocument(p, findings, tpl, structure, lang = 'id', isDocx 
                 }
                 chunkHtml += item.html;
             } else if (item.type === 'owasp_row') {
-                if (inTable || inExecTable) closeAllTables();
+                if (inTable || inExecTable || inDynamicTable) closeAllTables();
                 if (!inOwaspTable) {
                     chunkHtml += `<table class="tbl">${item.theadHtml}<tbody>`;
                     inOwaspTable = true;
                 }
                 chunkHtml += item.html;
             } else if (item.type === 'exec_row') {
-                if (inTable || inOwaspTable) closeAllTables();
+                if (inTable || inOwaspTable || inDynamicTable) closeAllTables();
                 if (!inExecTable) {
                     chunkHtml += `<table class="tbl">${item.theadHtml}<tbody>`;
                     inExecTable = true;
+                }
+                chunkHtml += item.html;
+            } else if (item.type === 'dynamic_table_row') {
+                if (inTable || inOwaspTable || inExecTable) closeAllTables();
+                if (!inDynamicTable) {
+                    currentDynamicThead = item.theadHtml || '';
+                    currentDynamicClass = item.tableClass || 'tbl';
+                    chunkHtml += `<table class="${currentDynamicClass}" style="width:100%; border-collapse:collapse; margin-top:1rem;">${currentDynamicThead}<tbody>`;
+                    inDynamicTable = true;
                 }
                 chunkHtml += item.html;
             }
@@ -1595,13 +1693,9 @@ window.onbeforeprint = function(event) {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    opacity: 0.1;
-    z-index: 0;
+    opacity: 0.08;
+    z-index: 9999;
     pointer-events: none;
-}
-.page-watermark > * {
-    position: relative;
-    z-index: 1;
 }
 
 /* ── Page Header (non-cover) ── */
